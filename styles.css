@@ -377,6 +377,12 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #e9f8f5; }
 .badge.group { color: #075b80; background: #d8f1fa; }
 .badge.category { color: #6843a9; background: #eee7fc; }
 .badge.status { color: #08766f; background: #d9f5ec; }
+.badge.strength { border: 1px solid transparent; white-space: nowrap; }
+.badge.strength.present { color: #087251; border-color: #a8e2ce; background: #dff8ed; }
+.badge.strength.relieved { color: #a2403a; border-color: #f0bbb5; background: #fff0ee; }
+.badge.strength.transferred { color: #9a5a16; border-color: #f2cc98; background: #fff5df; }
+.badge.strength.retired { color: #6545a1; border-color: #cfc1ed; background: #f2edfc; }
+.badge.strength.not-set { color: #5f6f78; border-color: #d4dfe3; background: #f2f6f7; }
 .row-action { border-color: #bcdde0; color: #176c83; background: #f7fdfd; }
 .row-action:hover { background: #dff5f3; }
 .row-action.delete { color: #c64f46; border-color: #f1c1bc; background: #fff8f7; }
@@ -396,4 +402,89 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #e9f8f5; }
   .hero-row { padding: 22px; }
   .stat-grid { gap: 11px; }
   .stat-card { min-height: 132px; }
+}
+
+/* ========================================================================== 
+   Employee vertical profile view
+   ========================================================================== */
+
+.employee-row { cursor: pointer; }
+.employee-row:focus { outline: none; }
+.employee-row:focus-visible td,
+.employee-row:active td { background: #dff5f2 !important; }
+.employee-row:focus-visible td:first-child { box-shadow: inset 4px 0 #16a6c9; }
+
+.details-modal { width: min(760px, calc(100% - 28px)); }
+.profile-sheet { min-height: 360px; background: #f7fbfb; }
+.profile-header {
+  background:
+    radial-gradient(circle at 92% 5%, rgba(244,138,69,.16), transparent 14rem),
+    linear-gradient(110deg, #eefbf8, #eef6ff) !important;
+}
+.profile-heading { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.details-avatar {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border: 3px solid rgba(255,255,255,.88);
+  border-radius: 18px;
+  color: white;
+  background: linear-gradient(135deg, #0876a6, #18a991 62%, #f39a57);
+  box-shadow: 0 10px 24px rgba(8,89,111,.2);
+  font-size: 19px;
+  font-weight: 900;
+}
+.profile-heading h2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profile-subtitle { margin: 4px 0 0; color: #617d8b; font-size: 12px; font-weight: 650; }
+.profile-header-actions { display: flex; align-items: center; gap: 12px; }
+.profile-header-actions .badge { font-size: 11px; }
+
+.details-content { display: grid; gap: 16px; padding: 20px 24px 25px; }
+.detail-section {
+  overflow: hidden;
+  border: 1px solid #d5e8e8;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 7px 20px rgba(21,84,103,.055);
+}
+.detail-section h3 {
+  margin: 0;
+  padding: 11px 16px;
+  color: #0d6173;
+  border-bottom: 1px solid #dceaea;
+  background: linear-gradient(90deg, #eaf8f5, #f2f8ff);
+  font-size: 12px;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+.detail-section dl { margin: 0; }
+.detail-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 34%) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  padding: 11px 16px;
+  border-bottom: 1px solid #edf3f3;
+}
+.detail-row:last-child { border-bottom: 0; }
+.detail-row dt { color: #6a818d; font-size: 11px; font-weight: 750; }
+.detail-row dd { min-width: 0; margin: 0; color: #173f52; font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+.detail-value.remarks { white-space: pre-wrap; line-height: 1.55; }
+.detail-value a { color: #0876a6; text-decoration: none; }
+.detail-value a:hover { text-decoration: underline; }
+.detail-empty { color: #98a9b0; font-style: italic; font-weight: 550; }
+
+@media (max-width: 620px) {
+  .profile-header { align-items: flex-start; }
+  .details-avatar { width: 48px; height: 48px; border-radius: 15px; font-size: 16px; }
+  .profile-heading { align-items: flex-start; gap: 11px; }
+  .profile-heading h2 { max-width: 52vw; font-size: 20px; }
+  .profile-subtitle { max-width: 52vw; }
+  .profile-header-actions { gap: 7px; }
+  .profile-header-actions .badge { display: none; }
+  .details-content { gap: 12px; padding: 14px; }
+  .detail-row { grid-template-columns: 1fr; gap: 4px; padding: 10px 13px; }
+  .detail-row dt { font-size: 10px; }
 }

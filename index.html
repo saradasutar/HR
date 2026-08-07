@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260807-colour3">
+  <link rel="stylesheet" href="styles.css?v=20260807-profile1">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -111,7 +111,7 @@
           </label>
           <select id="groupFilter" aria-label="Filter by group"><option value="">All groups</option></select>
           <select id="categoryFilter" aria-label="Filter by category"><option value="">All categories</option></select>
-          <select id="statusFilter" aria-label="Filter by present or permanent status"><option value="">All statuses</option></select>
+          <select id="statusFilter" aria-label="Filter by present strength status"><option value="">All strength statuses</option></select>
           <button id="clearFilters" class="text-btn" type="button">Clear</button>
         </div>
 
@@ -131,6 +131,30 @@
     </main>
   </div>
 
+  <dialog id="employeeDetailsDialog" class="modal details-modal">
+    <div class="profile-sheet">
+      <header class="modal-header profile-header">
+        <div class="profile-heading">
+          <span id="detailsAvatar" class="details-avatar" aria-hidden="true">E</span>
+          <div>
+            <p class="eyebrow accent">Employee profile</p>
+            <h2 id="detailsEmployeeName">Employee details</h2>
+            <p id="detailsEmployeeSubtitle" class="profile-subtitle"></p>
+          </div>
+        </div>
+        <div class="profile-header-actions">
+          <span id="detailsStrengthStatus" class="badge strength not-set">Not set</span>
+          <button class="modal-close" type="button" data-close-dialog="employeeDetailsDialog" aria-label="Close employee details">×</button>
+        </div>
+      </header>
+      <div id="employeeDetailsContent" class="details-content"></div>
+      <footer class="modal-footer">
+        <button class="soft-btn" type="button" data-close-dialog="employeeDetailsDialog">Close</button>
+        <button id="detailsEditButton" class="primary-btn admin-only" type="button">Edit employee</button>
+      </footer>
+    </div>
+  </dialog>
+
   <dialog id="employeeDialog" class="modal">
     <form id="employeeForm" method="dialog">
       <header class="modal-header"><div><p class="eyebrow accent">Employee record</p><h2 id="employeeDialogTitle">Add employee</h2></div><button class="modal-close" type="button" data-close-dialog="employeeDialog" aria-label="Close">×</button></header>
@@ -146,6 +170,8 @@
         <label><span>Date of joining Govt.</span><input id="fieldDoJGovt" type="date"></label>
         <label><span>Date of joining ADG</span><input id="fieldDoJADG" type="date"></label>
         <label><span>Present / Permanent</span><select id="fieldStatus"><option value="">Select</option><option>Present</option><option>Permanent</option><option>Present / Permanent</option><option>On Deputation</option><option>Transferred</option></select></label>
+        <label><span>Strength status *</span><select id="fieldStrengthStatus" required><option value="">Select</option><option>Present</option><option>Relieved</option><option>Transferred</option><option>Retired</option></select><small>Shows whether the employee is in present strength</small></label>
+        <label><span>Relieving / exit date</span><input id="fieldRelievingDate" type="date" disabled><small id="relievingDateHint">Enabled when the employee is no longer in present strength</small></label>
         <label><span>Mobile</span><input id="fieldMobile" inputmode="tel" maxlength="15"></label>
         <label><span>Email</span><input id="fieldEmail" type="email" maxlength="120"></label>
         <label><span>Age</span><input id="fieldAge" readonly placeholder="Calculated from DoB"></label>
@@ -173,6 +199,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260807-2"></script>
+  <script src="app.js?v=20260807-profile1"></script>
 </body>
 </html>

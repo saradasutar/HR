@@ -11,8 +11,17 @@ const CONFIG = Object.freeze({
 const COLUMNS = [
   "Sl No.", "Employee Name", "Employee Code", "Designation", "Grp",
   "REMARK ADMN", "DoB", "DoR", "Cat", "DoJ Govt", "DoJ in ADG",
-  "Present/Permanent", "Mob", "Email", "AGE"
+  "Present/Permanent", "Mob", "Email", "AGE", "Strength Status", "Relieving Date"
 ];
+
+const STRENGTH_STATUSES = Object.freeze(["Present", "Relieved", "Transferred", "Retired"]);
+
+const DETAIL_SECTIONS = Object.freeze([
+  { title: "Identity and posting", fields: ["Sl No.", "Employee Name", "Employee Code", "Designation", "Grp", "Cat"] },
+  { title: "Service details", fields: ["Strength Status", "Relieving Date", "Present/Permanent", "DoJ Govt", "DoJ in ADG", "DoR"] },
+  { title: "Personal details", fields: ["DoB", "AGE", "Mob", "Email"] },
+  { title: "Administration", fields: ["REMARK ADMN"] }
+]);
 
 const state = {
   token: sessionStorage.getItem("hrSessionToken") || "",
@@ -24,7 +33,8 @@ const state = {
   page: 1,
   sortColumn: "Sl No.",
   sortDirection: "asc",
-  search: ""
+  search: "",
+  detailEmployeeCode: ""
 };
 
 const $ = (id) => document.getElementById(id);
@@ -38,13 +48,16 @@ function init() {
     "rememberUsername", "loginButton", "loginError", "logoutButton", "refreshButton",
     "lastUpdated", "displayName", "roleLabel", "userInitial", "statTotal", "statPresent",
     "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter",
-    "categoryFilter", "statusFilter", "clearFilters", "tableHead", "tableBody", "emptyState",
+    "categoryFilter", "statusFilter", "clearFilters", "employeeTable", "tableHead", "tableBody", "emptyState",
     "pageInfo", "pageNumber", "prevPage", "nextPage", "exportButton", "importButton",
     "csvFileInput", "backupButton", "addEmployeeButton", "employeeDialog", "employeeForm",
     "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton",
     "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks",
     "fieldDoB", "fieldDoR", "fieldCategory", "fieldDoJGovt", "fieldDoJADG", "fieldStatus",
+    "fieldStrengthStatus", "fieldRelievingDate", "relievingDateHint",
     "fieldMobile", "fieldEmail", "fieldAge", "loadingOverlay", "loadingText", "toastRegion",
+    "employeeDetailsDialog", "detailsAvatar", "detailsEmployeeName", "detailsEmployeeSubtitle",
+    "detailsStrengthStatus", "employeeDetailsContent", "detailsEditButton",
     "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword",
     "confirmPassword", "passwordFormError"
   ].forEach((id) => { refs[id] = $(id); });
@@ -71,13 +84,16 @@ function init() {
   refs.addEmployeeButton.addEventListener("click", () => openEmployeeDialog());
   refs.employeeForm.addEventListener("submit", saveEmployee);
   refs.fieldDoB.addEventListener("change", updateCalculatedFields);
+  refs.fieldStrengthStatus.addEventListener("change", updateStrengthDateState);
   refs.changePasswordButton.addEventListener("click", () => refs.passwordDialog.showModal());
+  refs.detailsEditButton.addEventListener("click", editSelectedEmployee);
   refs.passwordForm.addEventListener("submit", changePassword);
   document.querySelectorAll("[data-close-dialog]").forEach((button) => {
     button.addEventListener("click", () => $(button.dataset.closeDialog).close());
   });
   document.addEventListener("keydown", handleKeyboardShortcut);
   refs.tableBody.addEventListener("click", handleTableAction);
+  refs.tableBody.addEventListener("keydown", handleTableKeydown);
 
   buildTableHeader();
   if (state.token) restoreSession();
@@ -200,7 +216,8 @@ function buildTableHeader() {
 function populateFilters() {
   populateSelect(refs.groupFilter, uniqueValues("Grp"), "All groups");
   populateSelect(refs.categoryFilter, uniqueValues("Cat"), "All categories");
-  populateSelect(refs.statusFilter, uniqueValues("Present/Permanent"), "All statuses");
+  const values = [...new Set(STRENGTH_STATUSES.concat(state.employees.some((employee) => !String(employee["Strength Status"] || "").trim()) ? ["Not set"] : []))];
+  populateSelect(refs.statusFilter, values, "All strength statuses");
 }
 
 function uniqueValues(key) {
@@ -220,8 +237,8 @@ function applyFilters() {
   const status = refs.statusFilter.value;
   state.search = query;
   state.filtered = state.employees.filter((employee) => {
-    const searchable = COLUMNS.map((key) => employee[key] || "").join(" ").toLocaleLowerCase();
-    return (!query || searchable.includes(query)) && (!group || employee.Grp === group) && (!category || employee.Cat === category) && (!status || employee["Present/Permanent"] === status);
+    const searchable = COLUMNS.map((key) => employee[key] || "").concat(strengthStatus(employee)).join(" ").toLocaleLowerCase();
+    return (!query || searchable.includes(query)) && (!group || employee.Grp === group) && (!category || employee.Cat === category) && (!status || strengthStatus(employee) === status);
   });
   sortEmployees();
   state.page = Math.min(state.page, Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE)));
@@ -259,21 +276,27 @@ function renderTable() {
   refs.tableBody.innerHTML = pageRows.map((employee) => {
     const cells = COLUMNS.map((column) => {
       let raw = employee[column] == null ? "" : String(employee[column]);
-      let display = ["DoB", "DoR", "DoJ Govt", "DoJ in ADG"].includes(column) ? formatDate(raw) : raw;
+      let display = ["DoB", "DoR", "DoJ Govt", "DoJ in ADG", "Relieving Date"].includes(column) ? formatDate(raw) : raw;
       let value = highlight(display, state.search);
       if (column === "Grp" && raw) value = `<span class="badge group">${escapeHtml(raw)}</span>`;
       if (column === "Cat" && raw) value = `<span class="badge category">${escapeHtml(raw)}</span>`;
       if (column === "Present/Permanent" && raw) value = `<span class="badge status">${escapeHtml(raw)}</span>`;
+      if (column === "Strength Status") {
+        display = strengthStatus(employee);
+        value = `<span class="badge strength ${strengthClass(display)}">${escapeHtml(display)}</span>`;
+      }
       const className = column === "REMARK ADMN" ? "remarks-cell" : "";
       return `<td class="${className}" title="${escapeAttribute(display)}">${value || "—"}</td>`;
     }).join("");
     const actions = state.role === "admin" ? `<td><div class="action-cell"><button class="row-action" data-action="edit" data-code="${escapeAttribute(employee["Employee Code"])}">Edit</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(employee["Employee Code"])}">Delete</button></div></td>` : "";
-    return `<tr>${cells}${actions}</tr>`;
+    const employeeCode = escapeAttribute(employee["Employee Code"]);
+    const employeeName = escapeAttribute(employee["Employee Name"] || "employee");
+    return `<tr class="employee-row" tabindex="0" data-employee-code="${employeeCode}" aria-label="View full details for ${employeeName}">${cells}${actions}</tr>`;
   }).join("");
 
   refs.emptyState.hidden = total !== 0;
   refs.employeeTable.hidden = total === 0;
-  refs.resultSummary.textContent = `${total} record${total === 1 ? "" : "s"}${state.search ? " matching search" : ""}`;
+  refs.resultSummary.textContent = `${total} record${total === 1 ? "" : "s"}${state.search ? " matching search" : ""}${total ? " · Click a row for full details" : ""}`;
   const shownStart = total ? start + 1 : 0;
   const shownEnd = Math.min(start + CONFIG.PAGE_SIZE, total);
   const pageCount = Math.max(1, Math.ceil(total / CONFIG.PAGE_SIZE));
@@ -285,7 +308,7 @@ function renderTable() {
 
 function updateStats() {
   refs.statTotal.textContent = state.employees.length.toLocaleString("en-IN");
-  refs.statPresent.textContent = state.employees.filter((employee) => /present/i.test(employee["Present/Permanent"] || "")).length.toLocaleString("en-IN");
+  refs.statPresent.textContent = state.employees.filter((employee) => strengthStatus(employee) === "Present").length.toLocaleString("en-IN");
   refs.statGroupB.textContent = state.employees.filter((employee) => /(^|\s)b($|\s)/i.test(employee.Grp || "")).length.toLocaleString("en-IN");
   const now = new Date();
   const limit = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
@@ -301,11 +324,79 @@ function changePage(delta) {
 
 function handleTableAction(event) {
   const button = event.target.closest("[data-action]");
-  if (!button || state.role !== "admin") return;
-  const employee = state.employees.find((item) => item["Employee Code"] === button.dataset.code);
+  if (button) {
+    if (state.role !== "admin") return;
+    const employee = findEmployee(button.dataset.code);
+    if (!employee) return;
+    if (button.dataset.action === "edit") openEmployeeDialog(employee);
+    if (button.dataset.action === "delete") deleteEmployee(employee);
+    return;
+  }
+  const row = event.target.closest("[data-employee-code]");
+  if (row) openEmployeeDetails(findEmployee(row.dataset.employeeCode));
+}
+
+function handleTableKeydown(event) {
+  if (!(["Enter", " "].includes(event.key)) || event.target.closest("button")) return;
+  const row = event.target.closest("[data-employee-code]");
+  if (!row) return;
+  event.preventDefault();
+  openEmployeeDetails(findEmployee(row.dataset.employeeCode));
+}
+
+function findEmployee(employeeCode) {
+  return state.employees.find((item) => item["Employee Code"] === employeeCode);
+}
+
+function openEmployeeDetails(employee) {
   if (!employee) return;
-  if (button.dataset.action === "edit") openEmployeeDialog(employee);
-  if (button.dataset.action === "delete") deleteEmployee(employee);
+  state.detailEmployeeCode = employee["Employee Code"] || "";
+  const name = employee["Employee Name"] || "Employee details";
+  const designation = employee.Designation || "Designation not recorded";
+  const code = employee["Employee Code"] || "No employee code";
+  const status = strengthStatus(employee);
+  refs.detailsAvatar.textContent = initials(name);
+  refs.detailsEmployeeName.textContent = name;
+  refs.detailsEmployeeSubtitle.textContent = `${designation} · ${code}`;
+  refs.detailsStrengthStatus.className = `badge strength ${strengthClass(status)}`;
+  refs.detailsStrengthStatus.textContent = status;
+  refs.employeeDetailsContent.innerHTML = DETAIL_SECTIONS.map((section) => `
+    <section class="detail-section">
+      <h3>${escapeHtml(section.title)}</h3>
+      <dl>${section.fields.map((field) => detailRow(field, employee[field])).join("")}</dl>
+    </section>
+  `).join("");
+  refs.detailsEditButton.hidden = state.role !== "admin";
+  refs.employeeDetailsDialog.showModal();
+}
+
+function detailRow(field, rawValue) {
+  let raw = rawValue == null ? "" : String(rawValue).trim();
+  if (field === "Strength Status") raw = raw || "Not set";
+  let value = raw ? escapeHtml(raw) : '<span class="detail-empty">Not recorded</span>';
+  if (["DoB", "DoR", "DoJ Govt", "DoJ in ADG", "Relieving Date"].includes(field) && raw) value = escapeHtml(formatDate(raw));
+  if (field === "Strength Status") value = `<span class="badge strength ${strengthClass(raw)}">${escapeHtml(raw)}</span>`;
+  if (field === "Email" && raw) value = `<a href="mailto:${escapeAttribute(raw)}">${escapeHtml(raw)}</a>`;
+  if (field === "Mob" && raw) value = `<a href="tel:${escapeAttribute(raw)}">${escapeHtml(raw)}</a>`;
+  const valueClass = field === "REMARK ADMN" ? "detail-value remarks" : "detail-value";
+  return `<div class="detail-row"><dt>${escapeHtml(detailLabel(field))}</dt><dd class="${valueClass}">${value}</dd></div>`;
+}
+
+function detailLabel(field) {
+  const labels = {
+    "Sl No.": "Serial number", "Grp": "Group", "Cat": "Category", "REMARK ADMN": "Administration remarks",
+    "DoB": "Date of birth", "DoR": "Date of retirement", "DoJ Govt": "Date of joining Government",
+    "DoJ in ADG": "Date of joining ADG", "Present/Permanent": "Appointment status",
+    "Mob": "Mobile", "AGE": "Age", "Relieving Date": "Relieving / exit date"
+  };
+  return labels[field] || field;
+}
+
+function editSelectedEmployee() {
+  const employee = findEmployee(state.detailEmployeeCode);
+  if (!employee || state.role !== "admin") return;
+  refs.employeeDetailsDialog.close();
+  openEmployeeDialog(employee);
 }
 
 function openEmployeeDialog(employee) {
@@ -325,9 +416,12 @@ function openEmployeeDialog(employee) {
   refs.fieldDoJGovt.value = toIsoDate(item["DoJ Govt"] || "");
   refs.fieldDoJADG.value = toIsoDate(item["DoJ in ADG"] || "");
   setSelectValue(refs.fieldStatus, item["Present/Permanent"] || "");
+  setSelectValue(refs.fieldStrengthStatus, item["Strength Status"] || (employee ? "" : "Present"));
+  refs.fieldRelievingDate.value = toIsoDate(item["Relieving Date"] || "");
   refs.fieldMobile.value = item.Mob || "";
   refs.fieldEmail.value = item.Email || "";
   refs.fieldAge.value = item.AGE || "";
+  updateStrengthDateState();
   refs.employeeDialog.showModal();
   setTimeout(() => refs.fieldEmployeeName.focus(), 30);
 }
@@ -340,6 +434,15 @@ function setSelectValue(select, value) {
 function updateCalculatedFields() {
   refs.fieldAge.value = calculateAge(refs.fieldDoB.value);
   if (!refs.fieldDoR.value) refs.fieldDoR.value = calculateGovernmentRetirement(refs.fieldDoB.value);
+}
+
+function updateStrengthDateState() {
+  const status = refs.fieldStrengthStatus.value;
+  const needsDate = Boolean(status && status !== "Present");
+  refs.fieldRelievingDate.disabled = !needsDate;
+  refs.fieldRelievingDate.required = needsDate;
+  if (!needsDate) refs.fieldRelievingDate.value = "";
+  refs.relievingDateHint.textContent = needsDate ? "Required for relieved, transferred or retired staff" : "Enabled when the employee is no longer in present strength";
 }
 
 async function saveEmployee(event) {
@@ -360,7 +463,9 @@ async function saveEmployee(event) {
     "Present/Permanent": refs.fieldStatus.value,
     "Mob": refs.fieldMobile.value.trim(),
     "Email": refs.fieldEmail.value.trim(),
-    "AGE": refs.fieldAge.value
+    "AGE": refs.fieldAge.value,
+    "Strength Status": refs.fieldStrengthStatus.value,
+    "Relieving Date": refs.fieldRelievingDate.value
   };
   setButtonBusy(refs.saveEmployeeButton, true, "Saving…");
   try {
@@ -505,6 +610,9 @@ function friendlyError(error) {
 }
 function calculateAge(value) { const dob = parseDate(value); if (!dob) return ""; const today = new Date(); let age = today.getFullYear() - dob.getFullYear(); const beforeBirthday = today.getMonth() < dob.getMonth() || (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate()); if (beforeBirthday) age -= 1; return age >= 0 ? String(age) : ""; }
 function calculateGovernmentRetirement(value) { const dob = parseDate(value); if (!dob) return ""; const year = dob.getFullYear() + 60; const month = dob.getMonth(); const date = dob.getDate() === 1 ? new Date(year, month, 0) : new Date(year, month + 1, 0); return toIsoLocal(date); }
+function strengthStatus(employee) { return String(employee && employee["Strength Status"] || "").trim() || "Not set"; }
+function strengthClass(value) { return String(value || "").toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "") || "not-set"; }
+function initials(value) { return String(value || "E").trim().split(/\s+/).slice(0, 2).map((part) => part.charAt(0)).join("").toUpperCase() || "E"; }
 function parseDate(value) { if (!value) return null; const iso = toIsoDate(value); if (!iso) return null; const parts = iso.split("-").map(Number); const date = new Date(parts[0], parts[1] - 1, parts[2]); return Number.isNaN(date.getTime()) ? null : date; }
 function toIsoDate(value) { const text = String(value || "").trim(); if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text; const match = text.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/); return match ? `${match[3]}-${match[2].padStart(2,"0")}-${match[1].padStart(2,"0")}` : ""; }
 function toIsoLocal(date) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`; }
