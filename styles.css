@@ -436,8 +436,9 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #e9f8f5; }
   font-size: 19px;
   font-weight: 900;
 }
-.profile-heading h2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.profile-subtitle { margin: 4px 0 0; color: #617d8b; font-size: 12px; font-weight: 650; }
+.profile-heading h2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 900; }
+.profile-heading .eyebrow { font-weight: 900; }
+.profile-subtitle { margin: 4px 0 0; color: #476978; font-size: 12px; font-weight: 850; }
 .profile-header-actions { display: flex; align-items: center; gap: 12px; }
 .profile-header-actions .badge { font-size: 11px; }
 
@@ -455,7 +456,8 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #e9f8f5; }
   color: #0d6173;
   border-bottom: 1px solid #dceaea;
   background: linear-gradient(90deg, #eaf8f5, #f2f8ff);
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 900;
   letter-spacing: .045em;
   text-transform: uppercase;
 }
@@ -469,10 +471,10 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #e9f8f5; }
   border-bottom: 1px solid #edf3f3;
 }
 .detail-row:last-child { border-bottom: 0; }
-.detail-row dt { color: #6a818d; font-size: 11px; font-weight: 750; }
-.detail-row dd { min-width: 0; margin: 0; color: #173f52; font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+.detail-row dt { color: #425f6d; font-size: 12px; font-weight: 900; }
+.detail-row dd { min-width: 0; margin: 0; color: #123b4f; font-size: 14px; font-weight: 850; overflow-wrap: anywhere; }
 .detail-value.remarks { white-space: pre-wrap; line-height: 1.55; }
-.detail-value a { color: #0876a6; text-decoration: none; }
+.detail-value a { color: #0876a6; text-decoration: none; font-weight: 900; }
 .detail-value a:hover { text-decoration: underline; }
 .detail-empty { color: #98a9b0; font-style: italic; font-weight: 550; }
 
@@ -486,5 +488,5 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #e9f8f5; }
   .profile-header-actions .badge { display: none; }
   .details-content { gap: 12px; padding: 14px; }
   .detail-row { grid-template-columns: 1fr; gap: 4px; padding: 10px 13px; }
-  .detail-row dt { font-size: 10px; }
+  .detail-row dt { font-size: 11px; }
 }
