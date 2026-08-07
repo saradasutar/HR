@@ -481,7 +481,10 @@ function apiRequest(action, data, includeToken = true) {
     const cleanup = () => { window.removeEventListener("message", onMessage); form.remove(); setTimeout(() => frame.remove(), 0); };
     const timeout = setTimeout(() => { if (finished) return; finished = true; cleanup(); reject(Object.assign(new Error("The backend took too long to respond."), { code: "TIMEOUT" })); }, CONFIG.REQUEST_TIMEOUT_MS);
     const onMessage = (event) => {
-      if (event.source !== frame.contentWindow || !event.data || event.data.channel !== CONFIG.CHANNEL || event.data.requestId !== requestId || finished) return;
+      // Apps Script HTML responses may execute inside an additional Google sandbox frame.
+      // In that case event.source is not always the outer iframe's contentWindow,
+      // so validate the private requestId + channel instead of rejecting the reply.
+      if (!event.data || event.data.channel !== CONFIG.CHANNEL || event.data.requestId !== requestId || finished) return;
       finished = true; clearTimeout(timeout); cleanup();
       if (event.data.ok) resolve(event.data.data || {});
       else reject(Object.assign(new Error(event.data.message || "Request failed."), { code: event.data.code || "API_ERROR" }));
