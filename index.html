@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#075985">
+  <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
+  <title>ADG(B) HR Dashboard</title>
+  <link rel="stylesheet" href="styles.css?v=20260807-colour3">
+</head>
+<body>
+  <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
+
+  <section id="loginView" class="login-view">
+    <div class="login-shell">
+      <aside class="login-brand">
+        <div class="brand-mark" aria-hidden="true">HR</div>
+        <p class="eyebrow">O/o ADG(B) · CPWD Bengaluru</p>
+        <h1>People data,<br><span>beautifully organised.</span></h1>
+        <p class="brand-copy">A secure employee master dashboard with quick search, retirement visibility and controlled data maintenance.</p>
+        <div class="feature-pills" aria-label="Dashboard highlights">
+          <span>Fast search</span><span>Role-based access</span><span>Sheet backed</span>
+        </div>
+        <div class="brand-orb orb-one"></div>
+        <div class="brand-orb orb-two"></div>
+      </aside>
+
+      <main class="login-card-wrap">
+        <form id="loginForm" class="login-card" autocomplete="on">
+          <div class="mobile-brand"><span>HR</span> ADG(B) Bengaluru</div>
+          <p class="eyebrow accent">Secure access</p>
+          <h2>Welcome back</h2>
+          <p class="muted">Sign in with your assigned username and password.</p>
+
+          <label class="field-label" for="username">Username</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"/></svg>
+            <input id="username" name="username" type="text" autocomplete="username" required placeholder="Enter username">
+          </div>
+
+          <label class="field-label" for="password">Password</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3M5 10h14v11H5V10Z"/></svg>
+            <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Enter password">
+            <button id="togglePassword" class="icon-btn password-toggle" type="button" aria-label="Show password">Show</button>
+          </div>
+
+          <label class="remember-row"><input id="rememberUsername" type="checkbox"> Remember username on this device</label>
+          <p id="loginError" class="form-error" role="alert" aria-live="polite"></p>
+          <button id="loginButton" class="primary-btn login-btn" type="submit">
+            <span>Sign in securely</span><span aria-hidden="true">→</span>
+          </button>
+          <p class="privacy-note">Employee information is requested only after successful authentication.</p>
+        </form>
+      </main>
+    </div>
+  </section>
+
+  <div id="dashboardView" class="dashboard-view" hidden>
+    <header class="topbar">
+      <div class="topbar-brand">
+        <div class="compact-mark">HR</div>
+        <div><strong>HR Command Centre</strong><span>O/o ADG(B), CPWD Bengaluru</span></div>
+      </div>
+      <div class="topbar-actions">
+        <span id="lastUpdated" class="last-updated">Not yet refreshed</span>
+        <button id="refreshButton" class="soft-btn" type="button" title="Refresh employee data">↻ <span>Refresh</span></button>
+        <div class="user-chip">
+          <span id="userInitial" class="avatar">A</span>
+          <span class="user-text"><strong id="displayName">Administrator</strong><small id="roleLabel">Admin access</small></span>
+        </div>
+        <button id="logoutButton" class="logout-btn" type="button">Logout</button>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="hero-row">
+        <div>
+          <p class="eyebrow accent">Employee master</p>
+          <h1>Workforce at a glance</h1>
+          <p class="muted">Search, review and maintain all employee records from one responsive dashboard.</p>
+        </div>
+        <div class="hero-actions admin-only">
+          <button id="backupButton" class="soft-btn" type="button">Create backup</button>
+          <button id="addEmployeeButton" class="primary-btn" type="button"><span aria-hidden="true">＋</span> Add employee</button>
+        </div>
+      </section>
+
+      <section class="stat-grid" aria-label="Employee statistics">
+        <article class="stat-card blue"><div class="stat-icon">👥</div><div><span>Total employees</span><strong id="statTotal">0</strong><small>Employee master</small></div></article>
+        <article class="stat-card teal"><div class="stat-icon">✓</div><div><span>Present strength</span><strong id="statPresent">0</strong><small>Marked present</small></div></article>
+        <article class="stat-card amber"><div class="stat-icon">⌛</div><div><span>Retiring in 24 months</span><strong id="statRetiring">0</strong><small>Based on DoR</small></div></article>
+        <article class="stat-card violet"><div class="stat-icon">B</div><div><span>Group B employees</span><strong id="statGroupB">0</strong><small>Current records</small></div></article>
+      </section>
+
+      <section class="data-panel">
+        <div class="panel-heading">
+          <div><h2>Employee directory</h2><p id="resultSummary">0 records</p></div>
+          <div class="panel-actions">
+            <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
+            <button id="importButton" class="soft-btn admin-only" type="button">Import CSV</button>
+            <button id="exportButton" class="soft-btn" type="button">Export CSV</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <label class="search-box" for="globalSearch">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+            <input id="globalSearch" type="search" placeholder="Search name, employee code, designation, mobile, email…">
+            <kbd>⌘ K</kbd>
+          </label>
+          <select id="groupFilter" aria-label="Filter by group"><option value="">All groups</option></select>
+          <select id="categoryFilter" aria-label="Filter by category"><option value="">All categories</option></select>
+          <select id="statusFilter" aria-label="Filter by present or permanent status"><option value="">All statuses</option></select>
+          <button id="clearFilters" class="text-btn" type="button">Clear</button>
+        </div>
+
+        <div class="table-wrap">
+          <table id="employeeTable">
+            <thead><tr id="tableHead"></tr></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+          <div id="emptyState" class="empty-state" hidden><div>⌕</div><h3>No matching employee found</h3><p>Try a different name, code or filter.</p></div>
+        </div>
+
+        <footer class="table-footer">
+          <span id="pageInfo">Showing 0–0 of 0</span>
+          <div class="pagination"><button id="prevPage" type="button">Previous</button><span id="pageNumber">Page 1</span><button id="nextPage" type="button">Next</button></div>
+        </footer>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="employeeDialog" class="modal">
+    <form id="employeeForm" method="dialog">
+      <header class="modal-header"><div><p class="eyebrow accent">Employee record</p><h2 id="employeeDialogTitle">Add employee</h2></div><button class="modal-close" type="button" data-close-dialog="employeeDialog" aria-label="Close">×</button></header>
+      <input id="originalEmployeeCode" type="hidden">
+      <div class="form-grid">
+        <label><span>Employee name *</span><input id="fieldEmployeeName" required maxlength="100"></label>
+        <label><span>Employee code *</span><input id="fieldEmployeeCode" required maxlength="30"></label>
+        <label><span>Designation</span><input id="fieldDesignation" maxlength="80"></label>
+        <label><span>Group</span><select id="fieldGroup"><option value="">Select</option><option>Group A</option><option>Group B</option><option>Group C</option><option>Group D</option></select></label>
+        <label><span>Date of birth</span><input id="fieldDoB" type="date"></label>
+        <label><span>Date of retirement</span><input id="fieldDoR" type="date"><small>Auto-calculated if left blank</small></label>
+        <label><span>Category</span><select id="fieldCategory"><option value="">Select</option><option>UR</option><option>OBC</option><option>SC</option><option>ST</option><option>EWS</option></select></label>
+        <label><span>Date of joining Govt.</span><input id="fieldDoJGovt" type="date"></label>
+        <label><span>Date of joining ADG</span><input id="fieldDoJADG" type="date"></label>
+        <label><span>Present / Permanent</span><select id="fieldStatus"><option value="">Select</option><option>Present</option><option>Permanent</option><option>Present / Permanent</option><option>On Deputation</option><option>Transferred</option></select></label>
+        <label><span>Mobile</span><input id="fieldMobile" inputmode="tel" maxlength="15"></label>
+        <label><span>Email</span><input id="fieldEmail" type="email" maxlength="120"></label>
+        <label><span>Age</span><input id="fieldAge" readonly placeholder="Calculated from DoB"></label>
+        <label class="wide"><span>Remarks (Administration)</span><textarea id="fieldRemarks" rows="3" maxlength="500"></textarea></label>
+      </div>
+      <p id="employeeFormError" class="form-error" role="alert"></p>
+      <footer class="modal-footer"><button class="soft-btn" type="button" data-close-dialog="employeeDialog">Cancel</button><button id="saveEmployeeButton" class="primary-btn" type="submit">Save employee</button></footer>
+    </form>
+  </dialog>
+
+  <dialog id="passwordDialog" class="modal small-modal">
+    <form id="passwordForm" method="dialog">
+      <header class="modal-header"><div><p class="eyebrow accent">Account security</p><h2>Change password</h2></div><button class="modal-close" type="button" data-close-dialog="passwordDialog">×</button></header>
+      <div class="form-stack">
+        <label><span>Current password</span><input id="currentPassword" type="password" required autocomplete="current-password"></label>
+        <label><span>New password</span><input id="newPassword" type="password" required minlength="10" autocomplete="new-password"><small>Use at least 10 characters.</small></label>
+        <label><span>Confirm new password</span><input id="confirmPassword" type="password" required minlength="10" autocomplete="new-password"></label>
+      </div>
+      <p id="passwordFormError" class="form-error" role="alert"></p>
+      <footer class="modal-footer"><button class="soft-btn" type="button" data-close-dialog="passwordDialog">Cancel</button><button class="primary-btn" type="submit">Update password</button></footer>
+    </form>
+  </dialog>
+
+  <button id="changePasswordButton" class="security-fab" type="button" hidden title="Change password">🔐</button>
+  <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
+  <div id="toastRegion" class="toast-region" aria-live="polite"></div>
+
+  <script src="app.js?v=20260807-2"></script>
+</body>
+</html>
