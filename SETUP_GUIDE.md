@@ -74,23 +74,21 @@ The **Employees** sheet contains these columns in the requested order:
 6. Click **Deploy**.
 7. Copy the Web app URL ending in `/exec`.
 
-Keep the Web app URL. You will paste it into the GitHub frontend.
+Keep the Web app URL. This package is already connected to the current HR Dashboard deployment; update `app.js` only if a different Apps Script deployment is created later.
 
 Official reference: [Google Apps Script Web Apps](https://developers.google.com/apps-script/guides/web).
 
 ## Part B — Connect and publish the GitHub frontend
 
-### 6. Connect the backend URL
+### 6. Confirm the backend URL
 
-1. Open the supplied `github-pages/app.js` file.
-2. At the top, find:
+The supplied `github-pages/app.js` is already connected to:
 
 ```javascript
-API_URL: "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE",
+API_URL: "https://script.google.com/macros/s/AKfycbyKl3NFNmrtlVQ1H4orpyLQiz9-W2O3VRiDx8rztnD3kltehP7z-itz6fYIyUu-Pw/exec",
 ```
 
-3. Replace only the text inside quotation marks with the copied `/exec` URL.
-4. Save the file.
+If you create a different Apps Script deployment, replace only the URL inside quotation marks and save the file.
 
 ### 7. Upload to GitHub
 
@@ -177,4 +175,3 @@ The `/exec` URL normally remains unchanged when the existing deployment is updat
 ## Important privacy note
 
 The public GitHub repository contains only interface code and the Apps Script URL—no employee records or passwords. Employee data remains in the owner’s Google Sheet and is returned only after backend authentication. Because HR data is confidential, obtain the competent authority’s approval for the chosen hosting and access arrangement, limit who receives credentials, and do not place real employee data in GitHub files.
-
