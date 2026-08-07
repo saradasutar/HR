@@ -2,7 +2,7 @@
 
 /* Replace only this URL after deploying Code.gs as a Google Apps Script web app. */
 const CONFIG = Object.freeze({
-  API_URL: "https://script.google.com/macros/s/AKfycbzxjIrPXXiXaCVZdB5QbOYf61AHz4a9574DDfWd0TnJk3Y1SBLVgoN-WN9hDJyqYOFP/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbyKl3NFNmrtlVQ1H4orpyLQiz9-W2O3VRiDx8rztnD3kltehP7z-itz6fYIyUu-Pw/exec",
   CHANNEL: "ADG_HR_API_V1",
   PAGE_SIZE: 20,
   REQUEST_TIMEOUT_MS: 45000
