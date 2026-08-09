@@ -10,15 +10,17 @@ const CONFIG = Object.freeze({
 
 const COLUMNS = [
   "Sl No.", "Employee Name", "Employee Code", "Designation", "Grp",
-  "REMARK ADMN", "DoB", "DoR", "Cat", "DoJ Govt", "DoJ in ADG",
-  "Present/Permanent", "Mob", "Email", "AGE", "Strength Status", "Relieving Date"
+  "Strength Status", "Post Sensitivity", "Cat", "Present/Permanent",
+  "DoB", "AGE", "DoR", "Relieving Date", "DoJ Govt", "DoJ in ADG",
+  "Mob", "Email", "REMARK ADMN"
 ];
 
 const STRENGTH_STATUSES = Object.freeze(["Present", "Relieved", "Transferred", "Retired"]);
+const SENSITIVITY_VALUES = Object.freeze(["Sensitive", "Non-Sensitive"]);
 
 const DETAIL_SECTIONS = Object.freeze([
   { title: "Identity and posting", fields: ["Sl No.", "Employee Name", "Employee Code", "Designation", "Grp", "Cat"] },
-  { title: "Service details", fields: ["Strength Status", "Relieving Date", "Present/Permanent", "DoJ Govt", "DoJ in ADG", "DoR"] },
+  { title: "Service details", fields: ["Strength Status", "Post Sensitivity", "Relieving Date", "Present/Permanent", "DoJ Govt", "DoJ in ADG", "DoR"] },
   { title: "Personal details", fields: ["DoB", "AGE", "Mob", "Email"] },
   { title: "Administration", fields: ["REMARK ADMN"] }
 ]);
@@ -59,17 +61,17 @@ function init() {
     "loginView", "dashboardView", "loginForm", "username", "password", "togglePassword",
     "rememberUsername", "loginButton", "loginError", "logoutButton", "refreshButton",
     "lastUpdated", "displayName", "roleLabel", "userInitial", "statTotal", "statPresent",
-    "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter",
-    "categoryFilter", "statusFilter", "clearFilters", "employeeTable", "tableHead", "tableBody", "emptyState",
-    "pageInfo", "pageNumber", "prevPage", "nextPage", "exportButton", "importButton",
+    "statSensitive", "statNonSensitive", "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter",
+    "categoryFilter", "statusFilter", "sensitivityFilter", "appointmentFilter", "clearFilters", "employeeTable", "tableHead", "tableBody", "emptyState",
+    "pageInfo", "pageNumber", "prevPage", "nextPage", "exportButton", "importButton", "printFilteredButton",
     "csvFileInput", "backupButton", "addEmployeeButton", "employeeDialog", "employeeForm",
     "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton",
     "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks",
     "fieldDoB", "fieldDoR", "fieldCategory", "fieldDoJGovt", "fieldDoJADG", "fieldStatus",
-    "fieldStrengthStatus", "fieldRelievingDate", "relievingDateHint",
+    "fieldPostSensitivity", "fieldStrengthStatus", "fieldRelievingDate", "relievingDateHint",
     "fieldMobile", "fieldEmail", "fieldAge", "loadingOverlay", "loadingText", "toastRegion",
     "employeeDetailsDialog", "detailsAvatar", "detailsEmployeeName", "detailsEmployeeSubtitle",
-    "detailsStrengthStatus", "employeeDetailsContent", "detailsEditButton",
+    "detailsStrengthStatus", "detailsPostSensitivity", "employeeDetailsContent", "detailsEditButton",
     "reportsButton", "reportDialog", "reportForm", "reportType", "reportReferenceField",
     "reportReferenceDate", "reportAgeMinField", "reportAgeMin", "reportAgeMaxField", "reportAgeMax",
     "reportFromField", "reportFromDate", "reportToField", "reportToDate", "reportValueField",
@@ -93,10 +95,13 @@ function init() {
   refs.groupFilter.addEventListener("change", applyFilters);
   refs.categoryFilter.addEventListener("change", applyFilters);
   refs.statusFilter.addEventListener("change", applyFilters);
+  refs.sensitivityFilter.addEventListener("change", applyFilters);
+  refs.appointmentFilter.addEventListener("change", applyFilters);
   refs.clearFilters.addEventListener("click", clearFilters);
   refs.prevPage.addEventListener("click", () => changePage(-1));
   refs.nextPage.addEventListener("click", () => changePage(1));
   refs.exportButton.addEventListener("click", exportFilteredCsv);
+  refs.printFilteredButton.addEventListener("click", openFilteredReport);
   refs.importButton.addEventListener("click", () => refs.csvFileInput.click());
   refs.csvFileInput.addEventListener("change", importCsv);
   refs.backupButton.addEventListener("click", createBackup);
@@ -245,6 +250,9 @@ function populateFilters() {
   populateSelect(refs.categoryFilter, uniqueValues("Cat"), "All categories");
   const values = [...new Set(STRENGTH_STATUSES.concat(state.employees.some((employee) => !String(employee["Strength Status"] || "").trim()) ? ["Not set"] : []))];
   populateSelect(refs.statusFilter, values, "All strength statuses");
+  const sensitivities = [...new Set(SENSITIVITY_VALUES.concat(state.employees.some((employee) => !String(employee["Post Sensitivity"] || "").trim()) ? ["Not set"] : []))];
+  populateSelect(refs.sensitivityFilter, sensitivities, "All post sensitivities");
+  populateSelect(refs.appointmentFilter, uniqueValues("Present/Permanent"), "All appointment statuses");
 }
 
 function uniqueValues(key) {
@@ -262,10 +270,17 @@ function applyFilters() {
   const group = refs.groupFilter.value;
   const category = refs.categoryFilter.value;
   const status = refs.statusFilter.value;
+  const sensitivity = refs.sensitivityFilter.value;
+  const appointment = refs.appointmentFilter.value;
   state.search = query;
   state.filtered = state.employees.filter((employee) => {
-    const searchable = COLUMNS.map((key) => employee[key] || "").concat(strengthStatus(employee)).join(" ").toLocaleLowerCase();
-    return (!query || searchable.includes(query)) && (!group || employee.Grp === group) && (!category || employee.Cat === category) && (!status || strengthStatus(employee) === status);
+    const searchable = COLUMNS.map((key) => employee[key] || "").concat(strengthStatus(employee), sensitivityStatus(employee)).join(" ").toLocaleLowerCase();
+    return (!query || searchable.includes(query)) &&
+      (!group || employee.Grp === group) &&
+      (!category || employee.Cat === category) &&
+      (!status || strengthStatus(employee) === status) &&
+      (!sensitivity || sensitivityStatus(employee) === sensitivity) &&
+      (!appointment || String(employee["Present/Permanent"] || "") === appointment);
   });
   sortEmployees();
   state.page = Math.min(state.page, Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE)));
@@ -278,6 +293,8 @@ function clearFilters() {
   refs.groupFilter.value = "";
   refs.categoryFilter.value = "";
   refs.statusFilter.value = "";
+  refs.sensitivityFilter.value = "";
+  refs.appointmentFilter.value = "";
   state.page = 1;
   applyFilters();
 }
@@ -312,6 +329,10 @@ function renderTable() {
         display = strengthStatus(employee);
         value = `<span class="badge strength ${strengthClass(display)}">${escapeHtml(display)}</span>`;
       }
+      if (column === "Post Sensitivity") {
+        display = sensitivityStatus(employee);
+        value = `<span class="badge sensitivity ${sensitivityClass(display)}">${escapeHtml(display)}</span>`;
+      }
       const className = column === "REMARK ADMN" ? "remarks-cell" : "";
       return `<td class="${className}" title="${escapeAttribute(display)}">${value || "—"}</td>`;
     }).join("");
@@ -336,6 +357,8 @@ function renderTable() {
 function updateStats() {
   refs.statTotal.textContent = state.employees.length.toLocaleString("en-IN");
   refs.statPresent.textContent = state.employees.filter((employee) => strengthStatus(employee) === "Present").length.toLocaleString("en-IN");
+  refs.statSensitive.textContent = state.employees.filter((employee) => strengthStatus(employee) === "Present" && sensitivityStatus(employee) === "Sensitive").length.toLocaleString("en-IN");
+  refs.statNonSensitive.textContent = state.employees.filter((employee) => strengthStatus(employee) === "Present" && sensitivityStatus(employee) === "Non-Sensitive").length.toLocaleString("en-IN");
   refs.statGroupB.textContent = state.employees.filter((employee) => /(^|\s)b($|\s)/i.test(employee.Grp || "")).length.toLocaleString("en-IN");
   const now = new Date();
   const limit = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
@@ -347,6 +370,26 @@ function openReports() {
   generateReport();
   refs.reportDialog.showModal();
   setTimeout(() => refs.reportType.focus(), 30);
+}
+
+function openFilteredReport() {
+  refs.reportType.value = "filtered";
+  updateReportControls();
+  generateReport();
+  refs.reportDialog.showModal();
+  setTimeout(() => refs.reportPrintButton.focus(), 30);
+}
+
+function currentFilterCriteria() {
+  const criteria = [];
+  const search = refs.globalSearch.value.trim();
+  if (search) criteria.push(`Search contains “${search}”`);
+  if (refs.groupFilter.value) criteria.push(`Group: ${refs.groupFilter.value}`);
+  if (refs.categoryFilter.value) criteria.push(`Category: ${refs.categoryFilter.value}`);
+  if (refs.statusFilter.value) criteria.push(`Strength Status: ${refs.statusFilter.value}`);
+  if (refs.sensitivityFilter.value) criteria.push(`Post Sensitivity: ${refs.sensitivityFilter.value}`);
+  if (refs.appointmentFilter.value) criteria.push(`Appointment Status: ${refs.appointmentFilter.value}`);
+  return criteria.length ? criteria.join(" · ") : "No dashboard filter applied; all employees are included.";
 }
 
 function resetReportForm(shouldGenerate) {
@@ -366,7 +409,7 @@ function updateReportControls() {
   const type = refs.reportType.value;
   const isAge = type === "age";
   const isDateRange = Object.prototype.hasOwnProperty.call(DATE_REPORTS, type);
-  const isValue = ["strength", "group", "category"].includes(type);
+  const isValue = ["strength", "sensitivity", "group", "category"].includes(type);
   refs.reportReferenceField.hidden = !isAge;
   refs.reportAgeMinField.hidden = !isAge;
   refs.reportAgeMaxField.hidden = !isAge;
@@ -378,6 +421,7 @@ function updateReportControls() {
   if (!isValue) return;
   const settings = {
     strength: { label: "Strength status", first: "All strength statuses", values: STRENGTH_STATUSES.concat("Not set") },
+    sensitivity: { label: "Post sensitivity", first: "All post sensitivities", values: SENSITIVITY_VALUES.concat("Not set") },
     group: { label: "Employee group", first: "All groups", values: uniqueValues("Grp") },
     category: { label: "Employee category", first: "All categories", values: uniqueValues("Cat") }
   }[type];
@@ -402,6 +446,17 @@ function applyReportPreset(event) {
     refs.reportType.value = "strength";
     updateReportControls();
     refs.reportValue.value = "Present";
+  } else if (preset === "present-sensitive") {
+    refs.reportType.value = "sensitivity";
+    updateReportControls();
+    refs.reportValue.value = "Sensitive";
+  } else if (preset === "present-non-sensitive") {
+    refs.reportType.value = "sensitivity";
+    updateReportControls();
+    refs.reportValue.value = "Non-Sensitive";
+  } else if (preset === "filtered") {
+    refs.reportType.value = "filtered";
+    updateReportControls();
   } else if (preset === "not-present") {
     refs.reportType.value = "not-present";
     updateReportControls();
@@ -429,7 +484,9 @@ function generateReport(event) {
     return;
   }
 
-  let rows = state.employees.filter((employee) => {
+  const reportSource = type === "filtered" ? state.filtered : state.employees;
+  let rows = reportSource.filter((employee) => {
+    if (type === "filtered") return true;
     if (type === "age") {
       const age = ageOnDate(employee.DoB, referenceDate);
       return age != null && age >= minimumAge && age <= maximumAge;
@@ -439,6 +496,7 @@ function generateReport(event) {
       return Boolean(employeeDate && (!fromDate || employeeDate >= fromDate) && (!toDate || employeeDate <= toDate));
     }
     if (type === "strength") return !selectedValue || strengthStatus(employee) === selectedValue;
+    if (type === "sensitivity") return strengthStatus(employee) === "Present" && (!selectedValue || sensitivityStatus(employee) === selectedValue);
     if (type === "not-present") return ["Relieved", "Transferred", "Retired"].includes(strengthStatus(employee));
     if (type === "group") return !selectedValue || String(employee.Grp || "") === selectedValue;
     if (type === "category") return !selectedValue || String(employee.Cat || "") === selectedValue;
@@ -479,6 +537,8 @@ function describeReport(type, values) {
     return { title: `${DATE_REPORTS[type].title} ${period.title}`, criteria: `${DATE_REPORTS[type].field}: ${period.criteria}. Both boundary dates are included.` };
   }
   if (type === "strength") return { title: selectedLabel === "All" ? "Employees by strength status" : `${selectedLabel} employees`, criteria: selectedLabel === "All" ? "All strength statuses are included." : `Strength Status is ${selectedLabel}.` };
+  if (type === "sensitivity") return { title: selectedLabel === "All" ? "Present employees by post sensitivity" : `Present employees on ${selectedLabel.toLowerCase()} posts`, criteria: selectedLabel === "All" ? "All present employees are included, grouped by Post Sensitivity." : `Strength Status is Present and Post Sensitivity is ${selectedLabel}.` };
+  if (type === "filtered") return { title: "Filtered Employee Report", criteria: currentFilterCriteria() };
   if (type === "not-present") return { title: "Relieved, transferred and retired employees", criteria: "Employees not forming part of present strength, based on Strength Status." };
   if (type === "group") return { title: selectedLabel === "All" ? "Group-wise employee report" : `${selectedLabel} employees`, criteria: selectedLabel === "All" ? "All employee groups are included." : `Employee group is ${selectedLabel}.` };
   if (type === "category") return { title: selectedLabel === "All" ? "Category-wise employee report" : `${selectedLabel} category employees`, criteria: selectedLabel === "All" ? "All employee categories are included." : `Employee category is ${selectedLabel}.` };
@@ -503,20 +563,24 @@ function reportColumns(type, referenceDate) {
   const dob = { label: "Date of Birth", get: (employee) => formatDate(employee.DoB || "") };
   const dor = { label: "Date of Retirement", get: (employee) => formatDate(employee.DoR || "") };
   const strength = { label: "Strength Status", get: (employee) => strengthStatus(employee) };
+  const sensitivity = { label: "Post Sensitivity", get: (employee) => sensitivityStatus(employee) };
+  const appointment = { label: "Present / Permanent", get: (employee) => employee["Present/Permanent"] || "" };
   const exitDate = { label: "Relieving / Exit Date", get: (employee) => formatDate(employee["Relieving Date"] || "") };
   const currentAge = { label: "Current Age", get: (employee) => { const age = ageOnDate(employee.DoB, new Date()); return age == null ? "" : age; } };
 
   if (type === "age") {
     const age = { label: `Age on ${formatDate(toIsoLocal(referenceDate))}`, get: (employee) => ageOnDate(employee.DoB, referenceDate) };
-    return [sequence, name, code, designation, group, dob, age, dor, strength];
+    return [sequence, name, code, designation, group, sensitivity, dob, age, dor, strength];
   }
   if (Object.prototype.hasOwnProperty.call(DATE_REPORTS, type)) {
     const dateField = DATE_REPORTS[type].field;
     const reportDate = { label: detailLabel(dateField), get: (employee) => formatDate(employee[dateField] || "") };
     const finalDate = type === "relieving" ? dor : exitDate;
-    return [sequence, name, code, designation, group, reportDate, strength, finalDate];
+    return [sequence, name, code, designation, group, sensitivity, reportDate, strength, finalDate];
   }
-  return [sequence, name, code, designation, group, category, dob, currentAge, dor, strength, exitDate];
+  if (type === "sensitivity") return [sequence, name, code, designation, group, category, sensitivity, strength];
+  if (type === "filtered") return [sequence, name, code, designation, group, category, strength, sensitivity, appointment, dob, currentAge, dor, exitDate];
+  return [sequence, name, code, designation, group, category, sensitivity, dob, currentAge, dor, strength, exitDate];
 }
 
 function renderReport() {
@@ -525,17 +589,29 @@ function renderReport() {
   refs.reportCriteria.textContent = state.reportCriteria;
   refs.reportCount.textContent = `${count.toLocaleString("en-IN")} employee${count === 1 ? "" : "s"}`;
   refs.reportGeneratedAt.textContent = `Generated ${new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(new Date())}`;
-  refs.reportTableHead.innerHTML = state.reportColumns.map((column) => `<th>${escapeHtml(column.label)}</th>`).join("");
+  refs.reportTableHead.innerHTML = state.reportColumns.map((column) => {
+    const className = reportColumnClass(column.label);
+    return `<th class="${className}">${escapeHtml(column.label)}</th>`;
+  }).join("");
   refs.reportTableBody.innerHTML = state.reportRows.map((employee, index) => `<tr>${state.reportColumns.map((column) => {
     const raw = column.get(employee, index);
     const value = raw == null || raw === "" ? "—" : raw;
-    return `<td>${escapeHtml(value)}</td>`;
+    const className = reportColumnClass(column.label);
+    if (column.label === "Post Sensitivity") return `<td class="${className}"><span class="badge sensitivity ${sensitivityClass(value)}">${escapeHtml(value)}</span></td>`;
+    if (column.label === "Strength Status") return `<td class="${className}"><span class="badge strength ${strengthClass(value)}">${escapeHtml(value)}</span></td>`;
+    return `<td class="${className}">${escapeHtml(value)}</td>`;
   }).join("")}</tr>`).join("");
   refs.reportTableWrap.hidden = count === 0;
   refs.reportEmptyState.hidden = count !== 0;
   refs.reportExportButton.disabled = count === 0;
   refs.reportPrintButton.disabled = count === 0;
   refs.reportFooterSummary.textContent = count ? `${count.toLocaleString("en-IN")} matching employee${count === 1 ? "" : "s"} ready to print` : "No matching employees";
+}
+
+function reportColumnClass(label) {
+  if (label === "Post Sensitivity") return "report-sensitivity-column";
+  if (label === "Strength Status") return "report-strength-column";
+  return "";
 }
 
 function exportReportCsv() {
@@ -610,11 +686,14 @@ function openEmployeeDetails(employee) {
   const designation = employee.Designation || "Designation not recorded";
   const code = employee["Employee Code"] || "No employee code";
   const status = strengthStatus(employee);
+  const postSensitivity = sensitivityStatus(employee);
   refs.detailsAvatar.textContent = initials(name);
   refs.detailsEmployeeName.textContent = name;
   refs.detailsEmployeeSubtitle.textContent = `${designation} · ${code}`;
   refs.detailsStrengthStatus.className = `badge strength ${strengthClass(status)}`;
   refs.detailsStrengthStatus.textContent = status;
+  refs.detailsPostSensitivity.className = `badge sensitivity ${sensitivityClass(postSensitivity)}`;
+  refs.detailsPostSensitivity.textContent = `Post: ${postSensitivity}`;
   refs.employeeDetailsContent.innerHTML = DETAIL_SECTIONS.map((section) => `
     <section class="detail-section">
       <h3>${escapeHtml(section.title)}</h3>
@@ -628,9 +707,11 @@ function openEmployeeDetails(employee) {
 function detailRow(field, rawValue) {
   let raw = rawValue == null ? "" : String(rawValue).trim();
   if (field === "Strength Status") raw = raw || "Not set";
+  if (field === "Post Sensitivity") raw = raw || "Not set";
   let value = raw ? escapeHtml(raw) : '<span class="detail-empty">Not recorded</span>';
   if (["DoB", "DoR", "DoJ Govt", "DoJ in ADG", "Relieving Date"].includes(field) && raw) value = escapeHtml(formatDate(raw));
   if (field === "Strength Status") value = `<span class="badge strength ${strengthClass(raw)}">${escapeHtml(raw)}</span>`;
+  if (field === "Post Sensitivity") value = `<span class="badge sensitivity ${sensitivityClass(raw)}">${escapeHtml(raw)}</span>`;
   if (field === "Email" && raw) value = `<a href="mailto:${escapeAttribute(raw)}">${escapeHtml(raw)}</a>`;
   if (field === "Mob" && raw) value = `<a href="tel:${escapeAttribute(raw)}">${escapeHtml(raw)}</a>`;
   const valueClass = field === "REMARK ADMN" ? "detail-value remarks" : "detail-value";
@@ -671,6 +752,7 @@ function openEmployeeDialog(employee) {
   refs.fieldDoJGovt.value = toIsoDate(item["DoJ Govt"] || "");
   refs.fieldDoJADG.value = toIsoDate(item["DoJ in ADG"] || "");
   setSelectValue(refs.fieldStatus, item["Present/Permanent"] || "");
+  setSelectValue(refs.fieldPostSensitivity, item["Post Sensitivity"] || "");
   setSelectValue(refs.fieldStrengthStatus, item["Strength Status"] || (employee ? "" : "Present"));
   refs.fieldRelievingDate.value = toIsoDate(item["Relieving Date"] || "");
   refs.fieldMobile.value = item.Mob || "";
@@ -719,6 +801,7 @@ async function saveEmployee(event) {
     "Mob": refs.fieldMobile.value.trim(),
     "Email": refs.fieldEmail.value.trim(),
     "AGE": refs.fieldAge.value,
+    "Post Sensitivity": refs.fieldPostSensitivity.value,
     "Strength Status": refs.fieldStrengthStatus.value,
     "Relieving Date": refs.fieldRelievingDate.value
   };
@@ -860,13 +943,15 @@ function hideLoading() { refs.loadingOverlay.hidden = true; }
 function showToast(message, isError) { const toast = document.createElement("div"); toast.className = "toast" + (isError ? " error" : ""); toast.textContent = message; refs.toastRegion.appendChild(toast); setTimeout(() => toast.remove(), 4500); }
 function setButtonBusy(button, busy, text) { button.disabled = busy; const first = button.querySelector("span") || button; first.textContent = text; }
 function friendlyError(error) {
-  const messages = { INVALID_LOGIN: "Incorrect username or password.", LOGIN_BLOCKED: "Too many failed attempts. Please wait 10 minutes.", SESSION_EXPIRED: "Your session expired. Please sign in again.", FORBIDDEN: "Your account does not have permission for this action.", DUPLICATE_CODE: "That employee code already exists.", ORIGIN_BLOCKED: "This GitHub address is not allowed by the backend.", TIMEOUT: "The backend did not respond. Check the Apps Script deployment and internet connection.", NOT_CONFIGURED: "Connect the Apps Script web app URL in app.js first." };
+  const messages = { INVALID_LOGIN: "Incorrect username or password.", LOGIN_BLOCKED: "Too many failed attempts. Please wait 10 minutes.", SESSION_EXPIRED: "Your session expired. Please sign in again.", FORBIDDEN: "Your account does not have permission for this action.", DUPLICATE_CODE: "That employee code already exists.", INVALID_SENSITIVITY: "Select Sensitive or Non-Sensitive for Post Sensitivity.", ORIGIN_BLOCKED: "This GitHub address is not allowed by the backend.", TIMEOUT: "The backend did not respond. Check the Apps Script deployment and internet connection.", NOT_CONFIGURED: "Connect the Apps Script web app URL in app.js first." };
   return messages[error.code] || error.message || "Something went wrong. Please try again.";
 }
 function calculateAge(value) { const age = ageOnDate(value, new Date()); return age == null ? "" : String(age); }
 function calculateGovernmentRetirement(value) { const dob = parseDate(value); if (!dob) return ""; const year = dob.getFullYear() + 60; const month = dob.getMonth(); const date = dob.getDate() === 1 ? new Date(year, month, 0) : new Date(year, month + 1, 0); return toIsoLocal(date); }
 function strengthStatus(employee) { return String(employee && employee["Strength Status"] || "").trim() || "Not set"; }
 function strengthClass(value) { return String(value || "").toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "") || "not-set"; }
+function sensitivityStatus(employee) { return String(employee && employee["Post Sensitivity"] || "").trim() || "Not set"; }
+function sensitivityClass(value) { return String(value || "").toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "") || "not-set"; }
 function initials(value) { return String(value || "E").trim().split(/\s+/).slice(0, 2).map((part) => part.charAt(0)).join("").toUpperCase() || "E"; }
 function parseDate(value) { if (!value) return null; const iso = toIsoDate(value); if (!iso) return null; const parts = iso.split("-").map(Number); const date = new Date(parts[0], parts[1] - 1, parts[2]); return Number.isNaN(date.getTime()) ? null : date; }
 function toIsoDate(value) { const text = String(value || "").trim(); if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text; const match = text.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/); return match ? `${match[3]}-${match[2].padStart(2,"0")}-${match[1].padStart(2,"0")}` : ""; }

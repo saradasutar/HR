@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260809-reports1">
+  <link rel="stylesheet" href="styles.css?v=20260809-reports2">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -77,8 +77,8 @@
       <section class="hero-row">
         <div>
           <p class="eyebrow accent">Employee master</p>
-          <h1>Workforce at a glance</h1>
-          <p class="muted">Search, review and maintain all employee records from one responsive dashboard.</p>
+          <h1>Workforce and post sensitivity at a glance</h1>
+          <p class="muted">Search, filter and print employee records, including clearly visible Sensitive and Non-Sensitive post classifications.</p>
         </div>
         <div class="hero-actions">
           <button id="reportsButton" class="soft-btn report-launch-btn" type="button"><span aria-hidden="true">▤</span> Reports &amp; Print</button>
@@ -87,18 +87,21 @@
         </div>
       </section>
 
-      <section class="stat-grid" aria-label="Employee statistics">
+      <section class="stat-grid sensitivity-stat-grid" aria-label="Employee statistics">
         <article class="stat-card blue"><div class="stat-icon">👥</div><div><span>Total employees</span><strong id="statTotal">0</strong><small>Employee master</small></div></article>
         <article class="stat-card teal"><div class="stat-icon">✓</div><div><span>Present strength</span><strong id="statPresent">0</strong><small>Marked present</small></div></article>
+        <article class="stat-card rose"><div class="stat-icon">S</div><div><span>Present · Sensitive</span><strong id="statSensitive">0</strong><small>Sensitive posts</small></div></article>
+        <article class="stat-card aqua"><div class="stat-icon">NS</div><div><span>Present · Non-Sensitive</span><strong id="statNonSensitive">0</strong><small>Non-Sensitive posts</small></div></article>
         <article class="stat-card amber"><div class="stat-icon">⌛</div><div><span>Retiring in 24 months</span><strong id="statRetiring">0</strong><small>Based on DoR</small></div></article>
         <article class="stat-card violet"><div class="stat-icon">B</div><div><span>Group B employees</span><strong id="statGroupB">0</strong><small>Current records</small></div></article>
       </section>
 
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory</h2><p id="resultSummary">0 records</p></div>
+          <div><h2>Employee directory</h2><p id="resultSummary">0 records · Strength and Post Sensitivity are shown beside employee details</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
+            <button id="printFilteredButton" class="soft-btn print-filter-btn" type="button">Print filtered list</button>
             <button id="importButton" class="soft-btn admin-only" type="button">Import CSV</button>
             <button id="exportButton" class="soft-btn" type="button">Export CSV</button>
           </div>
@@ -113,6 +116,8 @@
           <select id="groupFilter" aria-label="Filter by group"><option value="">All groups</option></select>
           <select id="categoryFilter" aria-label="Filter by category"><option value="">All categories</option></select>
           <select id="statusFilter" aria-label="Filter by present strength status"><option value="">All strength statuses</option></select>
+          <select id="sensitivityFilter" aria-label="Filter by post sensitivity"><option value="">All post sensitivities</option></select>
+          <select id="appointmentFilter" aria-label="Filter by present or permanent status"><option value="">All appointment statuses</option></select>
           <button id="clearFilters" class="text-btn" type="button">Clear</button>
         </div>
 
@@ -145,6 +150,7 @@
         </div>
         <div class="profile-header-actions">
           <span id="detailsStrengthStatus" class="badge strength not-set">Not set</span>
+          <span id="detailsPostSensitivity" class="badge sensitivity not-set">Post: Not set</span>
           <button class="modal-close" type="button" data-close-dialog="employeeDetailsDialog" aria-label="Close employee details">×</button>
         </div>
       </header>
@@ -159,7 +165,7 @@
   <dialog id="reportDialog" class="modal report-modal">
     <div class="report-sheet">
       <header class="modal-header report-header">
-        <div><p class="eyebrow">HR analysis</p><h2>Reports Centre</h2><p>Create a report for any selected date or employee category, then print or export it.</p></div>
+        <div><p class="eyebrow">HR analysis</p><h2>Reports Centre</h2><p>Filter by age, dates, status, group, category, designation or post sensitivity, then print or export.</p></div>
         <button class="modal-close" type="button" data-close-dialog="reportDialog" aria-label="Close reports centre">×</button>
       </header>
 
@@ -169,6 +175,9 @@
           <button class="report-preset" type="button" data-report-preset="age-50-60">Age 50–60</button>
           <button class="report-preset" type="button" data-report-preset="retiring-2-years">Retiring in 2 years</button>
           <button class="report-preset" type="button" data-report-preset="present-strength">Present strength</button>
+          <button class="report-preset" type="button" data-report-preset="present-sensitive">Present · Sensitive</button>
+          <button class="report-preset" type="button" data-report-preset="present-non-sensitive">Present · Non-Sensitive</button>
+          <button class="report-preset current-filter-preset" type="button" data-report-preset="filtered">Current dashboard filters</button>
           <button class="report-preset" type="button" data-report-preset="not-present">Relieved / transferred / retired</button>
         </section>
 
@@ -181,10 +190,12 @@
               <option value="joining-adg">Joined ADG between dates</option>
               <option value="relieving">Relieving / exit between dates</option>
               <option value="strength">Strength status</option>
+              <option value="sensitivity">Present employees by post sensitivity</option>
               <option value="not-present">All relieved / transferred / retired</option>
               <option value="group">Group-wise employees</option>
               <option value="category">Category-wise employees</option>
               <option value="designation">Designation-wise employees</option>
+              <option value="filtered">Current dashboard filters</option>
               <option value="all">Complete employee list</option>
             </select></label>
             <label id="reportReferenceField" class="report-field"><span>Age as on date</span><input id="reportReferenceDate" type="date"></label>
@@ -234,6 +245,7 @@
         <label><span>Date of joining Govt.</span><input id="fieldDoJGovt" type="date"></label>
         <label><span>Date of joining ADG</span><input id="fieldDoJADG" type="date"></label>
         <label><span>Present / Permanent</span><select id="fieldStatus"><option value="">Select</option><option>Present</option><option>Permanent</option><option>Present / Permanent</option><option>On Deputation</option><option>Transferred</option></select></label>
+        <label><span>Post sensitivity *</span><select id="fieldPostSensitivity" required><option value="">Select</option><option>Sensitive</option><option>Non-Sensitive</option></select><small>Classifies the post as sensitive or non-sensitive</small></label>
         <label><span>Strength status *</span><select id="fieldStrengthStatus" required><option value="">Select</option><option>Present</option><option>Relieved</option><option>Transferred</option><option>Retired</option></select><small>Shows whether the employee is in present strength</small></label>
         <label><span>Relieving / exit date</span><input id="fieldRelievingDate" type="date" disabled><small id="relievingDateHint">Enabled when the employee is no longer in present strength</small></label>
         <label><span>Mobile</span><input id="fieldMobile" inputmode="tel" maxlength="15"></label>
@@ -263,6 +275,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260809-reports1"></script>
+  <script src="app.js?v=20260809-reports2"></script>
 </body>
 </html>
