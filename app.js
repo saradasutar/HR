@@ -23,6 +23,13 @@ const DETAIL_SECTIONS = Object.freeze([
   { title: "Administration", fields: ["REMARK ADMN"] }
 ]);
 
+const DATE_REPORTS = Object.freeze({
+  retirement: { field: "DoR", title: "Employees retiring" },
+  "joining-govt": { field: "DoJ Govt", title: "Employees who joined Government" },
+  "joining-adg": { field: "DoJ in ADG", title: "Employees who joined ADG" },
+  relieving: { field: "Relieving Date", title: "Employees relieved / exited" }
+});
+
 const state = {
   token: sessionStorage.getItem("hrSessionToken") || "",
   role: sessionStorage.getItem("hrRole") || "",
@@ -34,7 +41,12 @@ const state = {
   sortColumn: "Sl No.",
   sortDirection: "asc",
   search: "",
-  detailEmployeeCode: ""
+  detailEmployeeCode: "",
+  reportRows: [],
+  reportColumns: [],
+  reportTitle: "",
+  reportCriteria: "",
+  reportType: "age"
 };
 
 const $ = (id) => document.getElementById(id);
@@ -58,6 +70,13 @@ function init() {
     "fieldMobile", "fieldEmail", "fieldAge", "loadingOverlay", "loadingText", "toastRegion",
     "employeeDetailsDialog", "detailsAvatar", "detailsEmployeeName", "detailsEmployeeSubtitle",
     "detailsStrengthStatus", "employeeDetailsContent", "detailsEditButton",
+    "reportsButton", "reportDialog", "reportForm", "reportType", "reportReferenceField",
+    "reportReferenceDate", "reportAgeMinField", "reportAgeMin", "reportAgeMaxField", "reportAgeMax",
+    "reportFromField", "reportFromDate", "reportToField", "reportToDate", "reportValueField",
+    "reportValueLabel", "reportValue", "reportTextField", "reportTextValue", "reportResetButton",
+    "reportTitle", "reportCriteria", "reportCount", "reportGeneratedAt", "reportTableWrap",
+    "reportTable", "reportTableHead", "reportTableBody", "reportEmptyState", "reportFooterSummary",
+    "reportExportButton", "reportPrintButton",
     "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword",
     "confirmPassword", "passwordFormError"
   ].forEach((id) => { refs[id] = $(id); });
@@ -82,6 +101,14 @@ function init() {
   refs.csvFileInput.addEventListener("change", importCsv);
   refs.backupButton.addEventListener("click", createBackup);
   refs.addEmployeeButton.addEventListener("click", () => openEmployeeDialog());
+  refs.reportsButton.addEventListener("click", openReports);
+  refs.reportForm.addEventListener("submit", generateReport);
+  refs.reportType.addEventListener("change", updateReportControls);
+  refs.reportResetButton.addEventListener("click", () => resetReportForm(true));
+  refs.reportExportButton.addEventListener("click", exportReportCsv);
+  refs.reportPrintButton.addEventListener("click", printReport);
+  document.querySelectorAll("[data-report-preset]").forEach((button) => button.addEventListener("click", applyReportPreset));
+  window.addEventListener("afterprint", () => document.body.classList.remove("printing-report"));
   refs.employeeForm.addEventListener("submit", saveEmployee);
   refs.fieldDoB.addEventListener("change", updateCalculatedFields);
   refs.fieldStrengthStatus.addEventListener("change", updateStrengthDateState);
@@ -313,6 +340,234 @@ function updateStats() {
   const now = new Date();
   const limit = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
   refs.statRetiring.textContent = state.employees.filter((employee) => { const date = parseDate(employee.DoR); return date && date >= now && date <= limit; }).length.toLocaleString("en-IN");
+}
+
+function openReports() {
+  resetReportForm(false);
+  generateReport();
+  refs.reportDialog.showModal();
+  setTimeout(() => refs.reportType.focus(), 30);
+}
+
+function resetReportForm(shouldGenerate) {
+  refs.reportForm.reset();
+  refs.reportType.value = "age";
+  refs.reportReferenceDate.value = isoToday();
+  refs.reportAgeMin.value = "50";
+  refs.reportAgeMax.value = "60";
+  refs.reportFromDate.value = isoToday();
+  refs.reportToDate.value = toIsoLocal(addYears(new Date(), 2));
+  refs.reportTextValue.value = "";
+  updateReportControls();
+  if (shouldGenerate) generateReport();
+}
+
+function updateReportControls() {
+  const type = refs.reportType.value;
+  const isAge = type === "age";
+  const isDateRange = Object.prototype.hasOwnProperty.call(DATE_REPORTS, type);
+  const isValue = ["strength", "group", "category"].includes(type);
+  refs.reportReferenceField.hidden = !isAge;
+  refs.reportAgeMinField.hidden = !isAge;
+  refs.reportAgeMaxField.hidden = !isAge;
+  refs.reportFromField.hidden = !isDateRange;
+  refs.reportToField.hidden = !isDateRange;
+  refs.reportValueField.hidden = !isValue;
+  refs.reportTextField.hidden = type !== "designation";
+
+  if (!isValue) return;
+  const settings = {
+    strength: { label: "Strength status", first: "All strength statuses", values: STRENGTH_STATUSES.concat("Not set") },
+    group: { label: "Employee group", first: "All groups", values: uniqueValues("Grp") },
+    category: { label: "Employee category", first: "All categories", values: uniqueValues("Cat") }
+  }[type];
+  refs.reportValueLabel.textContent = settings.label;
+  populateSelect(refs.reportValue, settings.values, settings.first);
+}
+
+function applyReportPreset(event) {
+  const preset = event.currentTarget.dataset.reportPreset;
+  if (preset === "age-50-60") {
+    refs.reportType.value = "age";
+    updateReportControls();
+    refs.reportReferenceDate.value = isoToday();
+    refs.reportAgeMin.value = "50";
+    refs.reportAgeMax.value = "60";
+  } else if (preset === "retiring-2-years") {
+    refs.reportType.value = "retirement";
+    updateReportControls();
+    refs.reportFromDate.value = isoToday();
+    refs.reportToDate.value = toIsoLocal(addYears(new Date(), 2));
+  } else if (preset === "present-strength") {
+    refs.reportType.value = "strength";
+    updateReportControls();
+    refs.reportValue.value = "Present";
+  } else if (preset === "not-present") {
+    refs.reportType.value = "not-present";
+    updateReportControls();
+  }
+  generateReport();
+}
+
+function generateReport(event) {
+  if (event) event.preventDefault();
+  const type = refs.reportType.value;
+  const referenceDate = parseDate(refs.reportReferenceDate.value) || new Date();
+  const minimumAge = Number(refs.reportAgeMin.value);
+  const maximumAge = Number(refs.reportAgeMax.value);
+  const fromDate = parseDate(refs.reportFromDate.value);
+  const toDate = parseDate(refs.reportToDate.value);
+  const selectedValue = refs.reportValue.value;
+  const textValue = refs.reportTextValue.value.trim().toLocaleLowerCase();
+
+  if (type === "age" && (!Number.isFinite(minimumAge) || !Number.isFinite(maximumAge) || minimumAge < 0 || maximumAge > 100 || minimumAge > maximumAge)) {
+    showToast("Enter a valid age range from 0 to 100. Minimum age cannot exceed maximum age.", true);
+    return;
+  }
+  if (Object.prototype.hasOwnProperty.call(DATE_REPORTS, type) && fromDate && toDate && fromDate > toDate) {
+    showToast("The From date cannot be after the To date.", true);
+    return;
+  }
+
+  let rows = state.employees.filter((employee) => {
+    if (type === "age") {
+      const age = ageOnDate(employee.DoB, referenceDate);
+      return age != null && age >= minimumAge && age <= maximumAge;
+    }
+    if (Object.prototype.hasOwnProperty.call(DATE_REPORTS, type)) {
+      const employeeDate = parseDate(employee[DATE_REPORTS[type].field]);
+      return Boolean(employeeDate && (!fromDate || employeeDate >= fromDate) && (!toDate || employeeDate <= toDate));
+    }
+    if (type === "strength") return !selectedValue || strengthStatus(employee) === selectedValue;
+    if (type === "not-present") return ["Relieved", "Transferred", "Retired"].includes(strengthStatus(employee));
+    if (type === "group") return !selectedValue || String(employee.Grp || "") === selectedValue;
+    if (type === "category") return !selectedValue || String(employee.Cat || "") === selectedValue;
+    if (type === "designation") return !textValue || String(employee.Designation || "").toLocaleLowerCase().includes(textValue);
+    return true;
+  });
+
+  rows = rows.slice().sort((a, b) => {
+    if (type === "age") {
+      const ageDifference = ageOnDate(a.DoB, referenceDate) - ageOnDate(b.DoB, referenceDate);
+      if (ageDifference) return ageDifference;
+    }
+    if (Object.prototype.hasOwnProperty.call(DATE_REPORTS, type)) {
+      const aDate = parseDate(a[DATE_REPORTS[type].field]);
+      const bDate = parseDate(b[DATE_REPORTS[type].field]);
+      if (aDate && bDate && aDate.getTime() !== bDate.getTime()) return aDate - bDate;
+    }
+    return String(a["Employee Name"] || "").localeCompare(String(b["Employee Name"] || ""), undefined, { sensitivity: "base" });
+  });
+
+  const description = describeReport(type, { referenceDate, minimumAge, maximumAge, fromDate, toDate, selectedValue, textValue });
+  state.reportRows = rows;
+  state.reportColumns = reportColumns(type, referenceDate);
+  state.reportTitle = description.title;
+  state.reportCriteria = description.criteria;
+  state.reportType = type;
+  renderReport();
+}
+
+function describeReport(type, values) {
+  const selectedLabel = values.selectedValue || "All";
+  if (type === "age") return {
+    title: `Employees aged ${values.minimumAge}–${values.maximumAge} on ${formatDate(toIsoLocal(values.referenceDate))}`,
+    criteria: "Age is calculated from Date of Birth on the selected reference date. Both ages are included."
+  };
+  if (Object.prototype.hasOwnProperty.call(DATE_REPORTS, type)) {
+    const period = reportPeriod(values.fromDate, values.toDate);
+    return { title: `${DATE_REPORTS[type].title} ${period.title}`, criteria: `${DATE_REPORTS[type].field}: ${period.criteria}. Both boundary dates are included.` };
+  }
+  if (type === "strength") return { title: selectedLabel === "All" ? "Employees by strength status" : `${selectedLabel} employees`, criteria: selectedLabel === "All" ? "All strength statuses are included." : `Strength Status is ${selectedLabel}.` };
+  if (type === "not-present") return { title: "Relieved, transferred and retired employees", criteria: "Employees not forming part of present strength, based on Strength Status." };
+  if (type === "group") return { title: selectedLabel === "All" ? "Group-wise employee report" : `${selectedLabel} employees`, criteria: selectedLabel === "All" ? "All employee groups are included." : `Employee group is ${selectedLabel}.` };
+  if (type === "category") return { title: selectedLabel === "All" ? "Category-wise employee report" : `${selectedLabel} category employees`, criteria: selectedLabel === "All" ? "All employee categories are included." : `Employee category is ${selectedLabel}.` };
+  if (type === "designation") return { title: values.textValue ? `Employees with designation containing “${refs.reportTextValue.value.trim()}”` : "Designation-wise employee report", criteria: values.textValue ? "Designation contains the entered text." : "All designations are included." };
+  return { title: "Complete employee list", criteria: "All employee records are included." };
+}
+
+function reportPeriod(fromDate, toDate) {
+  if (fromDate && toDate) return { title: `from ${formatDate(toIsoLocal(fromDate))} to ${formatDate(toIsoLocal(toDate))}`, criteria: `${formatDate(toIsoLocal(fromDate))} to ${formatDate(toIsoLocal(toDate))}` };
+  if (fromDate) return { title: `on or after ${formatDate(toIsoLocal(fromDate))}`, criteria: `On or after ${formatDate(toIsoLocal(fromDate))}` };
+  if (toDate) return { title: `up to ${formatDate(toIsoLocal(toDate))}`, criteria: `Up to ${formatDate(toIsoLocal(toDate))}` };
+  return { title: "for all recorded dates", criteria: "All recorded dates" };
+}
+
+function reportColumns(type, referenceDate) {
+  const sequence = { label: "Sl No.", get: (_employee, index) => index + 1 };
+  const name = { label: "Employee Name", get: (employee) => employee["Employee Name"] || "" };
+  const code = { label: "Employee Code", get: (employee) => employee["Employee Code"] || "" };
+  const designation = { label: "Designation", get: (employee) => employee.Designation || "" };
+  const group = { label: "Group", get: (employee) => employee.Grp || "" };
+  const category = { label: "Category", get: (employee) => employee.Cat || "" };
+  const dob = { label: "Date of Birth", get: (employee) => formatDate(employee.DoB || "") };
+  const dor = { label: "Date of Retirement", get: (employee) => formatDate(employee.DoR || "") };
+  const strength = { label: "Strength Status", get: (employee) => strengthStatus(employee) };
+  const exitDate = { label: "Relieving / Exit Date", get: (employee) => formatDate(employee["Relieving Date"] || "") };
+  const currentAge = { label: "Current Age", get: (employee) => { const age = ageOnDate(employee.DoB, new Date()); return age == null ? "" : age; } };
+
+  if (type === "age") {
+    const age = { label: `Age on ${formatDate(toIsoLocal(referenceDate))}`, get: (employee) => ageOnDate(employee.DoB, referenceDate) };
+    return [sequence, name, code, designation, group, dob, age, dor, strength];
+  }
+  if (Object.prototype.hasOwnProperty.call(DATE_REPORTS, type)) {
+    const dateField = DATE_REPORTS[type].field;
+    const reportDate = { label: detailLabel(dateField), get: (employee) => formatDate(employee[dateField] || "") };
+    const finalDate = type === "relieving" ? dor : exitDate;
+    return [sequence, name, code, designation, group, reportDate, strength, finalDate];
+  }
+  return [sequence, name, code, designation, group, category, dob, currentAge, dor, strength, exitDate];
+}
+
+function renderReport() {
+  const count = state.reportRows.length;
+  refs.reportTitle.textContent = state.reportTitle;
+  refs.reportCriteria.textContent = state.reportCriteria;
+  refs.reportCount.textContent = `${count.toLocaleString("en-IN")} employee${count === 1 ? "" : "s"}`;
+  refs.reportGeneratedAt.textContent = `Generated ${new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(new Date())}`;
+  refs.reportTableHead.innerHTML = state.reportColumns.map((column) => `<th>${escapeHtml(column.label)}</th>`).join("");
+  refs.reportTableBody.innerHTML = state.reportRows.map((employee, index) => `<tr>${state.reportColumns.map((column) => {
+    const raw = column.get(employee, index);
+    const value = raw == null || raw === "" ? "—" : raw;
+    return `<td>${escapeHtml(value)}</td>`;
+  }).join("")}</tr>`).join("");
+  refs.reportTableWrap.hidden = count === 0;
+  refs.reportEmptyState.hidden = count !== 0;
+  refs.reportExportButton.disabled = count === 0;
+  refs.reportPrintButton.disabled = count === 0;
+  refs.reportFooterSummary.textContent = count ? `${count.toLocaleString("en-IN")} matching employee${count === 1 ? "" : "s"} ready to print` : "No matching employees";
+}
+
+function exportReportCsv() {
+  if (!state.reportRows.length) return;
+  const rows = [state.reportColumns.map((column) => column.label)].concat(state.reportRows.map((employee, index) => state.reportColumns.map((column) => column.get(employee, index))));
+  const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\r\n");
+  const type = state.reportType.replace(/[^a-z0-9]+/gi, "_");
+  downloadBlob(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" }), `ADG_HR_Report_${type}_${isoToday()}.csv`);
+  showToast(`Exported ${state.reportRows.length} report row(s).`);
+}
+
+function printReport() {
+  if (!state.reportRows.length) return;
+  refs.reportGeneratedAt.textContent = `Printed ${new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(new Date())}`;
+  document.body.classList.add("printing-report");
+  window.print();
+}
+
+function ageOnDate(value, referenceDate) {
+  const dob = parseDate(value);
+  const reference = referenceDate instanceof Date ? referenceDate : parseDate(referenceDate);
+  if (!dob || !reference || dob > reference) return null;
+  let age = reference.getFullYear() - dob.getFullYear();
+  const beforeBirthday = reference.getMonth() < dob.getMonth() || (reference.getMonth() === dob.getMonth() && reference.getDate() < dob.getDate());
+  if (beforeBirthday) age -= 1;
+  return age >= 0 ? age : null;
+}
+
+function addYears(date, years) {
+  const result = new Date(date.getFullYear() + years, date.getMonth(), date.getDate());
+  if (result.getMonth() !== date.getMonth()) result.setDate(0);
+  return result;
 }
 
 function changePage(delta) {
@@ -608,7 +863,7 @@ function friendlyError(error) {
   const messages = { INVALID_LOGIN: "Incorrect username or password.", LOGIN_BLOCKED: "Too many failed attempts. Please wait 10 minutes.", SESSION_EXPIRED: "Your session expired. Please sign in again.", FORBIDDEN: "Your account does not have permission for this action.", DUPLICATE_CODE: "That employee code already exists.", ORIGIN_BLOCKED: "This GitHub address is not allowed by the backend.", TIMEOUT: "The backend did not respond. Check the Apps Script deployment and internet connection.", NOT_CONFIGURED: "Connect the Apps Script web app URL in app.js first." };
   return messages[error.code] || error.message || "Something went wrong. Please try again.";
 }
-function calculateAge(value) { const dob = parseDate(value); if (!dob) return ""; const today = new Date(); let age = today.getFullYear() - dob.getFullYear(); const beforeBirthday = today.getMonth() < dob.getMonth() || (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate()); if (beforeBirthday) age -= 1; return age >= 0 ? String(age) : ""; }
+function calculateAge(value) { const age = ageOnDate(value, new Date()); return age == null ? "" : String(age); }
 function calculateGovernmentRetirement(value) { const dob = parseDate(value); if (!dob) return ""; const year = dob.getFullYear() + 60; const month = dob.getMonth(); const date = dob.getDate() === 1 ? new Date(year, month, 0) : new Date(year, month + 1, 0); return toIsoLocal(date); }
 function strengthStatus(employee) { return String(employee && employee["Strength Status"] || "").trim() || "Not set"; }
 function strengthClass(value) { return String(value || "").toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "") || "not-set"; }

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260807-dashboard-contrast1">
+  <link rel="stylesheet" href="styles.css?v=20260809-reports1">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -80,9 +80,10 @@
           <h1>Workforce at a glance</h1>
           <p class="muted">Search, review and maintain all employee records from one responsive dashboard.</p>
         </div>
-        <div class="hero-actions admin-only">
-          <button id="backupButton" class="soft-btn" type="button">Create backup</button>
-          <button id="addEmployeeButton" class="primary-btn" type="button"><span aria-hidden="true">＋</span> Add employee</button>
+        <div class="hero-actions">
+          <button id="reportsButton" class="soft-btn report-launch-btn" type="button"><span aria-hidden="true">▤</span> Reports &amp; Print</button>
+          <button id="backupButton" class="soft-btn admin-only" type="button">Create backup</button>
+          <button id="addEmployeeButton" class="primary-btn admin-only" type="button"><span aria-hidden="true">＋</span> Add employee</button>
         </div>
       </section>
 
@@ -155,6 +156,69 @@
     </div>
   </dialog>
 
+  <dialog id="reportDialog" class="modal report-modal">
+    <div class="report-sheet">
+      <header class="modal-header report-header">
+        <div><p class="eyebrow">HR analysis</p><h2>Reports Centre</h2><p>Create a report for any selected date or employee category, then print or export it.</p></div>
+        <button class="modal-close" type="button" data-close-dialog="reportDialog" aria-label="Close reports centre">×</button>
+      </header>
+
+      <div class="report-workspace">
+        <section class="report-presets" aria-label="Quick reports">
+          <div><strong>Quick reports</strong><span>One-click office lists</span></div>
+          <button class="report-preset" type="button" data-report-preset="age-50-60">Age 50–60</button>
+          <button class="report-preset" type="button" data-report-preset="retiring-2-years">Retiring in 2 years</button>
+          <button class="report-preset" type="button" data-report-preset="present-strength">Present strength</button>
+          <button class="report-preset" type="button" data-report-preset="not-present">Relieved / transferred / retired</button>
+        </section>
+
+        <form id="reportForm" class="report-controls">
+          <div class="report-filter-grid">
+            <label class="report-field"><span>Report type</span><select id="reportType">
+              <option value="age">Age range on selected date</option>
+              <option value="retirement">Retirement between dates</option>
+              <option value="joining-govt">Joined Government between dates</option>
+              <option value="joining-adg">Joined ADG between dates</option>
+              <option value="relieving">Relieving / exit between dates</option>
+              <option value="strength">Strength status</option>
+              <option value="not-present">All relieved / transferred / retired</option>
+              <option value="group">Group-wise employees</option>
+              <option value="category">Category-wise employees</option>
+              <option value="designation">Designation-wise employees</option>
+              <option value="all">Complete employee list</option>
+            </select></label>
+            <label id="reportReferenceField" class="report-field"><span>Age as on date</span><input id="reportReferenceDate" type="date"></label>
+            <label id="reportAgeMinField" class="report-field"><span>Minimum age</span><input id="reportAgeMin" type="number" min="0" max="100" value="50"></label>
+            <label id="reportAgeMaxField" class="report-field"><span>Maximum age</span><input id="reportAgeMax" type="number" min="0" max="100" value="60"></label>
+            <label id="reportFromField" class="report-field" hidden><span>From date</span><input id="reportFromDate" type="date"></label>
+            <label id="reportToField" class="report-field" hidden><span>To date</span><input id="reportToDate" type="date"></label>
+            <label id="reportValueField" class="report-field" hidden><span id="reportValueLabel">Select value</span><select id="reportValue"></select></label>
+            <label id="reportTextField" class="report-field" hidden><span>Designation contains</span><input id="reportTextValue" type="search" placeholder="For example: Engineer"></label>
+          </div>
+          <div class="report-control-actions"><button id="reportResetButton" class="soft-btn" type="button">Reset</button><button class="primary-btn" type="submit">Generate report</button></div>
+        </form>
+
+        <section id="reportPreview" class="report-preview" aria-live="polite">
+          <header class="report-print-heading">
+            <p class="report-office">O/o ADG(B), CPWD, Bengaluru</p>
+            <h3 id="reportTitle">Employees aged 50–60</h3>
+            <p id="reportCriteria">Age calculated on the selected reference date</p>
+            <div class="report-meta"><span id="reportCount">0 employees</span><span id="reportGeneratedAt"></span></div>
+          </header>
+          <div id="reportTableWrap" class="report-table-wrap">
+            <table id="reportTable" class="report-table"><thead><tr id="reportTableHead"></tr></thead><tbody id="reportTableBody"></tbody></table>
+          </div>
+          <div id="reportEmptyState" class="report-empty" hidden><span>⌕</span><strong>No employees match this report</strong><p>Change the selected dates or filters and generate the report again.</p></div>
+        </section>
+      </div>
+
+      <footer class="modal-footer report-footer">
+        <span id="reportFooterSummary">Ready to generate</span>
+        <div><button class="soft-btn" type="button" data-close-dialog="reportDialog">Close</button><button id="reportExportButton" class="soft-btn" type="button">Export report CSV</button><button id="reportPrintButton" class="primary-btn" type="button">Print report</button></div>
+      </footer>
+    </div>
+  </dialog>
+
   <dialog id="employeeDialog" class="modal">
     <form id="employeeForm" method="dialog">
       <header class="modal-header"><div><p class="eyebrow accent">Employee record</p><h2 id="employeeDialogTitle">Add employee</h2></div><button class="modal-close" type="button" data-close-dialog="employeeDialog" aria-label="Close">×</button></header>
@@ -199,6 +263,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260807-profile1"></script>
+  <script src="app.js?v=20260809-reports1"></script>
 </body>
 </html>
