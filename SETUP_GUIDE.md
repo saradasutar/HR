@@ -62,7 +62,7 @@ Change both initial passwords before entering real employee data.
 
 The **Employees** sheet contains these columns in the requested order:
 
-`Sl No.`, `Employee Name`, `Employee Code`, `Designation`, `Grp`, `REMARK ADMN`, `DoB`, `DoR`, `Cat`, `DoJ Govt`, `DoJ in ADG`, `Present/Permanent`, `Mob`, `Email`, `AGE`.
+`Sl No.`, `Employee Name`, `Employee Code`, `Designation`, `Grp`, `REMARK ADMN`, `DoB`, `DoR`, `Cat`, `DoJ Govt`, `DoJ in ADG`, `Present/Permanent`, `Mob`, `Email`, `AGE`, `Strength Status`, `Relieving Date`, `Post Sensitivity`.
 
 ### 5. Deploy the backend as a Web app
 
@@ -129,19 +129,29 @@ If the GitHub username or custom domain changes, edit the value inside `setAllow
 1. Open `Employee_Import_Template.xlsx`.
 2. Go to the **Employee Import** sheet.
 3. Enter one employee per row from row 5.
-4. Keep all 15 header names unchanged.
+4. Keep all 18 header names unchanged.
 5. Use `yyyy-mm-dd` for all dates, for example `1976-04-01`.
 6. `Employee Name` and `Employee Code` are compulsory. Employee Code must be unique.
-7. `Sl No.`, `DoR` and `AGE` may be left blank.
-8. Save only the **Employee Import** sheet as **CSV UTF-8 (Comma delimited)**.
-9. In the dashboard, click **Import CSV** and select that CSV file.
+7. `Sl No.`, `DoR` and `AGE` may be left blank. Select `Present`, `Relieved`, `Transferred` or `Retired` in `Strength Status`. Enter `Relieving Date` for every status except Present.
+8. Select `Sensitive` or `Non-Sensitive` in `Post Sensitivity`.
+9. Save only the **Employee Import** sheet as **CSV UTF-8 (Comma delimited)**.
+10. In the dashboard, click **Import CSV** and select that CSV file.
 
 If an employee code already exists, the import updates that employee. A new employee code creates a new record.
 
 ## Daily use and maintenance
 
 - Use the search box to search any displayed field.
-- Use Group, Category and Status filters for quick lists.
+- Click any employee row to open a separate vertical profile containing all available details. Administrators can click **Edit employee** from that profile.
+- Click **Reports & Print** to open the Reports Centre. Choose a report type, enter the required reference date, age range, date period or employee category, and click **Generate report**.
+- For an age report such as employees aged 50–60 on a future date, select **Age range on selected date**, enter that date, keep minimum age `50` and maximum age `60`, then print or export the result.
+- For a present-strength sensitivity report, use the **Present · Sensitive** or **Present · Non-Sensitive** quick report, or select **Present employees by post sensitivity** and choose the required value.
+- Use **Print report** for a clean A4 landscape office copy. Use **Export report CSV** when the report needs further editing in Excel or Google Sheets.
+- Use Group, Category, Strength Status and Post Sensitivity filters for quick lists.
+- Use the Strength Status filter to show only present, relieved, transferred or retired employees.
+- Use the Post Sensitivity filter to show only Sensitive, Non-Sensitive or unclassified records.
+- Use the Appointment Status filter for `Present/Permanent` values. Combine any filters and search text, then click **Print filtered list** for an A4 office report showing the exact matching employees.
+- In every generated report, `Post Sensitivity` is included and visually highlighted. Use **Current dashboard filters** in the Reports Centre to reproduce the active directory filters.
 - Click a column heading to sort it.
 - Use **Export CSV** to download the currently filtered list.
 - Use **Create backup** to save a timestamped CSV in the Drive data folder.
@@ -171,6 +181,8 @@ Replace the relevant GitHub file and commit it. GitHub Pages updates automatical
 5. Click **Deploy**.
 
 The `/exec` URL normally remains unchanged when the existing deployment is updated.
+
+For the strength-status and post-sensitivity updates, replacing and redeploying `Code.gs` automatically appends the required headers to the existing Employees sheet without deleting current data. Version 1.3 also reapplies the Sensitive/Non-Sensitive validation and refreshes the data cache. Existing records show **Not set** until an administrator edits each record and selects its Strength Status and Post Sensitivity.
 
 ## Important privacy note
 
