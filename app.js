@@ -4,7 +4,8 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbyKl3NFNmrtlVQ1H4orpyLQiz9-W2O3VRiDx8rztnD3kltehP7z-itz6fYIyUu-Pw/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.5.5",
+  FRONTEND_VERSION: "1.5.6",
+  REQUIRED_BACKEND_VERSION: "1.5.6",
   PAGE_SIZE: 20,
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -66,7 +67,9 @@ const state = {
   headerEditEnabled: false,
   inlineEditCode: "",
   columnLabels: Object.assign({}, DEFAULT_COLUMN_LABELS),
-  headerLabelsDirty: false
+  headerLabelsDirty: false,
+  backendVersion: "",
+  backendMismatchNotified: false
 };
 
 const $ = (id) => document.getElementById(id);
@@ -253,12 +256,17 @@ async function loadEmployees(isRefresh) {
   try {
     const response = await apiRequest("getEmployees", { force: Boolean(isRefresh) });
     state.employees = Array.isArray(response.employees) ? response.employees : [];
+    state.backendVersion = String(response.version || "").trim();
     state.columnLabels = Object.assign({}, DEFAULT_COLUMN_LABELS, response.columnLabels || {});
     state.headerLabelsDirty = false;
     state.page = 1;
     populateFilters();
     applyFilters();
     refs.lastUpdated.textContent = "Updated " + new Intl.DateTimeFormat("en-IN", { hour: "2-digit", minute: "2-digit" }).format(new Date());
+    if (!versionAtLeast(state.backendVersion, CONFIG.REQUIRED_BACKEND_VERSION) && !state.backendMismatchNotified) {
+      state.backendMismatchNotified = true;
+      showToast(`Backend update incomplete${state.backendVersion ? ` (currently v${state.backendVersion})` : ""}. Deploy Code.gs v${CONFIG.REQUIRED_BACKEND_VERSION} as a new version.`, true);
+    }
     if (isRefresh) showToast("Employee data refreshed.");
   } finally { hideLoading(); }
 }
@@ -1279,8 +1287,17 @@ function hideLoading() { refs.loadingOverlay.hidden = true; }
 function showToast(message, isError) { const toast = document.createElement("div"); toast.className = "toast" + (isError ? " error" : ""); toast.textContent = message; refs.toastRegion.appendChild(toast); setTimeout(() => toast.remove(), 4500); }
 function setButtonBusy(button, busy, text) { button.disabled = busy; const first = button.querySelector("span") || button; first.textContent = text; }
 function friendlyError(error) {
-  const messages = { INVALID_LOGIN: "Incorrect username or password.", LOGIN_BLOCKED: "Too many failed attempts. Please wait 10 minutes.", SESSION_EXPIRED: "Your session expired. Please sign in again.", FORBIDDEN: "Your account does not have permission for this action.", DUPLICATE_CODE: "That employee code already exists.", DUPLICATE_IMPORT_CODE: "The CSV contains a duplicate employee code.", INVALID_IMPORT_ROW: error.message, INVALID_SENSITIVITY: "Select Sensitive or Non-Sensitive for Post Sensitivity.", ORIGIN_BLOCKED: "This GitHub address is not allowed by the backend.", TIMEOUT: "The backend did not respond. Check the Apps Script deployment and internet connection.", NOT_CONFIGURED: "Connect the Apps Script web app URL in app.js first." };
+  const messages = { INVALID_LOGIN: "Incorrect username or password.", LOGIN_BLOCKED: "Too many failed attempts. Please wait 10 minutes.", SESSION_EXPIRED: "Your session expired. Please sign in again.", FORBIDDEN: "Your account does not have permission for this action.", DUPLICATE_CODE: "That employee code already exists.", DUPLICATE_IMPORT_CODE: "The CSV contains a duplicate employee code.", INVALID_IMPORT_ROW: error.message, INVALID_SENSITIVITY: "Select Sensitive or Non-Sensitive for Post Sensitivity.", ORIGIN_BLOCKED: "This GitHub address is not allowed by the backend.", UNKNOWN_ACTION: `Backend update incomplete. Deploy Code.gs v${CONFIG.REQUIRED_BACKEND_VERSION} as a new version, sign in again, and retry.`, SHEET_SCHEMA_MISMATCH: "The Sheet columns cannot be safely matched. Use Replace all data with the corrected CSV.", TIMEOUT: "The backend did not respond. Check the Apps Script deployment and internet connection.", NOT_CONFIGURED: "Connect the Apps Script web app URL in app.js first." };
   return messages[error.code] || error.message || "Something went wrong. Please try again.";
+}
+function versionAtLeast(actual, required) {
+  const parse = (value) => String(value || "").split(".").map((part) => Number(part) || 0);
+  const a = parse(actual), r = parse(required);
+  for (let index = 0; index < Math.max(a.length, r.length); index += 1) {
+    if ((a[index] || 0) > (r[index] || 0)) return true;
+    if ((a[index] || 0) < (r[index] || 0)) return false;
+  }
+  return Boolean(actual);
 }
 function calculateAge(value) { const age = ageOnDate(value, new Date()); return age == null ? "" : String(age); }
 function calculateGovernmentRetirement(value) { const dob = parseDate(value); if (!dob) return ""; const year = dob.getFullYear() + 60; const month = dob.getMonth(); const date = dob.getDate() === 1 ? new Date(year, month, 0) : new Date(year, month + 1, 0); return toIsoLocal(date); }
