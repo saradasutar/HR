@@ -4,22 +4,25 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbyKl3NFNmrtlVQ1H4orpyLQiz9-W2O3VRiDx8rztnD3kltehP7z-itz6fYIyUu-Pw/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.5.4",
+  FRONTEND_VERSION: "1.5.5",
   PAGE_SIZE: 20,
   REQUEST_TIMEOUT_MS: 45000
 });
 
 const COLUMNS = [
   "Sl No.", "Employee Name", "Employee Code", "Designation", "Grp",
-  "Strength Status", "Post Sensitivity", "Cat", "DoB", "AGE", "DoR",
-  "Relieving Date", "DoJ Govt", "DoJ in Current Office", "Present/Permanent Address",
-  "Mob", "Email", "REMARK ADMN"
+  "DoB", "DoR", "Cat", "DoJ Govt", "DoJ in Current Office",
+  "Present/Permanent Address", "Mob", "Email", "AGE", "Strength Status",
+  "Relieving Date", "Post Sensitivity", "REMARK ADMN"
 ];
 
-const DEFAULT_COLUMN_LABELS = Object.freeze(COLUMNS.reduce((labels, column) => {
+const DEFAULT_COLUMN_LABELS = Object.freeze(Object.assign(COLUMNS.reduce((labels, column) => {
   labels[column] = column;
   return labels;
-}, {}));
+}, {}), {
+  "DoJ in Current Office": "DoJ in ADG",
+  "Present/Permanent Address": "Present/Permanent"
+}));
 
 const STRENGTH_STATUSES = Object.freeze(["Present", "Relieved", "Transferred", "Retired"]);
 const SENSITIVITY_VALUES = Object.freeze(["Sensitive", "Non-Sensitive"]);
@@ -1201,7 +1204,8 @@ function findDuplicateEmployeeCode(rows) {
 }
 
 function exportFilteredCsv() {
-  const rows = [COLUMNS].concat(state.filtered.map((employee) => COLUMNS.map((key) => employee[key] || "")));
+  const rows = [COLUMNS.map((key) => DEFAULT_COLUMN_LABELS[key] || key)]
+    .concat(state.filtered.map((employee) => COLUMNS.map((key) => employee[key] || "")));
   const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\r\n");
   downloadBlob(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" }), `ADG_HR_Employees_${isoToday()}.csv`);
   showToast(`Exported ${state.filtered.length} employee record(s).`);
