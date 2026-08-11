@@ -2,10 +2,10 @@
 
 /* Replace only this URL after deploying Code.gs as a Google Apps Script web app. */
 const CONFIG = Object.freeze({
-  API_URL: "https://script.google.com/macros/s/AKfycbzgfFaJUqLK1q49EcaYcC2xAOQTtzYtH5D4pyjBFlCVgM7DuFx0LYgVhzLNGz2wlzFv/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbwwFqxIGrYPvBQcWEnsUxqoltgTNjau-hK5X01YokqMC1BD5BeFDTWYIEwILYYesRDQ/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.5.6",
-  REQUIRED_BACKEND_VERSION: "1.5.6",
+  FRONTEND_VERSION: "1.5.7",
+  REQUIRED_BACKEND_VERSION: "1.5.7",
   PAGE_SIZE: 20,
   REQUEST_TIMEOUT_MS: 45000
 });
