@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260809-reports2">
+  <link rel="stylesheet" href="styles.css?v=20260811-header-edit-154">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,6 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
+          <p class="build-version">Dashboard v1.5.4 · Header editor included</p>
         </form>
       </main>
     </div>
@@ -98,11 +99,17 @@
 
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory</h2><p id="resultSummary">0 records · Strength and Post Sensitivity are shown beside employee details</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.5.4 · Header editor</span></h2><p id="resultSummary">0 records · Strength and Post Sensitivity are shown beside employee details</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
+            <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
             <button id="printFilteredButton" class="soft-btn print-filter-btn" type="button">Print filtered list</button>
+            <button id="editHeadersButton" class="soft-btn header-edit-btn admin-only" type="button" aria-pressed="false" title="Rename the visible dashboard column headings">Edit headers</button>
+            <button id="directEditToggle" class="soft-btn direct-edit-btn admin-only" type="button" aria-pressed="false" title="Edit employee data directly inside the table">Edit rows</button>
+            <button id="saveHeadersButton" class="soft-btn header-save-btn admin-only" type="button" hidden>Save headers</button>
+            <button id="resetHeadersButton" class="soft-btn header-reset-btn admin-only" type="button" hidden>Reset headers</button>
             <button id="importButton" class="soft-btn admin-only" type="button">Import CSV</button>
+            <button id="replaceAllButton" class="soft-btn danger-soft-btn admin-only" type="button" title="Back up the current list, delete it, and load only the selected CSV">Replace all data</button>
             <button id="exportButton" class="soft-btn" type="button">Export CSV</button>
           </div>
         </div>
@@ -110,14 +117,13 @@
         <div class="toolbar">
           <label class="search-box" for="globalSearch">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-            <input id="globalSearch" type="search" placeholder="Search name, employee code, designation, mobile, email…">
+            <input id="globalSearch" type="search" placeholder="Search name, code, designation, address, mobile, email…">
             <kbd>⌘ K</kbd>
           </label>
           <select id="groupFilter" aria-label="Filter by group"><option value="">All groups</option></select>
           <select id="categoryFilter" aria-label="Filter by category"><option value="">All categories</option></select>
           <select id="statusFilter" aria-label="Filter by present strength status"><option value="">All strength statuses</option></select>
           <select id="sensitivityFilter" aria-label="Filter by post sensitivity"><option value="">All post sensitivities</option></select>
-          <select id="appointmentFilter" aria-label="Filter by present or permanent status"><option value="">All appointment statuses</option></select>
           <button id="clearFilters" class="text-btn" type="button">Clear</button>
         </div>
 
@@ -187,7 +193,7 @@
               <option value="age">Age range on selected date</option>
               <option value="retirement">Retirement between dates</option>
               <option value="joining-govt">Joined Government between dates</option>
-              <option value="joining-adg">Joined ADG between dates</option>
+              <option value="joining-office">Joined Current Office between dates</option>
               <option value="relieving">Relieving / exit between dates</option>
               <option value="strength">Strength status</option>
               <option value="sensitivity">Present employees by post sensitivity</option>
@@ -243,8 +249,8 @@
         <label><span>Date of retirement</span><input id="fieldDoR" type="date"><small>Auto-calculated if left blank</small></label>
         <label><span>Category</span><select id="fieldCategory"><option value="">Select</option><option>UR</option><option>OBC</option><option>SC</option><option>ST</option><option>EWS</option></select></label>
         <label><span>Date of joining Govt.</span><input id="fieldDoJGovt" type="date"></label>
-        <label><span>Date of joining ADG</span><input id="fieldDoJADG" type="date"></label>
-        <label><span>Present / Permanent</span><select id="fieldStatus"><option value="">Select</option><option>Present</option><option>Permanent</option><option>Present / Permanent</option><option>On Deputation</option><option>Transferred</option></select></label>
+        <label><span>Date of joining Current Office</span><input id="fieldDoJOffice" type="date"></label>
+        <label class="wide"><span>Present / Permanent Address</span><textarea id="fieldAddress" rows="3" maxlength="500" placeholder="Enter the employee's present or permanent residential address"></textarea></label>
         <label><span>Post sensitivity *</span><select id="fieldPostSensitivity" required><option value="">Select</option><option>Sensitive</option><option>Non-Sensitive</option></select><small>Classifies the post as sensitive or non-sensitive</small></label>
         <label><span>Strength status *</span><select id="fieldStrengthStatus" required><option value="">Select</option><option>Present</option><option>Relieved</option><option>Transferred</option><option>Retired</option></select><small>Shows whether the employee is in present strength</small></label>
         <label><span>Relieving / exit date</span><input id="fieldRelievingDate" type="date" disabled><small id="relievingDateHint">Enabled when the employee is no longer in present strength</small></label>
@@ -275,6 +281,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260809-reports2"></script>
+  <script src="app.js?v=20260811-header-edit-154"></script>
 </body>
 </html>
