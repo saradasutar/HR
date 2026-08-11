@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwwFqxIGrYPvBQcWEnsUxqoltgTNjau-hK5X01YokqMC1BD5BeFDTWYIEwILYYesRDQ/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.5.7",
+  FRONTEND_VERSION: "1.5.8",
   REQUIRED_BACKEND_VERSION: "1.5.7",
   PAGE_SIZE: 20,
   REQUEST_TIMEOUT_MS: 45000

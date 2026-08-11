@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.5.7 · Login bridge fix</p>
+          <p class="build-version">Dashboard v1.5.8 · Compact overview</p>
         </form>
       </main>
     </div>
@@ -61,9 +61,17 @@
     <header class="topbar">
       <div class="topbar-brand">
         <div class="compact-mark">HR</div>
-        <div><strong>HR Command Centre</strong><span>O/o ADG(B), CPWD Bengaluru</span></div>
+        <div class="topbar-heading">
+          <strong>HR Command Centre <span class="topbar-divider" aria-hidden="true">·</span> <span class="topbar-overview-title">Workforce and post sensitivity at a glance</span></strong>
+          <span>O/o ADG(B), CPWD Bengaluru</span>
+        </div>
       </div>
       <div class="topbar-actions">
+        <div class="topbar-work-actions">
+          <button id="reportsButton" class="soft-btn report-launch-btn" type="button"><span aria-hidden="true">▤</span> Reports &amp; Print</button>
+          <button id="backupButton" class="soft-btn admin-only" type="button">Create backup</button>
+          <button id="addEmployeeButton" class="primary-btn admin-only" type="button"><span aria-hidden="true">＋</span> Add employee</button>
+        </div>
         <span id="lastUpdated" class="last-updated">Not yet refreshed</span>
         <button id="refreshButton" class="soft-btn" type="button" title="Refresh employee data">↻ <span>Refresh</span></button>
         <div class="user-chip">
@@ -75,19 +83,6 @@
     </header>
 
     <main class="page-shell">
-      <section class="hero-row">
-        <div>
-          <p class="eyebrow accent">Employee master</p>
-          <h1>Workforce and post sensitivity at a glance</h1>
-          <p class="muted">Search, filter and print employee records, including clearly visible Sensitive and Non-Sensitive post classifications.</p>
-        </div>
-        <div class="hero-actions">
-          <button id="reportsButton" class="soft-btn report-launch-btn" type="button"><span aria-hidden="true">▤</span> Reports &amp; Print</button>
-          <button id="backupButton" class="soft-btn admin-only" type="button">Create backup</button>
-          <button id="addEmployeeButton" class="primary-btn admin-only" type="button"><span aria-hidden="true">＋</span> Add employee</button>
-        </div>
-      </section>
-
       <section class="stat-grid sensitivity-stat-grid" aria-label="Employee statistics">
         <article class="stat-card blue"><div class="stat-icon">👥</div><div><span>Total employees</span><strong id="statTotal">0</strong><small>Employee master</small></div></article>
         <article class="stat-card teal"><div class="stat-icon">✓</div><div><span>Present strength</span><strong id="statPresent">0</strong><small>Marked present</small></div></article>
@@ -99,7 +94,7 @@
 
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.5.7 · Connected backend</span></h2><p id="resultSummary">0 records · Columns follow the supplied employee replacement file</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.5.8 · Compact overview</span></h2><p id="resultSummary">0 records · Columns follow the supplied employee replacement file</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
@@ -281,6 +276,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260811-login-bridge-157"></script>
+  <script src="app.js?v=20260811-compact-overview-158"></script>
 </body>
 </html>
