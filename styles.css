@@ -1443,3 +1443,74 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
 @media (max-width: 620px) {
   #employeeTable tbody td { height: 36px; padding-top: 5px; padding-bottom: 5px; }
 }
+
+/* Narrow wrapped Employee directory grid v1.6.14 */
+#employeeTable [data-column-key] { width: 108px; min-width: 108px; max-width: 122px; }
+#employeeTable th {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  line-height: 1.15;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#employeeTable tbody td {
+  min-height: 34px;
+  height: auto;
+  line-height: 1.18;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#employeeTable .cell-text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+#employeeTable .badge,
+#employeeTable .action-cell { white-space: nowrap; }
+#employeeTable [data-column-key="Sl No."] { width: 44px; min-width: 44px; max-width: 44px; }
+#employeeTable [data-column-key="Employee Name"] { width: 132px; min-width: 132px; max-width: 145px; }
+#employeeTable [data-column-key="Employee Code"] { width: 122px; min-width: 122px; max-width: 138px; }
+#employeeTable [data-column-key="Designation"] { width: 128px; min-width: 128px; max-width: 145px; }
+#employeeTable [data-column-key="Grp"] { width: 58px; min-width: 58px; max-width: 66px; }
+#employeeTable [data-column-key="DoB"],
+#employeeTable [data-column-key="DoR"] { width: 88px; min-width: 88px; max-width: 94px; }
+#employeeTable [data-column-key="Cat"] { width: 58px; min-width: 58px; max-width: 68px; }
+#employeeTable [data-column-key="DoJ Govt"] { width: 90px; min-width: 90px; max-width: 98px; }
+#employeeTable [data-column-key="DoJ in Current Office"] { width: 96px; min-width: 96px; max-width: 106px; }
+#employeeTable [data-column-key="Present/Permanent Address"] { width: 145px; min-width: 145px; max-width: 160px; }
+#employeeTable [data-column-key="Mob"] { width: 94px; min-width: 94px; max-width: 100px; }
+#employeeTable [data-column-key="Email"] { width: 138px; min-width: 138px; max-width: 152px; }
+#employeeTable [data-column-key="AGE"] { width: 50px; min-width: 50px; max-width: 56px; }
+#employeeTable [data-column-key="Strength Status"] { width: 102px; min-width: 102px; max-width: 112px; }
+#employeeTable [data-column-key="Relieving Date"] { width: 92px; min-width: 92px; max-width: 100px; }
+#employeeTable [data-column-key="Post Sensitivity"] { width: 108px; min-width: 108px; max-width: 118px; }
+#employeeTable [data-column-key="REMARK ADMN"] { width: 142px; min-width: 142px; max-width: 158px; }
+#employeeTable [data-column-key="Actions"] { width: 116px; min-width: 116px; max-width: 116px; }
+#employeeTable.wide-actions-table [data-column-key="Actions"] { width: 226px; min-width: 226px; max-width: 226px; }
+#employeeTable .employee-name-column {
+  color: #063b78;
+  font-weight: 950;
+}
+#employeeTable th.employee-name-column {
+  color: #dff1ff;
+  background: linear-gradient(110deg, #063b78, #075ca8);
+}
+#employeeTable .pending-work-column {
+  color: #8b1515;
+  font-weight: 950;
+  background: #fff1f1;
+}
+#employeeTable th.pending-work-column {
+  color: #fff;
+  background: linear-gradient(110deg, #741313, #a61b1b);
+}
+#employeeTable tbody tr:hover td.pending-work-column { background: #ffe3e3; }
+#employeeTable .pending-work-column .inline-edit-input { color: #7f1010; border-color: #d98b8b; background: #fffafa; }
+#employeeTable:not(.focused-columns-table):not(.customized-columns-table) th:nth-child(2),
+#employeeTable:not(.focused-columns-table):not(.customized-columns-table) td:nth-child(2) { left: 44px; }
+
+@media (max-width: 620px) {
+  #employeeTable tbody td { min-height: 36px; height: auto; }
+}

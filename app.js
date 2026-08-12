@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbzz7RXkLB2uVnPZBWBI8-PVvrAzV9o0AyAV0-AfSxY8n1WAuchDWitwRFh3UiwaBgHI/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.13",
+  FRONTEND_VERSION: "1.6.14",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   PAGE_SIZE: 20,
   REQUEST_TIMEOUT_MS: 45000
@@ -320,8 +320,18 @@ function buildTableHeader() {
       th.addEventListener("click", () => sortBy(column));
       th.addEventListener("keydown", (event) => { if (event.key === "Enter") sortBy(column); });
     }
+    const visualClass = columnVisualClass(column);
+    if (visualClass) th.classList.add(visualClass);
     refs.tableHead.appendChild(th);
   });
+}
+
+function columnVisualClass(column) {
+  const normalizedKey = String(column || "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const normalizedLabel = column === "Actions" ? "actions" : String(columnLabel(column) || "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  if (normalizedKey === "employee name") return "employee-name-column";
+  if (normalizedKey.includes("pending work") || normalizedLabel.includes("pending work")) return "pending-work-column";
+  return "";
 }
 
 function visibleTableColumns() {
@@ -749,8 +759,13 @@ function renderTable() {
         display = sensitivityStatus(employee);
         value = `<span class="badge sensitivity ${sensitivityClass(display)}">${escapeHtml(display)}</span>`;
       }
-      const className = ["REMARK ADMN", "Present/Permanent Address"].includes(column) ? "remarks-cell" : "";
-      return `<td class="${className}" data-column-key="${escapeAttribute(column)}" title="${escapeAttribute(display)}">${value || "—"}</td>`;
+      const classes = [];
+      if (["REMARK ADMN", "Present/Permanent Address"].includes(column)) classes.push("remarks-cell");
+      const visualClass = columnVisualClass(column);
+      if (visualClass) classes.push(visualClass);
+      const usesBadge = ["Grp", "Cat", "Strength Status", "Post Sensitivity"].includes(column) && value;
+      const cellContent = usesBadge ? value : `<span class="cell-text">${value || "—"}</span>`;
+      return `<td class="${classes.join(" ")}" data-column-key="${escapeAttribute(column)}" title="${escapeAttribute(display)}">${cellContent}</td>`;
     }).join("");
     let actions = "";
     if (state.role === "admin") {
@@ -837,15 +852,16 @@ function updateHeaderEditButtons() {
 
 function renderInlineCell(employee, column) {
   const raw = employee[column] == null ? "" : String(employee[column]);
+  const visualClass = columnVisualClass(column);
   if (column === "Sl No." || column === "AGE") {
-    return `<td class="inline-readonly-cell" data-column-key="${escapeAttribute(column)}"><span class="inline-readonly" data-inline-calculated="${escapeAttribute(column)}">${escapeHtml(raw || "—")}</span></td>`;
+    return `<td class="inline-readonly-cell${visualClass ? ` ${visualClass}` : ""}" data-column-key="${escapeAttribute(column)}"><span class="inline-readonly" data-inline-calculated="${escapeAttribute(column)}">${escapeHtml(raw || "—")}</span></td>`;
   }
 
   if (column === "Strength Status") {
-    return `<td data-column-key="${escapeAttribute(column)}">${inlineSelect(column, raw, STRENGTH_STATUSES, true)}</td>`;
+    return `<td class="${visualClass}" data-column-key="${escapeAttribute(column)}">${inlineSelect(column, raw, STRENGTH_STATUSES, true)}</td>`;
   }
   if (column === "Post Sensitivity") {
-    return `<td data-column-key="${escapeAttribute(column)}">${inlineSelect(column, raw, SENSITIVITY_VALUES, true)}</td>`;
+    return `<td class="${visualClass}" data-column-key="${escapeAttribute(column)}">${inlineSelect(column, raw, SENSITIVITY_VALUES, true)}</td>`;
   }
 
   const dateColumns = ["DoB", "DoR", "Relieving Date", "DoJ Govt", "DoJ in Current Office"];
@@ -854,8 +870,10 @@ function renderInlineCell(employee, column) {
   const required = ["Employee Name", "Employee Code"].includes(column) ? " required" : "";
   const disabled = column === "Relieving Date" && strengthStatus(employee) === "Present" ? " disabled" : "";
   const maxLength = inlineMaxLength(column);
-  const cellClass = ["REMARK ADMN", "Present/Permanent Address"].includes(column) ? "remarks-cell" : "";
-  return `<td class="${cellClass}" data-column-key="${escapeAttribute(column)}"><input class="inline-edit-input" type="${type}" data-inline-field="${escapeAttribute(column)}" value="${escapeAttribute(value)}" aria-label="${escapeAttribute(detailLabel(column))}"${required}${disabled}${maxLength ? ` maxlength="${maxLength}"` : ""}></td>`;
+  const cellClasses = [];
+  if (["REMARK ADMN", "Present/Permanent Address"].includes(column)) cellClasses.push("remarks-cell");
+  if (visualClass) cellClasses.push(visualClass);
+  return `<td class="${cellClasses.join(" ")}" data-column-key="${escapeAttribute(column)}"><input class="inline-edit-input" type="${type}" data-inline-field="${escapeAttribute(column)}" value="${escapeAttribute(value)}" aria-label="${escapeAttribute(detailLabel(column))}"${required}${disabled}${maxLength ? ` maxlength="${maxLength}"` : ""}></td>`;
 }
 
 function inlineSelect(column, value, standardValues, required) {
