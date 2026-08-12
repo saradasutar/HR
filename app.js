@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.23",
+  FRONTEND_VERSION: "1.6.24",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -766,7 +766,7 @@ function renderTable() {
       const usesBadge = ["Grp", "Cat", "Strength Status", "Post Sensitivity"].includes(column) && value;
       const emptyValue = !String(display || "").trim();
       let decoratedValue = value || "—";
-      if (!emptyValue && visualClass === "employee-name-column") decoratedValue = `<span class="metallic-text metallic-blue">${value}</span>`;
+      if (!emptyValue && visualClass === "employee-name-column") decoratedValue = `<span class="employee-name-deep-blue">${value}</span>`;
       if (!emptyValue && visualClass === "pending-work-column") decoratedValue = `<span class="metallic-text metallic-ruby">${value}</span>`;
       const cellContent = usesBadge
         ? value
@@ -1334,7 +1334,7 @@ function detailRow(field, rawValue) {
   if (["REMARK ADMN", "Present/Permanent Address"].includes(field)) rowClasses.push("detail-wide");
   const visualClass = columnVisualClass(field);
   if (visualClass) rowClasses.push(visualClass);
-  if (raw && visualClass === "employee-name-column") value = `<span class="metallic-text metallic-blue">${value}</span>`;
+  if (raw && visualClass === "employee-name-column") value = `<span class="employee-name-deep-blue">${value}</span>`;
   if (raw && visualClass === "pending-work-column") value = `<span class="metallic-text metallic-ruby">${value}</span>`;
   return `<div class="${rowClasses.join(" ")}" data-field="${escapeAttribute(field)}"><dt>${escapeHtml(detailLabel(field))}</dt><dd class="${valueClass}">${value}</dd></div>`;
 }
