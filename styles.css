@@ -1068,7 +1068,7 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
 .column-delete-btn { min-height: 36px; padding: 0 12px; border: 1px solid #efaaa3; border-radius: 10px; color: #97271f; background: #fff1ef; font-size: 11px; font-weight: 950; }
 .column-delete-btn:hover { border-color: #dc6a5f; background: #ffdfda; }
 
-.field-filter-edit-bar { display: grid; grid-template-columns: minmax(220px, .9fr) minmax(155px, .55fr) minmax(180px, .7fr) auto auto; align-items: end; gap: 10px; padding: 10px 24px; border-bottom: 1px solid #b8d9d9; background: linear-gradient(90deg, #ddf7f1, #e6f1ff 57%, #fff0dc); }
+.field-filter-edit-bar { display: grid; grid-template-columns: minmax(300px, 1.3fr) minmax(210px, .75fr) auto auto; align-items: end; gap: 10px; padding: 10px 24px; border-bottom: 1px solid #b8d9d9; background: linear-gradient(90deg, #ddf7f1, #e6f1ff 57%, #fff0dc); }
 .field-filter-copy { align-self: center; }
 .field-filter-copy span, .field-filter-copy small { display: block; }
 .field-filter-copy span { color: #064c61; font-size: 12px; font-weight: 950; }
@@ -1077,6 +1077,74 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
 .field-filter-edit-bar select { width: 100%; min-height: 39px; padding: 6px 34px 6px 10px; border: 2px solid #7fc2c8; border-radius: 10px; outline: none; color: #123e52; background: white; font-size: 12px; font-weight: 850; }
 .field-filter-edit-bar select:focus { border-color: #087f91; box-shadow: 0 0 0 3px rgba(8,127,145,.1); }
 .field-filter-edit-bar .primary-btn, .field-filter-edit-bar .soft-btn { min-height: 39px; padding-inline: 14px; font-size: 11px; white-space: nowrap; }
+
+/* One-page employee profile and complete edit form on desktop v1.6.6 */
+@media (min-width: 1001px) {
+  .details-modal,
+  .employee-edit-modal {
+    width: min(1480px, calc(100% - 18px));
+    max-height: none;
+    overflow: hidden;
+  }
+
+  .profile-sheet,
+  .employee-edit-modal > form {
+    max-height: calc(100vh - 16px);
+    overflow: hidden;
+  }
+
+  .profile-header { padding: 11px 18px; }
+  .profile-header .details-avatar { width: 46px; height: 46px; border-radius: 14px; font-size: 16px; }
+  .profile-header .modal-close { width: 34px; height: 34px; }
+  .details-content {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 8px 12px;
+  }
+  .detail-section { border-radius: 11px; box-shadow: 0 4px 12px rgba(21,84,103,.08); }
+  .detail-section:nth-child(n+5) { grid-column: 1 / -1; }
+  .detail-section h3 { padding: 6px 10px; font-size: 10.5px; }
+  .detail-row,
+  .detail-section .detail-row:nth-child(even) { padding: 6px 8px 7px; }
+  .detail-row dt { margin-bottom: 2px; font-size: 10px; }
+  .detail-row dd { font-size: 12px; line-height: 1.25; }
+  .details-modal .modal-footer { padding: 8px 16px; }
+
+  .employee-edit-modal > form {
+    display: flex;
+    flex-direction: column;
+  }
+  .employee-edit-modal .modal-header { position: static; flex: 0 0 auto; padding: 9px 16px; }
+  .employee-edit-modal .modal-header h2 { font-size: 20px; }
+  .employee-edit-modal .modal-header .eyebrow { margin-bottom: 2px; font-size: 9px; }
+  .employee-edit-modal .modal-close { width: 32px; height: 32px; font-size: 20px; }
+  .employee-edit-modal > form > .form-grid {
+    flex: 0 0 auto;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px 10px;
+    padding: 9px 14px;
+  }
+  .employee-edit-modal .form-grid label { gap: 3px; font-size: 10.5px; }
+  .employee-edit-modal .form-grid input,
+  .employee-edit-modal .form-grid select,
+  .employee-edit-modal .form-grid textarea {
+    min-height: 34px;
+    padding: 5px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+  .employee-edit-modal .form-grid textarea { height: 44px; min-height: 44px; resize: none; }
+  .employee-edit-modal .form-grid small { display: none; }
+  .employee-edit-modal .form-grid .wide { grid-column: 1 / -1; }
+  .employee-edit-modal .form-grid .span-two { grid-column: span 2; }
+  .employee-edit-modal .custom-fields-section { flex: 0 0 auto; margin: 0 14px 6px; border-radius: 10px; }
+  .employee-edit-modal .custom-fields-heading { padding: 5px 9px; }
+  .employee-edit-modal .custom-fields-heading span { font-size: 10px; }
+  .employee-edit-modal .custom-fields-heading small { display: none; }
+  .employee-edit-modal .custom-employee-fields { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 9px; padding: 7px 9px; }
+  .employee-edit-modal > form > .form-error { min-height: 0; margin: 0 14px; font-size: 10px; }
+  .employee-edit-modal .modal-footer { position: static; flex: 0 0 auto; padding: 8px 14px; }
+}
 
 @media (max-width: 1000px) {
   .detail-section dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }

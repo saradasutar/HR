@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260812-field-filter-row-edit-165">
+  <link rel="stylesheet" href="styles.css?v=20260812-filled-field-one-page-166">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.5 · Field filter and direct row editing</p>
+          <p class="build-version">Dashboard v1.6.6 · One-page employee view and filled-field editing</p>
         </form>
       </main>
     </div>
@@ -95,7 +95,7 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.5 · Filter and edit</span></h2><p id="resultSummary">0 records · Click a row for a four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.6 · Filled-field filter</span></h2><p id="resultSummary">0 records · Click a row for a four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
@@ -125,10 +125,9 @@
         </div>
 
         <div id="fieldFilterEditBar" class="field-filter-edit-bar admin-only">
-          <div class="field-filter-copy"><span>Filter a particular field and edit</span><small id="fieldFilterSummary">Choose a field and value. Matching rows can be edited directly.</small></div>
-          <label class="field-filter-control" for="fieldFilterColumn"><span>Field</span><select id="fieldFilterColumn" aria-label="Select employee field to filter"><option value="">Select field…</option></select></label>
-          <label class="field-filter-control" for="fieldFilterValue"><span>Value</span><select id="fieldFilterValue" aria-label="Select field value to filter" disabled><option value="">Select value…</option></select></label>
-          <button id="applyFieldFilter" class="primary-btn" type="button">Filter &amp; edit</button>
+          <div class="field-filter-copy"><span>Show employees where a field is filled</span><small id="fieldFilterSummary">Choose one field. All employees having information in that field will appear for direct editing.</small></div>
+          <label class="field-filter-control" for="fieldFilterColumn"><span>Field / subject</span><select id="fieldFilterColumn" aria-label="Select filled employee field to filter"><option value="">Select field…</option></select></label>
+          <button id="applyFieldFilter" class="primary-btn" type="button">Show filled &amp; edit</button>
           <button id="clearFieldFilter" class="soft-btn" type="button" disabled>Clear field filter</button>
         </div>
 
@@ -241,7 +240,7 @@
     </div>
   </dialog>
 
-  <dialog id="employeeDialog" class="modal">
+  <dialog id="employeeDialog" class="modal employee-edit-modal">
     <form id="employeeForm" method="dialog">
       <header class="modal-header"><div><p class="eyebrow accent">Employee record</p><h2 id="employeeDialogTitle">Add employee</h2></div><button class="modal-close" type="button" data-close-dialog="employeeDialog" aria-label="Close">×</button></header>
       <input id="originalEmployeeCode" type="hidden">
@@ -255,14 +254,14 @@
         <label><span>Category</span><select id="fieldCategory"><option value="">Select</option><option>UR</option><option>OBC</option><option>SC</option><option>ST</option><option>EWS</option></select></label>
         <label><span>Date of joining Govt.</span><input id="fieldDoJGovt" type="date"></label>
         <label><span>Date of joining Current Office</span><input id="fieldDoJOffice" type="date"></label>
-        <label class="wide"><span>Present / Permanent Address</span><textarea id="fieldAddress" rows="3" maxlength="500" placeholder="Enter the employee's present or permanent residential address"></textarea></label>
+        <label class="span-two"><span>Present / Permanent Address</span><textarea id="fieldAddress" rows="2" maxlength="500" placeholder="Enter the employee's present or permanent residential address"></textarea></label>
         <label><span>Post sensitivity *</span><select id="fieldPostSensitivity" required><option value="">Select</option><option>Sensitive</option><option>Non-Sensitive</option></select><small>Classifies the post as sensitive or non-sensitive</small></label>
         <label><span>Strength status *</span><select id="fieldStrengthStatus" required><option value="">Select</option><option>Present</option><option>Relieved</option><option>Transferred</option><option>Retired</option></select><small>Shows whether the employee is in present strength</small></label>
         <label><span>Relieving / exit date</span><input id="fieldRelievingDate" type="date" disabled><small id="relievingDateHint">Enabled when the employee is no longer in present strength</small></label>
         <label><span>Mobile</span><input id="fieldMobile" inputmode="tel" maxlength="15"></label>
         <label><span>Email</span><input id="fieldEmail" type="email" maxlength="120"></label>
         <label><span>Age</span><input id="fieldAge" readonly placeholder="Calculated from DoB"></label>
-        <label class="wide"><span>Remarks (Administration)</span><textarea id="fieldRemarks" rows="3" maxlength="500"></textarea></label>
+        <label class="span-two"><span>Remarks (Administration)</span><textarea id="fieldRemarks" rows="2" maxlength="500"></textarea></label>
       </div>
       <section class="custom-fields-section" hidden>
         <div class="custom-fields-heading"><div><span>Additional information</span><small>Administrator-created employee columns</small></div></div>
@@ -303,6 +302,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260812-field-filter-row-edit-165"></script>
+  <script src="app.js?v=20260812-filled-field-one-page-166"></script>
 </body>
 </html>

@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbzz7RXkLB2uVnPZBWBI8-PVvrAzV9o0AyAV0-AfSxY8n1WAuchDWitwRFh3UiwaBgHI/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.5",
+  FRONTEND_VERSION: "1.6.6",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   PAGE_SIZE: 20,
   REQUEST_TIMEOUT_MS: 45000
@@ -61,7 +61,6 @@ const state = {
   search: "",
   detailEmployeeCode: "",
   fieldFilterColumn: "",
-  fieldFilterValue: "",
   reportRows: [],
   reportColumns: [],
   reportTitle: "",
@@ -89,7 +88,7 @@ function init() {
     "statSensitive", "statNonSensitive", "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter",
     "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTable", "tableHead", "tableBody", "emptyState",
     "pageInfo", "pageNumber", "prevPage", "nextPage", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
-    "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterColumn", "fieldFilterValue", "applyFieldFilter", "clearFieldFilter",
+    "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterColumn", "applyFieldFilter", "clearFieldFilter",
     "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm",
     "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton",
     "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks",
@@ -154,7 +153,6 @@ function init() {
   refs.fieldStrengthStatus.addEventListener("change", updateStrengthDateState);
   refs.changePasswordButton.addEventListener("click", () => refs.passwordDialog.showModal());
   refs.detailsEditButton.addEventListener("click", editSelectedEmployee);
-  refs.fieldFilterColumn.addEventListener("change", populateFieldFilterValues);
   refs.applyFieldFilter.addEventListener("click", applyParticularFieldFilter);
   refs.clearFieldFilter.addEventListener("click", resetParticularFieldFilter);
   refs.passwordForm.addEventListener("submit", changePassword);
@@ -484,53 +482,34 @@ function populateFieldFilterColumns() {
   const previous = refs.fieldFilterColumn.value || state.fieldFilterColumn;
   refs.fieldFilterColumn.innerHTML = '<option value="">Select field…</option>' + state.columns.map((column) => `<option value="${escapeAttribute(column)}">${escapeHtml(columnLabel(column))}</option>`).join("");
   if (state.columns.includes(previous)) refs.fieldFilterColumn.value = previous;
-  else { state.fieldFilterColumn = ""; state.fieldFilterValue = ""; }
-  populateFieldFilterValues();
-}
-
-function populateFieldFilterValues() {
-  const column = refs.fieldFilterColumn.value;
-  const previous = column === state.fieldFilterColumn ? (refs.fieldFilterValue.value || state.fieldFilterValue) : "";
-  refs.fieldFilterValue.innerHTML = '<option value="">Select value…</option>' + (column ? uniqueFieldFilterValues(column).map((value) => `<option value="${escapeAttribute(value)}">${escapeHtml(value)}</option>`).join("") : "");
-  refs.fieldFilterValue.disabled = !column;
-  if (column && uniqueFieldFilterValues(column).includes(previous)) refs.fieldFilterValue.value = previous;
-}
-
-function uniqueFieldFilterValues(column) {
-  if (column === "Strength Status") return [...new Set(state.employees.map(strengthStatus))].sort();
-  if (column === "Post Sensitivity") return [...new Set(state.employees.map(sensitivityStatus))].sort();
-  return uniqueValues(column);
+  else state.fieldFilterColumn = "";
 }
 
 function applyParticularFieldFilter() {
   const column = refs.fieldFilterColumn.value;
-  const value = refs.fieldFilterValue.value;
-  if (!column || !value) {
-    showToast("Select both a field and a value to filter.", true);
+  if (!column) {
+    showToast("Select a field or subject to show its filled records.", true);
     return;
   }
   state.fieldFilterColumn = column;
-  state.fieldFilterValue = value;
   state.inlineEditCode = "";
   state.page = 1;
   refs.clearFieldFilter.disabled = false;
   applyFilters();
-  showToast(`${columnLabel(column)} filtered by “${value}”. Use Edit filtered row beside any result.`);
+  showToast(`Showing employees where ${columnLabel(column)} is filled. Use Edit filtered row beside any result.`);
 }
 
 function resetParticularFieldFilter() {
   state.fieldFilterColumn = "";
-  state.fieldFilterValue = "";
   state.inlineEditCode = "";
   refs.fieldFilterColumn.value = "";
-  populateFieldFilterValues();
   refs.clearFieldFilter.disabled = true;
   state.page = 1;
   applyFilters();
 }
 
 function hasParticularFieldFilter() {
-  return Boolean(state.fieldFilterColumn && state.fieldFilterValue);
+  return Boolean(state.fieldFilterColumn);
 }
 
 function uniqueValues(key) {
@@ -550,17 +529,16 @@ function applyFilters() {
   const status = refs.statusFilter.value;
   const sensitivity = refs.sensitivityFilter.value;
   const fieldColumn = state.fieldFilterColumn;
-  const fieldValue = state.fieldFilterValue;
   state.search = query;
   state.filtered = state.employees.filter((employee) => {
     const searchable = state.columns.map((key) => employee[key] || "").concat(strengthStatus(employee), sensitivityStatus(employee)).join(" ").toLocaleLowerCase();
-    const selectedFieldValue = fieldColumn === "Strength Status" ? strengthStatus(employee) : fieldColumn === "Post Sensitivity" ? sensitivityStatus(employee) : String(employee[fieldColumn] || "").trim();
+    const selectedFieldValue = String(employee[fieldColumn] == null ? "" : employee[fieldColumn]).trim();
     return (!query || searchable.includes(query)) &&
       (!group || employee.Grp === group) &&
       (!category || employee.Cat === category) &&
       (!status || strengthStatus(employee) === status) &&
       (!sensitivity || sensitivityStatus(employee) === sensitivity) &&
-      (!fieldColumn || !fieldValue || selectedFieldValue === fieldValue);
+      (!fieldColumn || Boolean(selectedFieldValue));
   });
   sortEmployees();
   state.page = Math.min(state.page, Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE)));
@@ -576,9 +554,7 @@ function clearFilters() {
   refs.statusFilter.value = "";
   refs.sensitivityFilter.value = "";
   state.fieldFilterColumn = "";
-  state.fieldFilterValue = "";
   refs.fieldFilterColumn.value = "";
-  populateFieldFilterValues();
   refs.clearFieldFilter.disabled = true;
   state.page = 1;
   applyFilters();
@@ -586,11 +562,11 @@ function clearFilters() {
 
 function updateFieldFilterSummary() {
   if (!hasParticularFieldFilter()) {
-    refs.fieldFilterSummary.textContent = "Choose a field and value. Matching rows can be edited directly.";
+    refs.fieldFilterSummary.textContent = "Choose one field. All employees having information in that field will appear for direct editing.";
     refs.clearFieldFilter.disabled = true;
     return;
   }
-  refs.fieldFilterSummary.textContent = `${state.filtered.length} match${state.filtered.length === 1 ? "" : "es"}: ${columnLabel(state.fieldFilterColumn)} = ${state.fieldFilterValue}. Choose Edit filtered row below.`;
+  refs.fieldFilterSummary.textContent = `${state.filtered.length} employee${state.filtered.length === 1 ? "" : "s"} have ${columnLabel(state.fieldFilterColumn)} filled. Choose Edit filtered row below.`;
   refs.clearFieldFilter.disabled = false;
 }
 
