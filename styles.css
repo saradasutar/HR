@@ -1938,6 +1938,48 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   }
 }
 
+/* Solid high-contrast dashboard headings v1.6.26 */
+.topbar-heading > strong {
+  color: #fff8e7 !important;
+  -webkit-text-fill-color: #fff8e7 !important;
+  -webkit-text-stroke: 0 !important;
+  background: none !important;
+  filter: none !important;
+  font-weight: 950;
+  text-shadow: 0 1px 2px rgba(0,25,45,.88) !important;
+}
+.topbar-heading > strong .topbar-divider {
+  color: #ffd166 !important;
+  -webkit-text-fill-color: #ffd166 !important;
+  text-shadow: 0 1px 2px rgba(0,25,45,.82) !important;
+}
+.topbar-heading > strong .topbar-overview-title {
+  color: #d2fff5 !important;
+  -webkit-text-fill-color: #d2fff5 !important;
+  font-weight: 950;
+  text-shadow: 0 1px 2px rgba(0,25,45,.88) !important;
+}
+.data-panel .panel-heading h2 {
+  color: #ffed9b !important;
+  -webkit-text-fill-color: #ffed9b !important;
+  -webkit-text-stroke: 0 !important;
+  background: none !important;
+  filter: none !important;
+  font-weight: 950;
+  text-shadow: 0 2px 2px rgba(0,28,39,.9) !important;
+}
+.data-panel .panel-heading h2 .feature-version {
+  color: #2e1b00 !important;
+  -webkit-text-fill-color: #2e1b00 !important;
+  text-shadow: 0 1px rgba(255,255,255,.7) !important;
+}
+
+@media (prefers-contrast: more) {
+  .topbar-heading > strong { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
+  .topbar-heading > strong .topbar-overview-title { color: #d9fff6 !important; -webkit-text-fill-color: #d9fff6 !important; }
+  .data-panel .panel-heading h2 { color: #fff4bd !important; -webkit-text-fill-color: #fff4bd !important; }
+}
+
 /* Larger, bolder employee detail and edit popup text v1.6.25 */
 .details-modal .profile-heading h2 {
   font-size: 23px;
