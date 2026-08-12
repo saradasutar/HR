@@ -1590,3 +1590,85 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   #employeeTable tbody td { min-height: 40px; padding-top: 6px; padding-bottom: 6px; font-size: 13px; }
   #employeeTable .employee-name-column { font-size: 14px; }
 }
+
+/* Light value and input highlights v1.6.17 */
+#employeeTable .value-highlight {
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  padding: 3px 7px;
+  border: 1px solid #c8e4ef;
+  border-radius: 8px;
+  color: #173f52;
+  background: #edf8fd;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.58);
+}
+#employeeTable .value-highlight.empty-value {
+  min-width: 26px;
+  color: #78909c;
+  border-color: #d9e7e7;
+  border-style: dashed;
+  background: #fbfdfd;
+}
+#employeeTable .employee-name-column .value-highlight {
+  color: #063b78;
+  border-color: #b8d9f3;
+  background: #e4f3ff;
+}
+#employeeTable tbody td.pending-work-column .value-highlight {
+  color: #861616;
+  border-color: #efbcbc;
+  background: #ffe6e6;
+}
+#employeeTable .inline-edit-input,
+#employeeTable .inline-edit-select,
+#employeeTable .header-edit-input,
+.employee-edit-modal .form-grid input:not([readonly]),
+.employee-edit-modal .form-grid select,
+.employee-edit-modal .form-grid textarea,
+.employee-edit-modal .custom-employee-fields input {
+  color: #173f52;
+  border-color: #dac27c;
+  background: #fff9e8;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.65);
+}
+#employeeTable .inline-edit-input:focus,
+#employeeTable .inline-edit-select:focus,
+#employeeTable .header-edit-input:focus,
+.employee-edit-modal .form-grid input:not([readonly]):focus,
+.employee-edit-modal .form-grid select:focus,
+.employee-edit-modal .form-grid textarea:focus,
+.employee-edit-modal .custom-employee-fields input:focus {
+  color: #0b3f50;
+  border-color: #138b8c;
+  background: #fff3c6;
+  box-shadow: 0 0 0 3px rgba(19,139,140,.16);
+}
+.employee-edit-modal .form-grid input[readonly] {
+  color: #647c88;
+  border-color: #d4e2e4;
+  background: #f4f8f8;
+}
+.details-modal .detail-value {
+  width: fit-content;
+  max-width: 100%;
+  padding: 3px 7px;
+  border: 1px solid #c8e4ef;
+  border-radius: 8px;
+  background: #edf8fd;
+}
+.details-modal .detail-empty {
+  color: #78909c;
+  background: #fbfdfd;
+}
+.details-modal .employee-name-column .detail-value {
+  color: #063b78;
+  border-color: #b8d9f3;
+  background: #e4f3ff;
+}
+.details-modal .pending-work-column .detail-value {
+  color: #861616;
+  border-color: #efbcbc;
+  background: #ffe6e6;
+}

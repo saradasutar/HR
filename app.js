@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.16",
+  FRONTEND_VERSION: "1.6.17",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   PAGE_SIZE: 20,
   REQUEST_TIMEOUT_MS: 45000
@@ -768,7 +768,10 @@ function renderTable() {
       const visualClass = columnVisualClass(column);
       if (visualClass) classes.push(visualClass);
       const usesBadge = ["Grp", "Cat", "Strength Status", "Post Sensitivity"].includes(column) && value;
-      const cellContent = usesBadge ? value : `<span class="cell-text">${value || "—"}</span>`;
+      const emptyValue = !String(display || "").trim();
+      const cellContent = usesBadge
+        ? value
+        : `<span class="cell-text value-highlight${emptyValue ? " empty-value" : ""}">${value || "—"}</span>`;
       return `<td class="${classes.join(" ")}" data-column-key="${escapeAttribute(column)}" title="${escapeAttribute(display)}">${cellContent}</td>`;
     }).join("");
     let actions = "";
@@ -1339,8 +1342,11 @@ function detailRow(field, rawValue) {
   if (field === "Email" && raw) value = `<a href="mailto:${escapeAttribute(raw)}">${escapeHtml(raw)}</a>`;
   if (field === "Mob" && raw) value = `<a href="tel:${escapeAttribute(raw)}">${escapeHtml(raw)}</a>`;
   const valueClass = field === "REMARK ADMN" ? "detail-value remarks" : "detail-value";
-  const rowClass = ["REMARK ADMN", "Present/Permanent Address"].includes(field) ? "detail-row detail-wide" : "detail-row";
-  return `<div class="${rowClass}"><dt>${escapeHtml(detailLabel(field))}</dt><dd class="${valueClass}">${value}</dd></div>`;
+  const rowClasses = ["detail-row"];
+  if (["REMARK ADMN", "Present/Permanent Address"].includes(field)) rowClasses.push("detail-wide");
+  const visualClass = columnVisualClass(field);
+  if (visualClass) rowClasses.push(visualClass);
+  return `<div class="${rowClasses.join(" ")}"><dt>${escapeHtml(detailLabel(field))}</dt><dd class="${valueClass}">${value}</dd></div>`;
 }
 
 function detailLabel(field) {
