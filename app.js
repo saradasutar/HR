@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbzz7RXkLB2uVnPZBWBI8-PVvrAzV9o0AyAV0-AfSxY8n1WAuchDWitwRFh3UiwaBgHI/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.10",
+  FRONTEND_VERSION: "1.6.11",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   PAGE_SIZE: 20,
   REQUEST_TIMEOUT_MS: 45000
@@ -61,6 +61,7 @@ const state = {
   search: "",
   detailEmployeeCode: "",
   fieldFilterColumns: [],
+  dashboardColumns: readDashboardColumnPreference(),
   reportRows: [],
   reportColumns: [],
   reportTitle: "",
@@ -87,7 +88,7 @@ function init() {
     "lastUpdated", "displayName", "roleLabel", "userInitial", "statTotal", "statPresent",
     "statSensitive", "statNonSensitive", "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter",
     "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTable", "tableHead", "tableBody", "emptyState",
-    "pageInfo", "pageNumber", "prevPage", "nextPage", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
+    "pageInfo", "pageNumber", "prevPage", "nextPage", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
     "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterPicker", "fieldFilterPickerSummary", "fieldFilterOptions", "applyFieldFilter", "clearFieldFilter",
     "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm",
     "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton",
@@ -105,7 +106,7 @@ function init() {
     "reportTable", "reportTableHead", "reportTableBody", "reportEmptyState", "reportFooterSummary",
     "reportExportButton", "reportPrintButton",
     "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword",
-    "confirmPassword", "passwordFormError", "columnManagerDialog", "columnManagerForm",
+    "confirmPassword", "passwordFormError", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton", "columnManagerDialog", "columnManagerForm",
     "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError"
   ].forEach((id) => { refs[id] = $(id); });
 
@@ -127,6 +128,11 @@ function init() {
   refs.nextPage.addEventListener("click", () => changePage(1));
   refs.exportButton.addEventListener("click", exportFilteredCsv);
   refs.printFilteredButton.addEventListener("click", openFilteredReport);
+  refs.chooseColumnsButton.addEventListener("click", openDashboardColumnChooser);
+  refs.columnViewList.addEventListener("click", handleDashboardColumnOrder);
+  refs.columnViewList.addEventListener("change", updateDashboardColumnCount);
+  refs.applyColumnViewButton.addEventListener("click", applyDashboardColumnView);
+  refs.restoreAllColumnsButton.addEventListener("click", restoreAllDashboardColumns);
   refs.directEditToggle.addEventListener("click", toggleDirectEdit);
   refs.editHeadersButton.addEventListener("click", toggleHeaderEdit);
   refs.saveHeadersButton.addEventListener("click", saveHeaderLabels);
@@ -273,6 +279,7 @@ async function loadEmployees(isRefresh) {
     state.columnLabels = Object.assign({}, DEFAULT_COLUMN_LABELS, response.columnLabels || {});
     state.headerLabelsDirty = false;
     state.page = 1;
+    syncDashboardColumnPreference();
     populateFilters();
     populateFieldFilterColumns();
     applyFilters();
@@ -317,8 +324,115 @@ function buildTableHeader() {
 }
 
 function visibleTableColumns() {
-  if (!hasParticularFieldFilter()) return state.columns;
-  return state.fieldFilterColumns.filter((column) => state.columns.includes(column));
+  if (hasParticularFieldFilter()) return state.fieldFilterColumns.filter((column) => state.columns.includes(column));
+  const selected = state.dashboardColumns.filter((column) => state.columns.includes(column));
+  return selected.length ? selected : state.columns;
+}
+
+function readDashboardColumnPreference() {
+  try {
+    const value = JSON.parse(localStorage.getItem("hrDashboardColumns") || "[]");
+    return Array.isArray(value) ? value.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveDashboardColumnPreference() {
+  try { localStorage.setItem("hrDashboardColumns", JSON.stringify(state.dashboardColumns)); } catch { /* Device storage may be unavailable. */ }
+}
+
+function syncDashboardColumnPreference() {
+  const valid = state.dashboardColumns.filter((column, index, values) => state.columns.includes(column) && values.indexOf(column) === index);
+  state.dashboardColumns = valid.length ? valid : state.columns.slice();
+  updateChooseColumnsButton();
+}
+
+function isDashboardColumnCustomized() {
+  const selected = visibleTableColumns();
+  return !hasParticularFieldFilter() && (selected.length !== state.columns.length || selected.some((column, index) => column !== state.columns[index]));
+}
+
+function updateChooseColumnsButton() {
+  if (!refs.chooseColumnsButton) return;
+  const count = state.dashboardColumns.filter((column) => state.columns.includes(column)).length;
+  refs.chooseColumnsButton.textContent = count === state.columns.length ? "Choose columns · All" : `Choose columns · ${count}`;
+}
+
+function openDashboardColumnChooser() {
+  syncDashboardColumnPreference();
+  renderDashboardColumnChooser();
+  refs.columnViewDialog.showModal();
+}
+
+function renderDashboardColumnChooser() {
+  const selected = new Set(state.dashboardColumns);
+  const ordered = state.dashboardColumns.filter((column) => state.columns.includes(column))
+    .concat(state.columns.filter((column) => !selected.has(column)));
+  refs.columnViewList.innerHTML = ordered.map((column, index) => `
+    <div class="column-view-item" data-dashboard-column="${escapeAttribute(column)}">
+      <label><input type="checkbox"${selected.has(column) ? " checked" : ""}><span>${escapeHtml(columnLabel(column))}</span></label>
+      <div class="column-order-actions"><button type="button" data-column-move="up" aria-label="Move ${escapeAttribute(columnLabel(column))} up"${index === 0 ? " disabled" : ""}>↑</button><button type="button" data-column-move="down" aria-label="Move ${escapeAttribute(columnLabel(column))} down"${index === ordered.length - 1 ? " disabled" : ""}>↓</button></div>
+    </div>
+  `).join("");
+  updateDashboardColumnCount();
+}
+
+function handleDashboardColumnOrder(event) {
+  const button = event.target.closest("[data-column-move]");
+  if (!button) return;
+  const item = button.closest("[data-dashboard-column]");
+  const sibling = button.dataset.columnMove === "up" ? item.previousElementSibling : item.nextElementSibling;
+  if (!sibling) return;
+  if (button.dataset.columnMove === "up") refs.columnViewList.insertBefore(item, sibling);
+  else refs.columnViewList.insertBefore(sibling, item);
+  refreshDashboardColumnOrderButtons();
+}
+
+function refreshDashboardColumnOrderButtons() {
+  const items = [...refs.columnViewList.querySelectorAll("[data-dashboard-column]")];
+  items.forEach((item, index) => {
+    item.querySelector('[data-column-move="up"]').disabled = index === 0;
+    item.querySelector('[data-column-move="down"]').disabled = index === items.length - 1;
+  });
+}
+
+function selectedDashboardColumnsFromChooser() {
+  return [...refs.columnViewList.querySelectorAll("[data-dashboard-column]")]
+    .filter((item) => item.querySelector('input[type="checkbox"]').checked)
+    .map((item) => item.dataset.dashboardColumn);
+}
+
+function updateDashboardColumnCount() {
+  const count = selectedDashboardColumnsFromChooser().length;
+  refs.columnViewCount.textContent = count === state.columns.length ? "All columns selected" : `${count} of ${state.columns.length} columns selected`;
+}
+
+function applyDashboardColumnView() {
+  const selected = selectedDashboardColumnsFromChooser();
+  if (!selected.length) {
+    showToast("Select at least one dashboard column.", true);
+    return;
+  }
+  state.dashboardColumns = selected;
+  saveDashboardColumnPreference();
+  updateChooseColumnsButton();
+  state.inlineEditCode = "";
+  state.page = 1;
+  refs.columnViewDialog.close();
+  renderTable();
+  showToast(`Dashboard now shows ${selected.length} selected column${selected.length === 1 ? "" : "s"}.`);
+}
+
+function restoreAllDashboardColumns() {
+  state.dashboardColumns = state.columns.slice();
+  saveDashboardColumnPreference();
+  updateChooseColumnsButton();
+  state.inlineEditCode = "";
+  state.page = 1;
+  refs.columnViewDialog.close();
+  renderTable();
+  showToast("All dashboard columns restored.");
 }
 
 function columnLabel(column) {
@@ -610,6 +724,7 @@ function renderTable() {
   buildTableHeader();
   const tableColumns = visibleTableColumns();
   refs.employeeTable.classList.toggle("focused-columns-table", hasParticularFieldFilter());
+  refs.employeeTable.classList.toggle("customized-columns-table", isDashboardColumnCustomized());
   const total = state.filtered.length;
   const start = (state.page - 1) * CONFIG.PAGE_SIZE;
   const pageRows = state.filtered.slice(start, start + CONFIG.PAGE_SIZE);
@@ -638,11 +753,11 @@ function renderTable() {
     let actions = "";
     if (state.role === "admin") {
       if (isInlineEditing) {
-        actions = `<td><div class="action-cell inline-actions"><button class="row-action save" data-action="inline-save" data-code="${escapeAttribute(originalCode)}">Save</button><button class="row-action" data-action="inline-cancel" data-code="${escapeAttribute(originalCode)}">Cancel</button></div></td>`;
+        actions = `<td class="admin-column"><div class="action-cell inline-actions"><button class="row-action save" data-action="inline-save" data-code="${escapeAttribute(originalCode)}">Save</button><button class="row-action" data-action="inline-cancel" data-code="${escapeAttribute(originalCode)}">Cancel</button></div></td>`;
       } else if (state.directEditEnabled || filteredRowEditing) {
-        actions = `<td><div class="action-cell"><button class="row-action inline-edit" data-action="inline-edit" data-code="${escapeAttribute(originalCode)}">${filteredRowEditing ? "Edit filtered row" : "Edit row"}</button><button class="row-action" data-action="edit" data-code="${escapeAttribute(originalCode)}">Full form</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(originalCode)}">Delete</button></div></td>`;
+        actions = `<td class="admin-column"><div class="action-cell"><button class="row-action inline-edit" data-action="inline-edit" data-code="${escapeAttribute(originalCode)}">${filteredRowEditing ? "Edit filtered row" : "Edit row"}</button><button class="row-action" data-action="edit" data-code="${escapeAttribute(originalCode)}">Full form</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(originalCode)}">Delete</button></div></td>`;
       } else {
-        actions = `<td><div class="action-cell"><button class="row-action" data-action="edit" data-code="${escapeAttribute(originalCode)}">Edit</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(originalCode)}">Delete</button></div></td>`;
+        actions = `<td class="admin-column"><div class="action-cell"><button class="row-action" data-action="edit" data-code="${escapeAttribute(originalCode)}">Edit</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(originalCode)}">Delete</button></div></td>`;
       }
     }
     const employeeCode = escapeAttribute(employee["Employee Code"]);
@@ -657,6 +772,8 @@ function renderTable() {
     ? " · Header editing is on — rename headings, then choose Save headers"
     : hasParticularFieldFilter()
     ? ` · Showing only ${state.fieldFilterColumns.map(columnLabel).join(", ")} — choose Edit filtered row, then Save`
+    : isDashboardColumnCustomized()
+    ? ` · Custom view: ${tableColumns.length} selected columns`
     : state.directEditEnabled
     ? " · Row editing is on — choose Edit row, then Save"
     : (total ? " · Click a row for full details" : "");
