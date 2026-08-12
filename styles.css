@@ -1672,3 +1672,69 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   border-color: #efbcbc;
   background: #ffe6e6;
 }
+
+/* One-page directory and single-line number/date fields v1.6.18 */
+.table-wrap {
+  max-height: min(64vh, 720px);
+  overflow-x: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.table-footer {
+  min-height: 46px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.scroll-hint {
+  color: #0a6471;
+  font-weight: 900;
+}
+#employeeTable [data-column-key="Sl No."],
+#employeeTable [data-column-key="Mob"],
+#employeeTable [data-column-key="DoB"],
+#employeeTable [data-column-key="DoR"],
+#employeeTable [data-column-key="DoJ Govt"],
+#employeeTable [data-column-key="DoJ in Current Office"],
+#employeeTable [data-column-key="Relieving Date"] {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+#employeeTable td[data-column-key="Sl No."] .cell-text,
+#employeeTable td[data-column-key="Mob"] .cell-text,
+#employeeTable td[data-column-key="DoB"] .cell-text,
+#employeeTable td[data-column-key="DoR"] .cell-text,
+#employeeTable td[data-column-key="DoJ Govt"] .cell-text,
+#employeeTable td[data-column-key="DoJ in Current Office"] .cell-text,
+#employeeTable td[data-column-key="Relieving Date"] .cell-text {
+  display: inline-block;
+  width: auto;
+  white-space: nowrap;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+}
+#employeeTable [data-column-key="Sl No."] { width: 52px; min-width: 52px; max-width: 52px; }
+#employeeTable:not(.focused-columns-table):not(.customized-columns-table) th:nth-child(2),
+#employeeTable:not(.focused-columns-table):not(.customized-columns-table) td:nth-child(2) { left: 52px; }
+#employeeTable [data-column-key="Mob"] { width: 112px; min-width: 112px; max-width: 118px; }
+#employeeTable [data-column-key="DoB"],
+#employeeTable [data-column-key="DoR"],
+#employeeTable [data-column-key="DoJ Govt"],
+#employeeTable [data-column-key="Relieving Date"] { width: 112px; min-width: 112px; max-width: 118px; }
+#employeeTable [data-column-key="DoJ in Current Office"] { width: 118px; min-width: 118px; max-width: 126px; }
+.details-modal [data-field="Mob"] .detail-value,
+.details-modal [data-field="DoB"] .detail-value,
+.details-modal [data-field="DoR"] .detail-value,
+.details-modal [data-field="DoJ Govt"] .detail-value,
+.details-modal [data-field="DoJ in Current Office"] .detail-value,
+.details-modal [data-field="Relieving Date"] .detail-value {
+  white-space: nowrap;
+}
+
+@media (max-width: 620px) {
+  .table-wrap { max-height: 68vh; }
+  .table-footer { align-items: center; flex-direction: row; }
+  .scroll-hint { font-size: 10px; }
+}

@@ -4,9 +4,8 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.17",
+  FRONTEND_VERSION: "1.6.18",
   REQUIRED_BACKEND_VERSION: "1.6.1",
-  PAGE_SIZE: 20,
   REQUEST_TIMEOUT_MS: 45000
 });
 
@@ -88,7 +87,7 @@ function init() {
     "lastUpdated", "displayName", "roleLabel", "userInitial", "statTotal", "statPresent",
     "statSensitive", "statNonSensitive", "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter",
     "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTable", "tableHead", "tableBody", "emptyState",
-    "pageInfo", "pageNumber", "prevPage", "nextPage", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
+    "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
     "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterPicker", "fieldFilterPickerSummary", "fieldFilterOptions", "applyFieldFilter", "clearFieldFilter",
     "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm",
     "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton",
@@ -124,8 +123,6 @@ function init() {
   refs.statusFilter.addEventListener("change", applyFilters);
   refs.sensitivityFilter.addEventListener("change", applyFilters);
   refs.clearFilters.addEventListener("click", clearFilters);
-  refs.prevPage.addEventListener("click", () => changePage(-1));
-  refs.nextPage.addEventListener("click", () => changePage(1));
   refs.exportButton.addEventListener("click", exportFilteredCsv);
   refs.printFilteredButton.addEventListener("click", openFilteredReport);
   refs.chooseColumnsButton.addEventListener("click", openDashboardColumnChooser);
@@ -668,8 +665,8 @@ function populateSelect(select, values, firstLabel) {
 }
 
 function applyFilters() {
-  // Every new search/filter result begins at its first employee. Pagination
-  // then continues the live sequence on later pages (21, 22, ...).
+  // Every new search/filter result begins at serial 1. All matching employees
+  // remain in the same scrollable directory, so the sequence is continuous.
   state.page = 1;
   const query = refs.globalSearch.value.trim().toLocaleLowerCase();
   const group = refs.groupFilter.value;
@@ -689,7 +686,6 @@ function applyFilters() {
       (!fieldColumns.length || selectedFieldsFilled);
   });
   sortEmployees();
-  state.page = Math.min(state.page, Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE)));
   updateStats();
   updateFieldFilterSummary();
   renderTable();
@@ -741,8 +737,8 @@ function renderTable() {
   refs.employeeTable.classList.toggle("customized-columns-table", isDashboardColumnCustomized());
   refs.employeeTable.classList.toggle("wide-actions-table", state.role === "admin" && (state.directEditEnabled || hasParticularFieldFilter()));
   const total = state.filtered.length;
-  const start = (state.page - 1) * CONFIG.PAGE_SIZE;
-  const pageRows = state.filtered.slice(start, start + CONFIG.PAGE_SIZE);
+  const start = 0;
+  const pageRows = state.filtered;
   refs.tableBody.innerHTML = pageRows.map((employee, rowIndex) => {
     const displaySequence = start + rowIndex + 1;
     const originalCode = String(employee["Employee Code"] || "");
@@ -802,13 +798,9 @@ function renderTable() {
     ? " · Row editing is on — choose Edit row, then Save"
     : (total ? " · Click a row for full details" : "");
   refs.resultSummary.textContent = `${total} record${total === 1 ? "" : "s"}${state.search ? " matching search" : ""}${instruction}`;
-  const shownStart = total ? start + 1 : 0;
-  const shownEnd = Math.min(start + CONFIG.PAGE_SIZE, total);
-  const pageCount = Math.max(1, Math.ceil(total / CONFIG.PAGE_SIZE));
-  refs.pageInfo.textContent = `Showing ${shownStart}–${shownEnd} of ${total}`;
-  refs.pageNumber.textContent = `Page ${state.page} of ${pageCount}`;
-  refs.prevPage.disabled = state.page <= 1;
-  refs.nextPage.disabled = state.page >= pageCount;
+  refs.pageInfo.textContent = total
+    ? `Showing all ${total} employee${total === 1 ? "" : "s"} · Scroll inside the directory to view every row`
+    : "Showing 0 employees";
 }
 
 function toggleDirectEdit() {
@@ -1186,13 +1178,6 @@ function addYears(date, years) {
   return result;
 }
 
-function changePage(delta) {
-  const pages = Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE));
-  state.page = Math.min(pages, Math.max(1, state.page + delta));
-  renderTable();
-  document.querySelector(".data-panel").scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
 function handleTableAction(event) {
   const button = event.target.closest("[data-action]");
   if (button) {
@@ -1346,7 +1331,7 @@ function detailRow(field, rawValue) {
   if (["REMARK ADMN", "Present/Permanent Address"].includes(field)) rowClasses.push("detail-wide");
   const visualClass = columnVisualClass(field);
   if (visualClass) rowClasses.push(visualClass);
-  return `<div class="${rowClasses.join(" ")}"><dt>${escapeHtml(detailLabel(field))}</dt><dd class="${valueClass}">${value}</dd></div>`;
+  return `<div class="${rowClasses.join(" ")}" data-field="${escapeAttribute(field)}"><dt>${escapeHtml(detailLabel(field))}</dt><dd class="${valueClass}">${value}</dd></div>`;
 }
 
 function detailLabel(field) {
