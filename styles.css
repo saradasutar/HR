@@ -1090,16 +1090,30 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
 .focused-columns-table th:first-child, .focused-columns-table td:first-child,
 .focused-columns-table th:nth-child(2), .focused-columns-table td:nth-child(2) { position: static; left: auto; width: auto; min-width: 180px; text-align: left; }
 
-/* One-page four-column employee profile and complete edit form on desktop v1.6.8 */
+/* Centred one-page four-column employee profile and edit form on desktop v1.6.9 */
 @media (min-width: 1001px) {
-  .details-modal,
+  .details-modal {
+    position: fixed;
+    inset: 50% auto auto 50%;
+    width: min(1220px, calc(100% - 48px));
+    max-height: calc(100vh - 48px);
+    margin: 0;
+    overflow: hidden;
+    transform: translate(-50%, -50%);
+  }
+
   .employee-edit-modal {
     width: min(1480px, calc(100% - 18px));
     max-height: none;
     overflow: hidden;
   }
 
-  .profile-sheet,
+  .profile-sheet {
+    height: auto;
+    max-height: calc(100vh - 48px);
+    overflow: hidden;
+  }
+
   .employee-edit-modal > form {
     height: min(760px, calc(100vh - 12px));
     max-height: calc(100vh - 12px);
@@ -1118,18 +1132,20 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
     flex: 1 1 auto;
     grid-template-columns: minmax(0, 1fr);
     align-content: start;
-    gap: 5px;
+    gap: 7px;
     min-height: 0;
     overflow: hidden;
-    padding: 5px 8px;
+    padding: 8px 10px;
   }
   .detail-section { border-radius: 8px; box-shadow: 0 3px 9px rgba(21,84,103,.07); }
   .detail-section { grid-column: 1 / -1; }
-  .detail-section h3 { padding: 4px 8px; border-left-width: 4px; font-size: 9px; }
+  .details-modal .detail-section dl { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .details-modal .detail-row.detail-wide { grid-column: span 1; }
+  .detail-section h3 { padding: 6px 10px; border-left-width: 4px; font-size: 10px; }
   .detail-row,
-  .detail-section .detail-row:nth-child(even) { padding: 4px 6px 5px; }
-  .detail-row dt { margin-bottom: 1px; font-size: 8.5px; }
-  .detail-row dd { font-size: 10.5px; line-height: 1.15; }
+  .detail-section .detail-row:nth-child(even) { padding: 7px 9px 8px; }
+  .detail-row dt { margin-bottom: 2px; font-size: 10.5px; }
+  .detail-row dd { font-size: 12.5px; line-height: 1.2; }
   .details-modal .modal-footer { position: static; flex: 0 0 auto; padding: 5px 12px; }
   .details-modal .modal-footer button { min-height: 32px; padding: 5px 11px; font-size: 11px; }
 
