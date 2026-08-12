@@ -1900,3 +1900,61 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   .metallic-navy { color: #002f77; -webkit-text-fill-color: #002f77; background: none; filter: none; }
   .metallic-ruby { color: #850017; -webkit-text-fill-color: #850017; background: none; filter: none; }
 }
+
+/* Readable sapphire names and platinum-chrome card totals v1.6.21 */
+.metallic-sapphire {
+  color: #004b78;
+  -webkit-text-stroke: .25px #001f38;
+  text-shadow: 0 1px 0 #e8fbff, 0 1px 2px rgba(0,27,51,.45);
+}
+.topbar .stat-card strong {
+  color: #f7fdff;
+  -webkit-text-fill-color: #f7fdff;
+  -webkit-text-stroke: .45px rgba(0,25,40,.9);
+  font-size: 24px;
+  letter-spacing: .015em;
+  paint-order: stroke fill;
+  text-shadow: 0 1px 0 #001d2c, 0 0 4px rgba(255,255,255,.38);
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .metallic-sapphire {
+    color: transparent;
+    background-image: linear-gradient(180deg, #002d52 0%, #0a7ca6 19%, #00456e 36%, #a5edf5 48%, #006b94 59%, #00365d 78%, #1597bb 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,.88)) drop-shadow(0 1px 1px rgba(0,28,51,.5));
+  }
+  .metallic-sapphire mark {
+    color: #004b78;
+    -webkit-text-fill-color: #004b78;
+  }
+  .topbar .stat-card strong {
+    color: transparent;
+    background-image: linear-gradient(180deg, #ffffff 0%, #d7f0fa 16%, #ffffff 31%, #668b9e 47%, #f8fdff 63%, #9ebdcb 79%, #ffffff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 1px 0 rgba(0,19,31,.95)) drop-shadow(0 0 3px rgba(255,255,255,.52));
+  }
+}
+
+@media (max-width: 620px) {
+  .topbar .stat-card strong { font-size: 21px; }
+}
+
+@media (prefers-contrast: more) {
+  .metallic-sapphire {
+    color: #003e6a;
+    -webkit-text-fill-color: #003e6a;
+    background: none;
+    filter: none;
+  }
+  .topbar .stat-card strong {
+    color: #ffffff;
+    -webkit-text-fill-color: #ffffff;
+    background: none;
+    filter: none;
+  }
+}
