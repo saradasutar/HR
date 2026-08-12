@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbzz7RXkLB2uVnPZBWBI8-PVvrAzV9o0AyAV0-AfSxY8n1WAuchDWitwRFh3UiwaBgHI/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.12",
+  FRONTEND_VERSION: "1.6.13",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   PAGE_SIZE: 20,
   REQUEST_TIMEOUT_MS: 45000
@@ -296,6 +296,7 @@ function buildTableHeader() {
   refs.tableHead.innerHTML = "";
   visibleTableColumns().concat("Actions").forEach((column) => {
     const th = document.createElement("th");
+    th.dataset.columnKey = column;
     if (column === "Actions") {
       th.className = "admin-column";
       th.hidden = state.role !== "admin";
@@ -725,6 +726,7 @@ function renderTable() {
   const tableColumns = visibleTableColumns();
   refs.employeeTable.classList.toggle("focused-columns-table", hasParticularFieldFilter());
   refs.employeeTable.classList.toggle("customized-columns-table", isDashboardColumnCustomized());
+  refs.employeeTable.classList.toggle("wide-actions-table", state.role === "admin" && (state.directEditEnabled || hasParticularFieldFilter()));
   const total = state.filtered.length;
   const start = (state.page - 1) * CONFIG.PAGE_SIZE;
   const pageRows = state.filtered.slice(start, start + CONFIG.PAGE_SIZE);
@@ -748,16 +750,16 @@ function renderTable() {
         value = `<span class="badge sensitivity ${sensitivityClass(display)}">${escapeHtml(display)}</span>`;
       }
       const className = ["REMARK ADMN", "Present/Permanent Address"].includes(column) ? "remarks-cell" : "";
-      return `<td class="${className}" title="${escapeAttribute(display)}">${value || "—"}</td>`;
+      return `<td class="${className}" data-column-key="${escapeAttribute(column)}" title="${escapeAttribute(display)}">${value || "—"}</td>`;
     }).join("");
     let actions = "";
     if (state.role === "admin") {
       if (isInlineEditing) {
-        actions = `<td class="admin-column"><div class="action-cell inline-actions"><button class="row-action save" data-action="inline-save" data-code="${escapeAttribute(originalCode)}">Save</button><button class="row-action" data-action="inline-cancel" data-code="${escapeAttribute(originalCode)}">Cancel</button></div></td>`;
+        actions = `<td class="admin-column" data-column-key="Actions"><div class="action-cell inline-actions"><button class="row-action save" data-action="inline-save" data-code="${escapeAttribute(originalCode)}">Save</button><button class="row-action" data-action="inline-cancel" data-code="${escapeAttribute(originalCode)}">Cancel</button></div></td>`;
       } else if (state.directEditEnabled || filteredRowEditing) {
-        actions = `<td class="admin-column"><div class="action-cell"><button class="row-action inline-edit" data-action="inline-edit" data-code="${escapeAttribute(originalCode)}">${filteredRowEditing ? "Edit filtered row" : "Edit row"}</button><button class="row-action" data-action="edit" data-code="${escapeAttribute(originalCode)}">Full form</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(originalCode)}">Delete</button></div></td>`;
+        actions = `<td class="admin-column" data-column-key="Actions"><div class="action-cell"><button class="row-action inline-edit" data-action="inline-edit" data-code="${escapeAttribute(originalCode)}">${filteredRowEditing ? "Edit filtered row" : "Edit row"}</button><button class="row-action" data-action="edit" data-code="${escapeAttribute(originalCode)}">Full form</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(originalCode)}">Delete</button></div></td>`;
       } else {
-        actions = `<td class="admin-column"><div class="action-cell"><button class="row-action" data-action="edit" data-code="${escapeAttribute(originalCode)}">Edit</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(originalCode)}">Delete</button></div></td>`;
+        actions = `<td class="admin-column" data-column-key="Actions"><div class="action-cell"><button class="row-action" data-action="edit" data-code="${escapeAttribute(originalCode)}">Edit</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(originalCode)}">Delete</button></div></td>`;
       }
     }
     const employeeCode = escapeAttribute(employee["Employee Code"]);
@@ -836,14 +838,14 @@ function updateHeaderEditButtons() {
 function renderInlineCell(employee, column) {
   const raw = employee[column] == null ? "" : String(employee[column]);
   if (column === "Sl No." || column === "AGE") {
-    return `<td class="inline-readonly-cell"><span class="inline-readonly" data-inline-calculated="${escapeAttribute(column)}">${escapeHtml(raw || "—")}</span></td>`;
+    return `<td class="inline-readonly-cell" data-column-key="${escapeAttribute(column)}"><span class="inline-readonly" data-inline-calculated="${escapeAttribute(column)}">${escapeHtml(raw || "—")}</span></td>`;
   }
 
   if (column === "Strength Status") {
-    return `<td>${inlineSelect(column, raw, STRENGTH_STATUSES, true)}</td>`;
+    return `<td data-column-key="${escapeAttribute(column)}">${inlineSelect(column, raw, STRENGTH_STATUSES, true)}</td>`;
   }
   if (column === "Post Sensitivity") {
-    return `<td>${inlineSelect(column, raw, SENSITIVITY_VALUES, true)}</td>`;
+    return `<td data-column-key="${escapeAttribute(column)}">${inlineSelect(column, raw, SENSITIVITY_VALUES, true)}</td>`;
   }
 
   const dateColumns = ["DoB", "DoR", "Relieving Date", "DoJ Govt", "DoJ in Current Office"];
@@ -853,7 +855,7 @@ function renderInlineCell(employee, column) {
   const disabled = column === "Relieving Date" && strengthStatus(employee) === "Present" ? " disabled" : "";
   const maxLength = inlineMaxLength(column);
   const cellClass = ["REMARK ADMN", "Present/Permanent Address"].includes(column) ? "remarks-cell" : "";
-  return `<td class="${cellClass}"><input class="inline-edit-input" type="${type}" data-inline-field="${escapeAttribute(column)}" value="${escapeAttribute(value)}" aria-label="${escapeAttribute(detailLabel(column))}"${required}${disabled}${maxLength ? ` maxlength="${maxLength}"` : ""}></td>`;
+  return `<td class="${cellClass}" data-column-key="${escapeAttribute(column)}"><input class="inline-edit-input" type="${type}" data-inline-field="${escapeAttribute(column)}" value="${escapeAttribute(value)}" aria-label="${escapeAttribute(detailLabel(column))}"${required}${disabled}${maxLength ? ` maxlength="${maxLength}"` : ""}></td>`;
 }
 
 function inlineSelect(column, value, standardValues, required) {
