@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbzz7RXkLB2uVnPZBWBI8-PVvrAzV9o0AyAV0-AfSxY8n1WAuchDWitwRFh3UiwaBgHI/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.6",
+  FRONTEND_VERSION: "1.6.8",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   PAGE_SIZE: 20,
   REQUEST_TIMEOUT_MS: 45000
@@ -60,7 +60,7 @@ const state = {
   sortDirection: "asc",
   search: "",
   detailEmployeeCode: "",
-  fieldFilterColumn: "",
+  fieldFilterColumns: [],
   reportRows: [],
   reportColumns: [],
   reportTitle: "",
@@ -88,7 +88,7 @@ function init() {
     "statSensitive", "statNonSensitive", "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter",
     "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTable", "tableHead", "tableBody", "emptyState",
     "pageInfo", "pageNumber", "prevPage", "nextPage", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
-    "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterColumn", "applyFieldFilter", "clearFieldFilter",
+    "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterPicker", "fieldFilterPickerSummary", "fieldFilterOptions", "applyFieldFilter", "clearFieldFilter",
     "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm",
     "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton",
     "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks",
@@ -153,6 +153,7 @@ function init() {
   refs.fieldStrengthStatus.addEventListener("change", updateStrengthDateState);
   refs.changePasswordButton.addEventListener("click", () => refs.passwordDialog.showModal());
   refs.detailsEditButton.addEventListener("click", editSelectedEmployee);
+  refs.fieldFilterOptions.addEventListener("change", updateFieldFilterPickerSummary);
   refs.applyFieldFilter.addEventListener("click", applyParticularFieldFilter);
   refs.clearFieldFilter.addEventListener("click", resetParticularFieldFilter);
   refs.passwordForm.addEventListener("submit", changePassword);
@@ -286,7 +287,7 @@ async function loadEmployees(isRefresh) {
 
 function buildTableHeader() {
   refs.tableHead.innerHTML = "";
-  state.columns.concat("Actions").forEach((column) => {
+  visibleTableColumns().concat("Actions").forEach((column) => {
     const th = document.createElement("th");
     if (column === "Actions") {
       th.className = "admin-column";
@@ -313,6 +314,11 @@ function buildTableHeader() {
     }
     refs.tableHead.appendChild(th);
   });
+}
+
+function visibleTableColumns() {
+  if (!hasParticularFieldFilter()) return state.columns;
+  return state.fieldFilterColumns.filter((column) => state.columns.includes(column));
 }
 
 function columnLabel(column) {
@@ -479,37 +485,51 @@ function populateFilters() {
 }
 
 function populateFieldFilterColumns() {
-  const previous = refs.fieldFilterColumn.value || state.fieldFilterColumn;
-  refs.fieldFilterColumn.innerHTML = '<option value="">Select field…</option>' + state.columns.map((column) => `<option value="${escapeAttribute(column)}">${escapeHtml(columnLabel(column))}</option>`).join("");
-  if (state.columns.includes(previous)) refs.fieldFilterColumn.value = previous;
-  else state.fieldFilterColumn = "";
+  const selected = new Set(state.fieldFilterColumns.filter((column) => state.columns.includes(column)));
+  state.fieldFilterColumns = [...selected];
+  refs.fieldFilterOptions.innerHTML = state.columns.map((column) => `<label><input type="checkbox" value="${escapeAttribute(column)}"${selected.has(column) ? " checked" : ""}><span>${escapeHtml(columnLabel(column))}</span></label>`).join("");
+  updateFieldFilterPickerSummary();
+}
+
+function selectedFieldFilterColumns() {
+  return [...refs.fieldFilterOptions.querySelectorAll('input[type="checkbox"]:checked')].map((input) => input.value).filter((column) => state.columns.includes(column));
+}
+
+function updateFieldFilterPickerSummary() {
+  const selected = selectedFieldFilterColumns();
+  if (!selected.length) refs.fieldFilterPickerSummary.textContent = "Choose columns…";
+  else if (selected.length <= 2) refs.fieldFilterPickerSummary.textContent = selected.map(columnLabel).join(" + ");
+  else refs.fieldFilterPickerSummary.textContent = `${selected.length} columns selected`;
 }
 
 function applyParticularFieldFilter() {
-  const column = refs.fieldFilterColumn.value;
-  if (!column) {
-    showToast("Select a field or subject to show its filled records.", true);
+  const columns = selectedFieldFilterColumns();
+  if (!columns.length) {
+    showToast("Select at least one field or subject column.", true);
     return;
   }
-  state.fieldFilterColumn = column;
+  state.fieldFilterColumns = columns;
   state.inlineEditCode = "";
   state.page = 1;
   refs.clearFieldFilter.disabled = false;
+  refs.fieldFilterPicker.open = false;
   applyFilters();
-  showToast(`Showing employees where ${columnLabel(column)} is filled. Use Edit filtered row beside any result.`);
+  showToast(`Showing employees where ${columns.map(columnLabel).join(", ")} ${columns.length === 1 ? "is" : "are"} filled. Use Edit filtered row beside any result.`);
 }
 
 function resetParticularFieldFilter() {
-  state.fieldFilterColumn = "";
+  state.fieldFilterColumns = [];
   state.inlineEditCode = "";
-  refs.fieldFilterColumn.value = "";
+  refs.fieldFilterOptions.querySelectorAll('input[type="checkbox"]').forEach((input) => { input.checked = false; });
+  updateFieldFilterPickerSummary();
+  refs.fieldFilterPicker.open = false;
   refs.clearFieldFilter.disabled = true;
   state.page = 1;
   applyFilters();
 }
 
 function hasParticularFieldFilter() {
-  return Boolean(state.fieldFilterColumn);
+  return state.fieldFilterColumns.length > 0;
 }
 
 function uniqueValues(key) {
@@ -528,17 +548,17 @@ function applyFilters() {
   const category = refs.categoryFilter.value;
   const status = refs.statusFilter.value;
   const sensitivity = refs.sensitivityFilter.value;
-  const fieldColumn = state.fieldFilterColumn;
+  const fieldColumns = state.fieldFilterColumns;
   state.search = query;
   state.filtered = state.employees.filter((employee) => {
     const searchable = state.columns.map((key) => employee[key] || "").concat(strengthStatus(employee), sensitivityStatus(employee)).join(" ").toLocaleLowerCase();
-    const selectedFieldValue = String(employee[fieldColumn] == null ? "" : employee[fieldColumn]).trim();
+    const selectedFieldsFilled = fieldColumns.every((column) => String(employee[column] == null ? "" : employee[column]).trim());
     return (!query || searchable.includes(query)) &&
       (!group || employee.Grp === group) &&
       (!category || employee.Cat === category) &&
       (!status || strengthStatus(employee) === status) &&
       (!sensitivity || sensitivityStatus(employee) === sensitivity) &&
-      (!fieldColumn || Boolean(selectedFieldValue));
+      (!fieldColumns.length || selectedFieldsFilled);
   });
   sortEmployees();
   state.page = Math.min(state.page, Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE)));
@@ -553,8 +573,10 @@ function clearFilters() {
   refs.categoryFilter.value = "";
   refs.statusFilter.value = "";
   refs.sensitivityFilter.value = "";
-  state.fieldFilterColumn = "";
-  refs.fieldFilterColumn.value = "";
+  state.fieldFilterColumns = [];
+  refs.fieldFilterOptions.querySelectorAll('input[type="checkbox"]').forEach((input) => { input.checked = false; });
+  updateFieldFilterPickerSummary();
+  refs.fieldFilterPicker.open = false;
   refs.clearFieldFilter.disabled = true;
   state.page = 1;
   applyFilters();
@@ -562,11 +584,12 @@ function clearFilters() {
 
 function updateFieldFilterSummary() {
   if (!hasParticularFieldFilter()) {
-    refs.fieldFilterSummary.textContent = "Choose one field. All employees having information in that field will appear for direct editing.";
+    refs.fieldFilterSummary.textContent = "Choose one or more columns. Employees whose selected columns are all filled will appear for direct editing.";
     refs.clearFieldFilter.disabled = true;
     return;
   }
-  refs.fieldFilterSummary.textContent = `${state.filtered.length} employee${state.filtered.length === 1 ? "" : "s"} have ${columnLabel(state.fieldFilterColumn)} filled. Choose Edit filtered row below.`;
+  const labels = state.fieldFilterColumns.map(columnLabel);
+  refs.fieldFilterSummary.textContent = `${state.filtered.length} employee${state.filtered.length === 1 ? "" : "s"} have all selected columns filled: ${labels.join(", ")}. Choose Edit filtered row below.`;
   refs.clearFieldFilter.disabled = false;
 }
 
@@ -585,6 +608,8 @@ function sortEmployees() {
 
 function renderTable() {
   buildTableHeader();
+  const tableColumns = visibleTableColumns();
+  refs.employeeTable.classList.toggle("focused-columns-table", hasParticularFieldFilter());
   const total = state.filtered.length;
   const start = (state.page - 1) * CONFIG.PAGE_SIZE;
   const pageRows = state.filtered.slice(start, start + CONFIG.PAGE_SIZE);
@@ -592,7 +617,7 @@ function renderTable() {
     const originalCode = String(employee["Employee Code"] || "");
     const filteredRowEditing = hasParticularFieldFilter();
     const isInlineEditing = state.inlineEditCode === originalCode;
-    const cells = state.columns.map((column) => {
+    const cells = tableColumns.map((column) => {
       if (isInlineEditing) return renderInlineCell(employee, column);
       let raw = employee[column] == null ? "" : String(employee[column]);
       let display = ["DoB", "DoR", "DoJ Govt", "DoJ in Current Office", "Relieving Date"].includes(column) ? formatDate(raw) : raw;
@@ -631,7 +656,7 @@ function renderTable() {
   const instruction = state.headerEditEnabled
     ? " · Header editing is on — rename headings, then choose Save headers"
     : hasParticularFieldFilter()
-    ? " · Field filter active — choose Edit filtered row, then Save"
+    ? ` · Showing only ${state.fieldFilterColumns.map(columnLabel).join(", ")} — choose Edit filtered row, then Save`
     : state.directEditEnabled
     ? " · Row editing is on — choose Edit row, then Save"
     : (total ? " · Click a row for full details" : "");
@@ -1093,7 +1118,13 @@ async function saveInlineEmployee(originalEmployeeCode, row, button) {
     invalid.reportValidity();
     return;
   }
+  const current = findEmployee(originalEmployeeCode);
+  if (!current) {
+    showToast("The employee record is no longer available. Refresh and try again.", true);
+    return;
+  }
   const employee = {};
+  state.columns.forEach((column) => { employee[column] = current[column] == null ? "" : String(current[column]); });
   controls.forEach((control) => { employee[control.dataset.inlineField] = control.value.trim(); });
   if (!employee["Employee Name"] || !employee["Employee Code"]) {
     showToast("Employee name and employee code are required.", true);
