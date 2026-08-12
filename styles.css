@@ -1090,100 +1090,117 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
 .focused-columns-table th:first-child, .focused-columns-table td:first-child,
 .focused-columns-table th:nth-child(2), .focused-columns-table td:nth-child(2) { position: static; left: auto; width: auto; min-width: 180px; text-align: left; }
 
-/* Centred one-page four-column employee profile and edit form on desktop v1.6.9 */
+/* Compact centred four-column employee profile and edit form v1.6.10 */
 @media (min-width: 1001px) {
-  .details-modal {
+  .details-modal,
+  .employee-edit-modal {
     position: fixed;
     inset: 50% auto auto 50%;
-    width: min(1220px, calc(100% - 48px));
-    max-height: calc(100vh - 48px);
     margin: 0;
-    overflow: hidden;
     transform: translate(-50%, -50%);
   }
 
+  .details-modal {
+    width: min(1040px, calc(100% - 64px));
+    max-height: calc(100vh - 64px);
+    overflow: auto;
+    border: 1px solid #9acfd1;
+    border-radius: 18px;
+    background: #eef8f7;
+    box-shadow: 0 26px 76px rgba(5, 53, 69, .32);
+  }
+
   .employee-edit-modal {
-    width: min(1480px, calc(100% - 18px));
-    max-height: none;
-    overflow: hidden;
+    width: min(1100px, calc(100% - 64px));
+    max-height: calc(100vh - 64px);
+    overflow: auto;
+    border: 1px solid #a8d6d2;
+    border-radius: 18px;
+    background: #f2faf9;
+    box-shadow: 0 26px 76px rgba(5, 53, 69, .32);
   }
 
   .profile-sheet {
     height: auto;
-    max-height: calc(100vh - 48px);
-    overflow: hidden;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
   }
 
   .employee-edit-modal > form {
-    height: min(760px, calc(100vh - 12px));
-    max-height: calc(100vh - 12px);
-    overflow: hidden;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+    background: linear-gradient(145deg, #f6fcfb, #f0f7fb);
   }
 
   .profile-sheet { display: flex; flex-direction: column; }
-  .profile-header { position: static; flex: 0 0 auto; padding: 7px 14px; }
-  .profile-header .details-avatar { width: 40px; height: 40px; border-radius: 12px; font-size: 14px; }
+  .profile-header { position: static; flex: 0 0 auto; padding: 10px 16px; }
+  .profile-header .details-avatar { width: 42px; height: 42px; border-radius: 12px; font-size: 15px; }
   .profile-heading { gap: 10px; }
-  .profile-heading h2 { font-size: 19px; }
-  .profile-heading .eyebrow { margin-bottom: 1px; font-size: 9px; }
-  .profile-subtitle { margin-top: 2px; font-size: 10px; }
+  .profile-heading h2 { font-size: 20px; }
+  .profile-heading .eyebrow { margin-bottom: 1px; font-size: 9.5px; }
+  .profile-subtitle { margin-top: 2px; font-size: 11px; }
   .profile-header .modal-close { width: 30px; height: 30px; font-size: 19px; }
   .details-content {
     flex: 1 1 auto;
     grid-template-columns: minmax(0, 1fr);
     align-content: start;
-    gap: 7px;
+    gap: 8px;
     min-height: 0;
-    overflow: hidden;
-    padding: 8px 10px;
+    overflow: visible;
+    padding: 10px 12px;
   }
-  .detail-section { border-radius: 8px; box-shadow: 0 3px 9px rgba(21,84,103,.07); }
+  .detail-section { border-radius: 10px; box-shadow: 0 4px 12px rgba(21,84,103,.08); }
   .detail-section { grid-column: 1 / -1; }
   .details-modal .detail-section dl { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .details-modal .detail-row.detail-wide { grid-column: span 1; }
-  .detail-section h3 { padding: 6px 10px; border-left-width: 4px; font-size: 10px; }
+  .detail-section h3 { padding: 6px 10px; border-left-width: 4px; font-size: 10.5px; }
   .detail-row,
   .detail-section .detail-row:nth-child(even) { padding: 7px 9px 8px; }
   .detail-row dt { margin-bottom: 2px; font-size: 10.5px; }
-  .detail-row dd { font-size: 12.5px; line-height: 1.2; }
-  .details-modal .modal-footer { position: static; flex: 0 0 auto; padding: 5px 12px; }
-  .details-modal .modal-footer button { min-height: 32px; padding: 5px 11px; font-size: 11px; }
+  .detail-row dd { font-size: 12.5px; line-height: 1.22; }
+  .details-modal .modal-footer { position: static; flex: 0 0 auto; padding: 7px 14px; }
+  .details-modal .modal-footer button { min-height: 34px; padding: 6px 13px; font-size: 11.5px; }
 
   .employee-edit-modal > form {
     display: flex;
     flex-direction: column;
   }
-  .employee-edit-modal .modal-header { position: static; flex: 0 0 auto; padding: 6px 13px; }
-  .employee-edit-modal .modal-header h2 { font-size: 18px; }
-  .employee-edit-modal .modal-header .eyebrow { margin-bottom: 2px; font-size: 9px; }
+  .employee-edit-modal .modal-header { position: static; flex: 0 0 auto; padding: 9px 15px; background: linear-gradient(105deg, #e5f7f3, #eaf3ff); }
+  .employee-edit-modal .modal-header h2 { font-size: 19px; }
+  .employee-edit-modal .modal-header .eyebrow { margin-bottom: 2px; font-size: 9.5px; }
   .employee-edit-modal .modal-close { width: 29px; height: 29px; font-size: 18px; }
   .employee-edit-modal > form > .form-grid {
     flex: 0 0 auto;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 5px 8px;
-    padding: 6px 10px;
+    gap: 7px 9px;
+    padding: 9px 12px;
   }
-  .employee-edit-modal .form-grid label { gap: 2px; font-size: 9.5px; }
+  .employee-edit-modal .form-grid label { gap: 3px; font-size: 10.5px; font-weight: 900; }
   .employee-edit-modal .form-grid input,
   .employee-edit-modal .form-grid select,
   .employee-edit-modal .form-grid textarea {
-    min-height: 30px;
-    padding: 4px 7px;
-    border-radius: 7px;
-    font-size: 11px;
+    min-height: 34px;
+    padding: 5px 8px;
+    border-color: #bdd9dc;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
   }
-  .employee-edit-modal .form-grid textarea { height: 36px; min-height: 36px; resize: none; }
+  .employee-edit-modal .form-grid textarea { height: 40px; min-height: 40px; resize: none; }
   .employee-edit-modal .form-grid small { display: none; }
   .employee-edit-modal .form-grid .wide { grid-column: 1 / -1; }
   .employee-edit-modal .form-grid .span-two { grid-column: span 2; }
-  .employee-edit-modal .custom-fields-section { flex: 0 0 auto; margin: 0 10px 4px; border-radius: 8px; }
-  .employee-edit-modal .custom-fields-heading { padding: 3px 7px; }
-  .employee-edit-modal .custom-fields-heading span { font-size: 9px; }
+  .employee-edit-modal .custom-fields-section { flex: 0 0 auto; margin: 0 12px 5px; border-radius: 9px; }
+  .employee-edit-modal .custom-fields-heading { padding: 5px 8px; }
+  .employee-edit-modal .custom-fields-heading span { font-size: 9.5px; }
   .employee-edit-modal .custom-fields-heading small { display: none; }
-  .employee-edit-modal .custom-employee-fields { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 7px; padding: 5px 7px; }
-  .employee-edit-modal > form > .form-error { min-height: 0; margin: 0 10px; font-size: 9px; }
-  .employee-edit-modal .modal-footer { position: static; flex: 0 0 auto; padding: 5px 10px; }
-  .employee-edit-modal .modal-footer button { min-height: 32px; padding: 5px 11px; font-size: 11px; }
+  .employee-edit-modal .custom-employee-fields { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px 8px; padding: 6px 8px; }
+  .employee-edit-modal > form > .form-error { min-height: 0; margin: 0 12px; font-size: 10px; }
+  .employee-edit-modal .modal-footer { position: static; flex: 0 0 auto; padding: 7px 12px; }
+  .employee-edit-modal .modal-footer button { min-height: 34px; padding: 6px 13px; font-size: 11.5px; }
 }
 
 @media (max-width: 1000px) {
