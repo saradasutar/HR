@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260812-single-row-colour-163">
+  <link rel="stylesheet" href="styles.css?v=20260812-inline-card-filter-edit-164">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.3 · Colourful single-row summary</p>
+          <p class="build-version">Dashboard v1.6.4 · Direct card and filtered editing</p>
         </form>
       </main>
     </div>
@@ -83,19 +83,19 @@
         </div>
       </div>
       <section class="stat-grid sensitivity-stat-grid topbar-stats" aria-label="Employee statistics">
-        <article class="stat-card blue"><div class="stat-icon">👥</div><div><span>Total employees</span><strong id="statTotal">0</strong><small>Employee master</small></div></article>
-        <article class="stat-card teal"><div class="stat-icon">✓</div><div><span>Present strength</span><strong id="statPresent">0</strong><small>Marked present</small></div></article>
-        <article class="stat-card rose"><div class="stat-icon">S</div><div><span>Present · Sensitive</span><strong id="statSensitive">0</strong><small>Sensitive posts</small></div></article>
-        <article class="stat-card aqua"><div class="stat-icon">NS</div><div><span>Present · Non-Sensitive</span><strong id="statNonSensitive">0</strong><small>Non-Sensitive posts</small></div></article>
-        <article class="stat-card amber"><div class="stat-icon">⌛</div><div><span>Retiring in 24 months</span><strong id="statRetiring">0</strong><small>Based on DoR</small></div></article>
-        <article class="stat-card violet"><div class="stat-icon">B</div><div><span>Group B employees</span><strong id="statGroupB">0</strong><small>Current records</small></div></article>
+        <article class="stat-card blue"><div class="stat-icon">👥</div><div><span data-short="Total">Total employees</span><strong id="statTotal">0</strong><small>Employee master</small></div></article>
+        <article class="stat-card teal"><div class="stat-icon">✓</div><div><span data-short="Present">Present strength</span><strong id="statPresent">0</strong><small>Marked present</small></div></article>
+        <article class="stat-card rose"><div class="stat-icon">S</div><div><span data-short="Sensitive">Present · Sensitive</span><strong id="statSensitive">0</strong><small>Sensitive posts</small></div></article>
+        <article class="stat-card aqua"><div class="stat-icon">NS</div><div><span data-short="Non-Sens.">Present · Non-Sensitive</span><strong id="statNonSensitive">0</strong><small>Non-Sensitive posts</small></div></article>
+        <article class="stat-card amber"><div class="stat-icon">⌛</div><div><span data-short="Retiring">Retiring in 24 months</span><strong id="statRetiring">0</strong><small>Based on DoR</small></div></article>
+        <article class="stat-card violet"><div class="stat-icon">B</div><div><span data-short="Group B">Group B employees</span><strong id="statGroupB">0</strong><small>Current records</small></div></article>
       </section>
     </header>
 
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.3 · Editable profile cards</span></h2><p id="resultSummary">0 records · Click a row for a four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.4 · Direct card editing</span></h2><p id="resultSummary">0 records · Click a row for a four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
@@ -122,6 +122,12 @@
           <select id="statusFilter" aria-label="Filter by present strength status"><option value="">All strength statuses</option></select>
           <select id="sensitivityFilter" aria-label="Filter by post sensitivity"><option value="">All post sensitivities</option></select>
           <button id="clearFilters" class="text-btn" type="button">Clear</button>
+        </div>
+
+        <div id="filteredEditBar" class="filtered-edit-bar admin-only">
+          <div class="filtered-edit-copy"><span>Quick edit filtered data</span><small id="filteredEditCount">0 employees match the current filters</small></div>
+          <label for="filteredEmployeeEditSelect"><span class="sr-only">Select a filtered employee to edit</span><select id="filteredEmployeeEditSelect" aria-label="Select a filtered employee to edit"><option value="">Select employee…</option></select></label>
+          <button id="openFilteredEmployeeEdit" class="primary-btn" type="button" disabled>Edit selected employee</button>
         </div>
 
         <div class="table-wrap">
@@ -163,29 +169,6 @@
         <button id="detailsEditButton" class="primary-btn admin-only" type="button">Edit employee</button>
       </footer>
     </div>
-  </dialog>
-
-  <dialog id="fieldDetailDialog" class="modal field-detail-modal">
-    <form id="fieldDetailForm" method="dialog">
-      <header class="modal-header">
-        <div>
-          <p class="eyebrow accent">Selected profile card</p>
-          <h2 id="fieldDetailTitle">Add details</h2>
-          <p id="fieldDetailEmployee" class="field-detail-employee"></p>
-        </div>
-        <button class="modal-close" type="button" data-close-dialog="fieldDetailDialog" aria-label="Close selected field editor">×</button>
-      </header>
-      <input id="fieldDetailKey" type="hidden">
-      <div class="field-detail-body">
-        <div id="fieldDetailControl" class="field-detail-control"></div>
-        <p class="field-detail-note">Only this selected card will be changed. All other employee details will remain as they are.</p>
-      </div>
-      <p id="fieldDetailError" class="form-error" role="alert"></p>
-      <footer class="modal-footer">
-        <button class="soft-btn" type="button" data-close-dialog="fieldDetailDialog">Cancel</button>
-        <button id="saveFieldDetailButton" class="primary-btn" type="submit">Save this field</button>
-      </footer>
-    </form>
   </dialog>
 
   <dialog id="reportDialog" class="modal report-modal">
@@ -318,6 +301,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260812-single-row-colour-163"></script>
+  <script src="app.js?v=20260812-inline-card-filter-edit-164"></script>
 </body>
 </html>
