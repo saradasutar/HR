@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.15",
+  FRONTEND_VERSION: "1.6.16",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   PAGE_SIZE: 20,
   REQUEST_TIMEOUT_MS: 45000
@@ -668,6 +668,9 @@ function populateSelect(select, values, firstLabel) {
 }
 
 function applyFilters() {
+  // Every new search/filter result begins at its first employee. Pagination
+  // then continues the live sequence on later pages (21, 22, ...).
+  state.page = 1;
   const query = refs.globalSearch.value.trim().toLocaleLowerCase();
   const group = refs.groupFilter.value;
   const category = refs.categoryFilter.value;
@@ -740,13 +743,14 @@ function renderTable() {
   const total = state.filtered.length;
   const start = (state.page - 1) * CONFIG.PAGE_SIZE;
   const pageRows = state.filtered.slice(start, start + CONFIG.PAGE_SIZE);
-  refs.tableBody.innerHTML = pageRows.map((employee) => {
+  refs.tableBody.innerHTML = pageRows.map((employee, rowIndex) => {
+    const displaySequence = start + rowIndex + 1;
     const originalCode = String(employee["Employee Code"] || "");
     const filteredRowEditing = hasParticularFieldFilter();
     const isInlineEditing = state.inlineEditCode === originalCode;
     const cells = tableColumns.map((column) => {
-      if (isInlineEditing) return renderInlineCell(employee, column);
-      let raw = employee[column] == null ? "" : String(employee[column]);
+      if (isInlineEditing) return renderInlineCell(employee, column, displaySequence);
+      let raw = column === "Sl No." ? String(displaySequence) : employee[column] == null ? "" : String(employee[column]);
       let display = ["DoB", "DoR", "DoJ Govt", "DoJ in Current Office", "Relieving Date"].includes(column) ? formatDate(raw) : raw;
       let value = highlight(display, state.search);
       if (column === "Grp" && raw) value = `<span class="badge group">${escapeHtml(raw)}</span>`;
@@ -850,8 +854,8 @@ function updateHeaderEditButtons() {
   refs.saveHeadersButton.disabled = !state.headerLabelsDirty;
 }
 
-function renderInlineCell(employee, column) {
-  const raw = employee[column] == null ? "" : String(employee[column]);
+function renderInlineCell(employee, column, displaySequence) {
+  const raw = column === "Sl No." ? String(displaySequence) : employee[column] == null ? "" : String(employee[column]);
   const visualClass = columnVisualClass(column);
   if (column === "Sl No." || column === "AGE") {
     return `<td class="inline-readonly-cell${visualClass ? ` ${visualClass}` : ""}" data-column-key="${escapeAttribute(column)}"><span class="inline-readonly" data-inline-calculated="${escapeAttribute(column)}">${escapeHtml(raw || "—")}</span></td>`;
