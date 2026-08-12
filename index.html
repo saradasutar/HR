@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260812-inline-card-filter-edit-164">
+  <link rel="stylesheet" href="styles.css?v=20260812-field-filter-row-edit-165">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.4 · Direct card and filtered editing</p>
+          <p class="build-version">Dashboard v1.6.5 · Field filter and direct row editing</p>
         </form>
       </main>
     </div>
@@ -95,7 +95,7 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.4 · Direct card editing</span></h2><p id="resultSummary">0 records · Click a row for a four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.5 · Filter and edit</span></h2><p id="resultSummary">0 records · Click a row for a four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
@@ -124,10 +124,12 @@
           <button id="clearFilters" class="text-btn" type="button">Clear</button>
         </div>
 
-        <div id="filteredEditBar" class="filtered-edit-bar admin-only">
-          <div class="filtered-edit-copy"><span>Quick edit filtered data</span><small id="filteredEditCount">0 employees match the current filters</small></div>
-          <label for="filteredEmployeeEditSelect"><span class="sr-only">Select a filtered employee to edit</span><select id="filteredEmployeeEditSelect" aria-label="Select a filtered employee to edit"><option value="">Select employee…</option></select></label>
-          <button id="openFilteredEmployeeEdit" class="primary-btn" type="button" disabled>Edit selected employee</button>
+        <div id="fieldFilterEditBar" class="field-filter-edit-bar admin-only">
+          <div class="field-filter-copy"><span>Filter a particular field and edit</span><small id="fieldFilterSummary">Choose a field and value. Matching rows can be edited directly.</small></div>
+          <label class="field-filter-control" for="fieldFilterColumn"><span>Field</span><select id="fieldFilterColumn" aria-label="Select employee field to filter"><option value="">Select field…</option></select></label>
+          <label class="field-filter-control" for="fieldFilterValue"><span>Value</span><select id="fieldFilterValue" aria-label="Select field value to filter" disabled><option value="">Select value…</option></select></label>
+          <button id="applyFieldFilter" class="primary-btn" type="button">Filter &amp; edit</button>
+          <button id="clearFieldFilter" class="soft-btn" type="button" disabled>Clear field filter</button>
         </div>
 
         <div class="table-wrap">
@@ -301,6 +303,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260812-inline-card-filter-edit-164"></script>
+  <script src="app.js?v=20260812-field-filter-row-edit-165"></script>
 </body>
 </html>

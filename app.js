@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbzz7RXkLB2uVnPZBWBI8-PVvrAzV9o0AyAV0-AfSxY8n1WAuchDWitwRFh3UiwaBgHI/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.4",
+  FRONTEND_VERSION: "1.6.5",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   PAGE_SIZE: 20,
   REQUEST_TIMEOUT_MS: 45000
@@ -60,7 +60,8 @@ const state = {
   sortDirection: "asc",
   search: "",
   detailEmployeeCode: "",
-  detailEditingField: "",
+  fieldFilterColumn: "",
+  fieldFilterValue: "",
   reportRows: [],
   reportColumns: [],
   reportTitle: "",
@@ -88,7 +89,7 @@ function init() {
     "statSensitive", "statNonSensitive", "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter",
     "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTable", "tableHead", "tableBody", "emptyState",
     "pageInfo", "pageNumber", "prevPage", "nextPage", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
-    "filteredEditBar", "filteredEditCount", "filteredEmployeeEditSelect", "openFilteredEmployeeEdit",
+    "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterColumn", "fieldFilterValue", "applyFieldFilter", "clearFieldFilter",
     "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm",
     "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton",
     "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks",
@@ -153,10 +154,9 @@ function init() {
   refs.fieldStrengthStatus.addEventListener("change", updateStrengthDateState);
   refs.changePasswordButton.addEventListener("click", () => refs.passwordDialog.showModal());
   refs.detailsEditButton.addEventListener("click", editSelectedEmployee);
-  refs.employeeDetailsContent.addEventListener("click", handleDetailCardAction);
-  refs.employeeDetailsContent.addEventListener("change", updateSelectedFieldRelatedState);
-  refs.filteredEmployeeEditSelect.addEventListener("change", updateFilteredEditButton);
-  refs.openFilteredEmployeeEdit.addEventListener("click", openFilteredEmployeeForEdit);
+  refs.fieldFilterColumn.addEventListener("change", populateFieldFilterValues);
+  refs.applyFieldFilter.addEventListener("click", applyParticularFieldFilter);
+  refs.clearFieldFilter.addEventListener("click", resetParticularFieldFilter);
   refs.passwordForm.addEventListener("submit", changePassword);
   document.querySelectorAll("[data-close-dialog]").forEach((button) => {
     button.addEventListener("click", () => $(button.dataset.closeDialog).close());
@@ -275,6 +275,7 @@ async function loadEmployees(isRefresh) {
     state.headerLabelsDirty = false;
     state.page = 1;
     populateFilters();
+    populateFieldFilterColumns();
     applyFilters();
     refs.lastUpdated.textContent = "Updated " + new Intl.DateTimeFormat("en-IN", { hour: "2-digit", minute: "2-digit" }).format(new Date());
     if (!versionAtLeast(state.backendVersion, CONFIG.REQUIRED_BACKEND_VERSION) && !state.backendMismatchNotified) {
@@ -479,6 +480,59 @@ function populateFilters() {
   populateSelect(refs.sensitivityFilter, sensitivities, "All post sensitivities");
 }
 
+function populateFieldFilterColumns() {
+  const previous = refs.fieldFilterColumn.value || state.fieldFilterColumn;
+  refs.fieldFilterColumn.innerHTML = '<option value="">Select field…</option>' + state.columns.map((column) => `<option value="${escapeAttribute(column)}">${escapeHtml(columnLabel(column))}</option>`).join("");
+  if (state.columns.includes(previous)) refs.fieldFilterColumn.value = previous;
+  else { state.fieldFilterColumn = ""; state.fieldFilterValue = ""; }
+  populateFieldFilterValues();
+}
+
+function populateFieldFilterValues() {
+  const column = refs.fieldFilterColumn.value;
+  const previous = column === state.fieldFilterColumn ? (refs.fieldFilterValue.value || state.fieldFilterValue) : "";
+  refs.fieldFilterValue.innerHTML = '<option value="">Select value…</option>' + (column ? uniqueFieldFilterValues(column).map((value) => `<option value="${escapeAttribute(value)}">${escapeHtml(value)}</option>`).join("") : "");
+  refs.fieldFilterValue.disabled = !column;
+  if (column && uniqueFieldFilterValues(column).includes(previous)) refs.fieldFilterValue.value = previous;
+}
+
+function uniqueFieldFilterValues(column) {
+  if (column === "Strength Status") return [...new Set(state.employees.map(strengthStatus))].sort();
+  if (column === "Post Sensitivity") return [...new Set(state.employees.map(sensitivityStatus))].sort();
+  return uniqueValues(column);
+}
+
+function applyParticularFieldFilter() {
+  const column = refs.fieldFilterColumn.value;
+  const value = refs.fieldFilterValue.value;
+  if (!column || !value) {
+    showToast("Select both a field and a value to filter.", true);
+    return;
+  }
+  state.fieldFilterColumn = column;
+  state.fieldFilterValue = value;
+  state.inlineEditCode = "";
+  state.page = 1;
+  refs.clearFieldFilter.disabled = false;
+  applyFilters();
+  showToast(`${columnLabel(column)} filtered by “${value}”. Use Edit filtered row beside any result.`);
+}
+
+function resetParticularFieldFilter() {
+  state.fieldFilterColumn = "";
+  state.fieldFilterValue = "";
+  state.inlineEditCode = "";
+  refs.fieldFilterColumn.value = "";
+  populateFieldFilterValues();
+  refs.clearFieldFilter.disabled = true;
+  state.page = 1;
+  applyFilters();
+}
+
+function hasParticularFieldFilter() {
+  return Boolean(state.fieldFilterColumn && state.fieldFilterValue);
+}
+
 function uniqueValues(key) {
   return [...new Set(state.employees.map((item) => String(item[key] || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 }
@@ -495,19 +549,23 @@ function applyFilters() {
   const category = refs.categoryFilter.value;
   const status = refs.statusFilter.value;
   const sensitivity = refs.sensitivityFilter.value;
+  const fieldColumn = state.fieldFilterColumn;
+  const fieldValue = state.fieldFilterValue;
   state.search = query;
   state.filtered = state.employees.filter((employee) => {
     const searchable = state.columns.map((key) => employee[key] || "").concat(strengthStatus(employee), sensitivityStatus(employee)).join(" ").toLocaleLowerCase();
+    const selectedFieldValue = fieldColumn === "Strength Status" ? strengthStatus(employee) : fieldColumn === "Post Sensitivity" ? sensitivityStatus(employee) : String(employee[fieldColumn] || "").trim();
     return (!query || searchable.includes(query)) &&
       (!group || employee.Grp === group) &&
       (!category || employee.Cat === category) &&
       (!status || strengthStatus(employee) === status) &&
-      (!sensitivity || sensitivityStatus(employee) === sensitivity);
+      (!sensitivity || sensitivityStatus(employee) === sensitivity) &&
+      (!fieldColumn || !fieldValue || selectedFieldValue === fieldValue);
   });
   sortEmployees();
   state.page = Math.min(state.page, Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE)));
   updateStats();
-  updateFilteredEditControl();
+  updateFieldFilterSummary();
   renderTable();
 }
 
@@ -517,34 +575,23 @@ function clearFilters() {
   refs.categoryFilter.value = "";
   refs.statusFilter.value = "";
   refs.sensitivityFilter.value = "";
+  state.fieldFilterColumn = "";
+  state.fieldFilterValue = "";
+  refs.fieldFilterColumn.value = "";
+  populateFieldFilterValues();
+  refs.clearFieldFilter.disabled = true;
   state.page = 1;
   applyFilters();
 }
 
-function updateFilteredEditControl() {
-  if (!refs.filteredEmployeeEditSelect) return;
-  const previous = refs.filteredEmployeeEditSelect.value;
-  const options = state.filtered.map((employee) => {
-    const code = String(employee["Employee Code"] || "");
-    const name = String(employee["Employee Name"] || "Unnamed employee");
-    const designation = String(employee.Designation || "No designation");
-    return `<option value="${escapeAttribute(code)}">${escapeHtml(name)} · ${escapeHtml(code)} · ${escapeHtml(designation)}</option>`;
-  }).join("");
-  refs.filteredEmployeeEditSelect.innerHTML = `<option value="">Select from ${state.filtered.length} filtered employee${state.filtered.length === 1 ? "" : "s"}…</option>${options}`;
-  if (state.filtered.some((employee) => employee["Employee Code"] === previous)) refs.filteredEmployeeEditSelect.value = previous;
-  else if (state.filtered.length === 1) refs.filteredEmployeeEditSelect.value = state.filtered[0]["Employee Code"] || "";
-  refs.filteredEditCount.textContent = `${state.filtered.length} employee${state.filtered.length === 1 ? "" : "s"} match the current search and filters`;
-  updateFilteredEditButton();
-}
-
-function updateFilteredEditButton() {
-  refs.openFilteredEmployeeEdit.disabled = !refs.filteredEmployeeEditSelect.value || state.role !== "admin";
-}
-
-function openFilteredEmployeeForEdit() {
-  if (state.role !== "admin") return;
-  const employee = findEmployee(refs.filteredEmployeeEditSelect.value);
-  if (employee) openEmployeeDetails(employee, true);
+function updateFieldFilterSummary() {
+  if (!hasParticularFieldFilter()) {
+    refs.fieldFilterSummary.textContent = "Choose a field and value. Matching rows can be edited directly.";
+    refs.clearFieldFilter.disabled = true;
+    return;
+  }
+  refs.fieldFilterSummary.textContent = `${state.filtered.length} match${state.filtered.length === 1 ? "" : "es"}: ${columnLabel(state.fieldFilterColumn)} = ${state.fieldFilterValue}. Choose Edit filtered row below.`;
+  refs.clearFieldFilter.disabled = false;
 }
 
 function sortBy(column) {
@@ -567,7 +614,8 @@ function renderTable() {
   const pageRows = state.filtered.slice(start, start + CONFIG.PAGE_SIZE);
   refs.tableBody.innerHTML = pageRows.map((employee) => {
     const originalCode = String(employee["Employee Code"] || "");
-    const isInlineEditing = state.directEditEnabled && state.inlineEditCode === originalCode;
+    const filteredRowEditing = hasParticularFieldFilter();
+    const isInlineEditing = state.inlineEditCode === originalCode;
     const cells = state.columns.map((column) => {
       if (isInlineEditing) return renderInlineCell(employee, column);
       let raw = employee[column] == null ? "" : String(employee[column]);
@@ -590,8 +638,8 @@ function renderTable() {
     if (state.role === "admin") {
       if (isInlineEditing) {
         actions = `<td><div class="action-cell inline-actions"><button class="row-action save" data-action="inline-save" data-code="${escapeAttribute(originalCode)}">Save</button><button class="row-action" data-action="inline-cancel" data-code="${escapeAttribute(originalCode)}">Cancel</button></div></td>`;
-      } else if (state.directEditEnabled) {
-        actions = `<td><div class="action-cell"><button class="row-action inline-edit" data-action="inline-edit" data-code="${escapeAttribute(originalCode)}">Edit row</button><button class="row-action" data-action="edit" data-code="${escapeAttribute(originalCode)}">Full form</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(originalCode)}">Delete</button></div></td>`;
+      } else if (state.directEditEnabled || filteredRowEditing) {
+        actions = `<td><div class="action-cell"><button class="row-action inline-edit" data-action="inline-edit" data-code="${escapeAttribute(originalCode)}">${filteredRowEditing ? "Edit filtered row" : "Edit row"}</button><button class="row-action" data-action="edit" data-code="${escapeAttribute(originalCode)}">Full form</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(originalCode)}">Delete</button></div></td>`;
       } else {
         actions = `<td><div class="action-cell"><button class="row-action" data-action="edit" data-code="${escapeAttribute(originalCode)}">Edit</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(originalCode)}">Delete</button></div></td>`;
       }
@@ -606,6 +654,8 @@ function renderTable() {
   refs.employeeTable.hidden = total === 0;
   const instruction = state.headerEditEnabled
     ? " · Header editing is on — rename headings, then choose Save headers"
+    : hasParticularFieldFilter()
+    ? " · Field filter active — choose Edit filtered row, then Save"
     : state.directEditEnabled
     ? " · Row editing is on — choose Edit row, then Save"
     : (total ? " · Click a row for full details" : "");
@@ -1103,10 +1153,9 @@ function findEmployee(employeeCode) {
   return state.employees.find((item) => item["Employee Code"] === employeeCode);
 }
 
-function openEmployeeDetails(employee, startEditing) {
+function openEmployeeDetails(employee) {
   if (!employee) return;
   state.detailEmployeeCode = employee["Employee Code"] || "";
-  state.detailEditingField = "";
   const name = employee["Employee Name"] || "Employee details";
   const designation = employee.Designation || "Designation not recorded";
   const code = employee["Employee Code"] || "No employee code";
@@ -1129,17 +1178,10 @@ function openEmployeeDetails(employee, startEditing) {
   `).join("");
   refs.detailsEditButton.hidden = state.role !== "admin";
   if (!refs.employeeDetailsDialog.open) refs.employeeDetailsDialog.showModal();
-  if (startEditing && state.role === "admin") {
-    const firstField = state.columns.find((field) => !["Sl No.", "AGE"].includes(field));
-    if (firstField) beginDetailCardEdit(firstField);
-  }
 }
 
 function detailRow(field, rawValue) {
   let raw = rawValue == null ? "" : String(rawValue).trim();
-  const hasValue = Boolean(raw);
-  const canEdit = state.role === "admin" && !["Sl No.", "AGE"].includes(field);
-  const cardAction = canEdit ? `<button class="detail-card-action" type="button" data-detail-field-action="edit" data-detail-field="${escapeAttribute(field)}" aria-label="${hasValue ? "Edit" : "Add details for"} ${escapeAttribute(detailLabel(field))}">${hasValue ? "Edit" : "+ Add details"}</button>` : "";
   if (field === "Strength Status") raw = raw || "Not set";
   if (field === "Post Sensitivity") raw = raw || "Not set";
   let value = raw ? escapeHtml(raw) : '<span class="detail-empty">Not recorded</span>';
@@ -1150,7 +1192,7 @@ function detailRow(field, rawValue) {
   if (field === "Mob" && raw) value = `<a href="tel:${escapeAttribute(raw)}">${escapeHtml(raw)}</a>`;
   const valueClass = field === "REMARK ADMN" ? "detail-value remarks" : "detail-value";
   const rowClass = ["REMARK ADMN", "Present/Permanent Address"].includes(field) ? "detail-row detail-wide" : "detail-row";
-  return `<div class="${rowClass}" data-detail-card="${escapeAttribute(field)}"><div class="detail-card-top"><dt>${escapeHtml(detailLabel(field))}</dt>${cardAction}</div><dd class="${valueClass}">${value}</dd></div>`;
+  return `<div class="${rowClass}"><dt>${escapeHtml(detailLabel(field))}</dt><dd class="${valueClass}">${value}</dd></div>`;
 }
 
 function detailLabel(field) {
@@ -1161,144 +1203,6 @@ function detailLabel(field) {
     "Mob": "Mobile", "AGE": "Age", "Relieving Date": "Relieving / exit date"
   };
   return labels[field] || columnLabel(field) || field;
-}
-
-function handleDetailCardAction(event) {
-  const button = event.target.closest("[data-detail-field-action]");
-  if (!button || state.role !== "admin") return;
-  const field = button.dataset.detailField;
-  if (button.dataset.detailFieldAction === "edit") beginDetailCardEdit(field);
-  if (button.dataset.detailFieldAction === "cancel") cancelDetailCardEdit();
-  if (button.dataset.detailFieldAction === "save") saveDetailCardField(field, button);
-}
-
-function beginDetailCardEdit(field) {
-  const employee = findEmployee(state.detailEmployeeCode);
-  if (!employee || state.role !== "admin" || !state.columns.includes(field) || ["Sl No.", "AGE"].includes(field)) return;
-  if (state.detailEditingField && state.detailEditingField !== field) openEmployeeDetails(employee);
-  state.detailEditingField = field;
-  const card = refs.employeeDetailsContent.querySelector(`[data-detail-card="${cssEscape(field)}"]`);
-  if (!card) return;
-  const currentValue = employee[field] == null ? "" : String(employee[field]).trim();
-  card.classList.add("detail-card-editing");
-  card.innerHTML = `<div class="detail-card-top"><dt>${escapeHtml(detailLabel(field))}</dt><span class="detail-editing-label">Editing</span></div><dd class="detail-card-editor">${selectedFieldControl(field, currentValue, employee)}<p class="detail-card-error" role="alert"></p><div class="detail-inline-actions"><button class="detail-card-cancel" type="button" data-detail-field-action="cancel" data-detail-field="${escapeAttribute(field)}">Cancel</button><button class="detail-card-save" type="button" data-detail-field-action="save" data-detail-field="${escapeAttribute(field)}">Save</button></div></dd>`;
-  updateSelectedFieldRelatedState();
-  setTimeout(() => {
-    const control = card.querySelector("input:not([type='hidden']):not(:disabled), select:not(:disabled), textarea:not(:disabled)");
-    if (control) control.focus();
-  }, 30);
-}
-
-function cancelDetailCardEdit() {
-  const employee = findEmployee(state.detailEmployeeCode);
-  if (!employee) return;
-  openEmployeeDetails(employee);
-}
-
-function selectedFieldControl(field, value, employee) {
-  const label = escapeHtml(detailLabel(field));
-  const required = ["Employee Name", "Employee Code", "Strength Status", "Post Sensitivity"].includes(field) ? " required" : "";
-  const maximums = { "Employee Name": 100, "Employee Code": 30, "Designation": 80, "Mob": 15, "Email": 120, "Present/Permanent Address": 500, "REMARK ADMN": 500 };
-  const maxLength = maximums[field] ? ` maxlength="${maximums[field]}"` : " maxlength=\"500\"";
-  const selectValues = selectedFieldOptions(field, value);
-  let control;
-  if (selectValues) {
-    control = `<select id="selectedFieldValue"${required}><option value="">Select</option>${selectValues.map((option) => `<option value="${escapeAttribute(option)}"${option === value ? " selected" : ""}>${escapeHtml(option)}</option>`).join("")}</select>`;
-  } else if (["DoB", "DoR", "DoJ Govt", "DoJ in Current Office", "Relieving Date"].includes(field)) {
-    control = `<input id="selectedFieldValue" type="date" value="${escapeAttribute(toIsoDate(value))}"${required}>`;
-  } else if (["Present/Permanent Address", "REMARK ADMN"].includes(field)) {
-    control = `<textarea id="selectedFieldValue" rows="5"${maxLength}${required}>${escapeHtml(value)}</textarea>`;
-  } else {
-    const type = field === "Email" ? "email" : (field === "Mob" ? "tel" : "text");
-    const inputMode = field === "Mob" ? " inputmode=\"tel\"" : "";
-    control = `<input id="selectedFieldValue" type="${type}" value="${escapeAttribute(value)}"${inputMode}${maxLength}${required}>`;
-  }
-
-  let related = "";
-  if (field === "Strength Status") {
-    related = `<label class="field-detail-related"><span>Relieving / exit date</span><input id="selectedFieldRelievingDate" type="date" value="${escapeAttribute(toIsoDate(employee["Relieving Date"] || ""))}"><small id="selectedFieldRelationHint"></small></label>`;
-  } else if (field === "Relieving Date") {
-    const status = employee["Strength Status"] || "Present";
-    related = `<label class="field-detail-related"><span>Strength status</span><select id="selectedFieldStrengthStatus" required>${STRENGTH_STATUSES.map((option) => `<option value="${option}"${option === status ? " selected" : ""}>${option}</option>`).join("")}</select><small id="selectedFieldRelationHint"></small></label>`;
-  }
-  return `<label class="field-detail-primary"><span>${label}</span>${control}</label>${related}`;
-}
-
-function selectedFieldOptions(field, currentValue) {
-  let values = null;
-  if (field === "Grp") values = ["Group A", "Group B", "Group C", "Group D"];
-  if (field === "Cat") values = ["UR", "Gen", "OBC", "SC", "ST", "EWS"];
-  if (field === "Strength Status") values = STRENGTH_STATUSES.slice();
-  if (field === "Post Sensitivity") values = SENSITIVITY_VALUES.slice();
-  if (!values) return null;
-  if (currentValue && !values.includes(currentValue)) values.unshift(currentValue);
-  return [...new Set(values)];
-}
-
-function updateSelectedFieldRelatedState() {
-  const field = state.detailEditingField;
-  const card = refs.employeeDetailsContent.querySelector(`[data-detail-card="${cssEscape(field)}"]`);
-  const primary = card && card.querySelector("#selectedFieldValue");
-  if (!primary) return;
-  let status = "";
-  let relievingDate = null;
-  if (field === "Strength Status") {
-    status = primary.value;
-    relievingDate = card.querySelector("#selectedFieldRelievingDate");
-  } else if (field === "Relieving Date") {
-    status = card.querySelector("#selectedFieldStrengthStatus")?.value || "";
-    relievingDate = primary;
-  } else return;
-  const needsDate = Boolean(status && status !== "Present");
-  relievingDate.disabled = !needsDate;
-  relievingDate.required = needsDate;
-  if (!needsDate) relievingDate.value = "";
-  const hint = card.querySelector("#selectedFieldRelationHint");
-  if (hint) hint.textContent = needsDate ? "Required for relieved, transferred or retired staff." : "The exit date is cleared while the employee is Present.";
-}
-
-async function saveDetailCardField(field, button) {
-  const current = findEmployee(state.detailEmployeeCode);
-  const card = button.closest("[data-detail-card]");
-  const control = card && card.querySelector("#selectedFieldValue");
-  const errorNode = card && card.querySelector(".detail-card-error");
-  if (errorNode) errorNode.textContent = "";
-  if (!current || !control || !state.columns.includes(field)) {
-    if (errorNode) errorNode.textContent = "The selected employee or field is no longer available.";
-    return;
-  }
-  if (!control.checkValidity()) { control.reportValidity(); return; }
-
-  const originalEmployeeCode = current["Employee Code"] || "";
-  const employee = {};
-  state.columns.forEach((column) => { employee[column] = current[column] == null ? "" : String(current[column]); });
-  employee[field] = String(control.value || "").trim();
-  if (field === "Strength Status") employee["Relieving Date"] = employee[field] === "Present" ? "" : (card.querySelector("#selectedFieldRelievingDate")?.value || "");
-  if (field === "Relieving Date") {
-    employee["Strength Status"] = card.querySelector("#selectedFieldStrengthStatus")?.value || employee["Strength Status"];
-    employee["Relieving Date"] = employee["Strength Status"] === "Present" ? "" : employee[field];
-  }
-  if (!employee["Employee Name"] || !employee["Employee Code"]) {
-    if (errorNode) errorNode.textContent = "Employee name and employee code are required.";
-    return;
-  }
-  if (employee["Strength Status"] && employee["Strength Status"] !== "Present" && !employee["Relieving Date"]) {
-    if (errorNode) errorNode.textContent = "Enter a relieving date for a relieved, transferred or retired employee.";
-    return;
-  }
-
-  setButtonBusy(button, true, "Saving…");
-  try {
-    const result = await apiRequest("saveEmployee", { employee, originalEmployeeCode });
-    showToast(`${detailLabel(field)} updated.`);
-    await loadEmployees();
-    const updated = findEmployee(result.employeeCode || employee["Employee Code"]);
-    if (updated) openEmployeeDetails(updated);
-  } catch (error) {
-    if (errorNode) errorNode.textContent = friendlyError(error);
-  } finally {
-    if (button.isConnected) setButtonBusy(button, false, "Save");
-  }
 }
 
 function editSelectedEmployee() {
