@@ -1378,3 +1378,22 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   .topbar .stat-card strong { order: -1; font-size: 18px; }
   .topbar .stat-card small { display: none; }
 }
+
+/* Compact Employee directory data rows v1.6.12 */
+.table-wrap tbody td {
+  height: 38px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  font-size: 12.5px;
+  line-height: 1.2;
+}
+.table-wrap tbody td:nth-child(2) { font-size: 13px; }
+.table-wrap tbody .badge { padding: 3px 7px; font-size: 10px; line-height: 1.15; }
+.table-wrap tbody .action-cell { align-items: center; gap: 4px; }
+.table-wrap tbody .row-action { min-height: 28px; padding: 4px 7px; border-radius: 7px; font-size: 9.5px; line-height: 1.1; }
+.table-wrap tbody .inline-edit-input,
+.table-wrap tbody .inline-edit-select { min-height: 31px; padding: 4px 6px; font-size: 10.5px; }
+
+@media (max-width: 620px) {
+  .table-wrap tbody td { height: 40px; padding-top: 7px; padding-bottom: 7px; }
+}
