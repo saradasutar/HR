@@ -1938,6 +1938,96 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   }
 }
 
+/* Larger, bolder employee detail and edit popup text v1.6.25 */
+.details-modal .profile-heading h2 {
+  font-size: 23px;
+  font-weight: 950;
+}
+.details-modal .profile-heading .eyebrow {
+  font-size: 11px;
+  font-weight: 950;
+}
+.details-modal .profile-subtitle {
+  font-size: 13px;
+  font-weight: 900;
+}
+.details-modal .detail-section h3 {
+  font-size: 12.5px;
+  font-weight: 950;
+}
+.details-modal .detail-row dt {
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1.18;
+}
+.details-modal .detail-row dd {
+  font-size: 14.5px;
+  font-weight: 900;
+  line-height: 1.24;
+}
+.details-modal .modal-footer button,
+.employee-edit-modal .modal-footer button {
+  font-size: 12.5px;
+  font-weight: 900;
+}
+.employee-edit-modal .modal-header h2 {
+  font-size: 22px;
+  font-weight: 950;
+}
+.employee-edit-modal .modal-header .eyebrow {
+  font-size: 11px;
+  font-weight: 950;
+}
+.employee-edit-modal .form-grid label,
+.employee-edit-modal .custom-employee-fields label {
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1.15;
+}
+.employee-edit-modal .form-grid input,
+.employee-edit-modal .form-grid select,
+.employee-edit-modal .form-grid textarea,
+.employee-edit-modal .custom-employee-fields input {
+  font-size: 13.5px;
+  font-weight: 800;
+  line-height: 1.18;
+}
+.employee-edit-modal .custom-fields-heading span {
+  font-size: 11.5px;
+  font-weight: 950;
+}
+.employee-edit-modal > form > .form-error {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+@media (min-width: 1001px) {
+  .details-modal .detail-section h3 { padding: 7px 10px; }
+  .details-modal .detail-row,
+  .details-modal .detail-section .detail-row:nth-child(even) { padding: 7px 9px 8px; }
+  .employee-edit-modal > form > .form-grid { gap: 7px 9px; padding: 9px 12px; }
+  .employee-edit-modal .form-grid input,
+  .employee-edit-modal .form-grid select,
+  .employee-edit-modal .form-grid textarea {
+    min-height: 35px;
+    padding: 5px 8px;
+  }
+  .employee-edit-modal .form-grid textarea { height: 41px; min-height: 41px; }
+}
+
+@media (max-width: 620px) {
+  .details-modal .profile-heading h2 { font-size: 21px; }
+  .details-modal .detail-row dt { font-size: 11.5px; }
+  .details-modal .detail-row dd { font-size: 14px; }
+  .employee-edit-modal .modal-header h2 { font-size: 20px; }
+  .employee-edit-modal .form-grid label,
+  .employee-edit-modal .custom-employee-fields label { font-size: 11.5px; }
+  .employee-edit-modal .form-grid input,
+  .employee-edit-modal .form-grid select,
+  .employee-edit-modal .form-grid textarea,
+  .employee-edit-modal .custom-employee-fields input { font-size: 13px; }
+}
+
 @media (max-width: 620px) {
   .topbar .stat-card strong { font-size: 21px; }
 }
