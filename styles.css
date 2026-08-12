@@ -1901,12 +1901,12 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   .metallic-ruby { color: #850017; -webkit-text-fill-color: #850017; background: none; filter: none; }
 }
 
-/* High-contrast violet-metal names and platinum-chrome card totals v1.6.22 */
-.metallic-violet {
-  color: #591681;
-  -webkit-text-stroke: .32px #260039;
+/* High-contrast royal-blue metallic names and platinum-chrome card totals v1.6.23 */
+.metallic-blue {
+  color: #0048a8;
+  -webkit-text-stroke: .32px #001a4d;
   paint-order: stroke fill;
-  text-shadow: 0 1px 0 #f4e8ff, 0 1px 2px rgba(38,0,57,.52);
+  text-shadow: 0 1px 0 #a9d5ff, 0 1px 2px rgba(0,25,76,.58);
 }
 .topbar .stat-card strong {
   color: #f7fdff;
@@ -1919,17 +1919,17 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
 }
 
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
-  .metallic-violet {
+  .metallic-blue {
     color: transparent;
-    background-image: linear-gradient(180deg, #28003f 0%, #7b2fa2 19%, #4a076c 37%, #d6b0f5 45%, #5c0f83 52%, #350050 76%, #8e3db2 100%);
+    background-image: linear-gradient(180deg, #001b52 0%, #0878d7 19%, #003d91 37%, #65b6ed 45%, #0062c4 53%, #002667 77%, #168de0 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 1px 0 rgba(255,255,255,.92)) drop-shadow(0 1px 1px rgba(38,0,57,.62));
+    filter: drop-shadow(0 1px 0 rgba(164,213,255,.88)) drop-shadow(0 1px 1px rgba(0,25,76,.68));
   }
-  .metallic-violet mark {
-    color: #4e096f;
-    -webkit-text-fill-color: #4e096f;
+  .metallic-blue mark {
+    color: #003c91;
+    -webkit-text-fill-color: #003c91;
   }
   .topbar .stat-card strong {
     color: transparent;
@@ -1946,9 +1946,9 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
 }
 
 @media (prefers-contrast: more) {
-  .metallic-violet {
-    color: #4b006f;
-    -webkit-text-fill-color: #4b006f;
+  .metallic-blue {
+    color: #003a8c;
+    -webkit-text-fill-color: #003a8c;
     background: none;
     filter: none;
   }
