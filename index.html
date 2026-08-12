@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260812-flexible-columns-160">
+  <link rel="stylesheet" href="styles.css?v=20260809-reports2">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,6 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.0 · Custom columns and clearer profiles</p>
         </form>
       </main>
     </div>
@@ -61,17 +60,9 @@
     <header class="topbar">
       <div class="topbar-brand">
         <div class="compact-mark">HR</div>
-        <div class="topbar-heading">
-          <strong>HR Command Centre <span class="topbar-divider" aria-hidden="true">·</span> <span class="topbar-overview-title">Workforce and post sensitivity at a glance</span></strong>
-          <span>O/o ADG(B), CPWD Bengaluru</span>
-        </div>
+        <div><strong>HR Command Centre</strong><span>O/o ADG(B), CPWD Bengaluru</span></div>
       </div>
       <div class="topbar-actions">
-        <div class="topbar-work-actions">
-          <button id="reportsButton" class="soft-btn report-launch-btn" type="button"><span aria-hidden="true">▤</span> Reports &amp; Print</button>
-          <button id="backupButton" class="soft-btn admin-only" type="button">Create backup</button>
-          <button id="addEmployeeButton" class="primary-btn admin-only" type="button"><span aria-hidden="true">＋</span> Add employee</button>
-        </div>
         <span id="lastUpdated" class="last-updated">Not yet refreshed</span>
         <button id="refreshButton" class="soft-btn" type="button" title="Refresh employee data">↻ <span>Refresh</span></button>
         <div class="user-chip">
@@ -83,6 +74,19 @@
     </header>
 
     <main class="page-shell">
+      <section class="hero-row">
+        <div>
+          <p class="eyebrow accent">Employee master</p>
+          <h1>Workforce and post sensitivity at a glance</h1>
+          <p class="muted">Search, filter and print employee records, including clearly visible Sensitive and Non-Sensitive post classifications.</p>
+        </div>
+        <div class="hero-actions">
+          <button id="reportsButton" class="soft-btn report-launch-btn" type="button"><span aria-hidden="true">▤</span> Reports &amp; Print</button>
+          <button id="backupButton" class="soft-btn admin-only" type="button">Create backup</button>
+          <button id="addEmployeeButton" class="primary-btn admin-only" type="button"><span aria-hidden="true">＋</span> Add employee</button>
+        </div>
+      </section>
+
       <section class="stat-grid sensitivity-stat-grid" aria-label="Employee statistics">
         <article class="stat-card blue"><div class="stat-icon">👥</div><div><span>Total employees</span><strong id="statTotal">0</strong><small>Employee master</small></div></article>
         <article class="stat-card teal"><div class="stat-icon">✓</div><div><span>Present strength</span><strong id="statPresent">0</strong><small>Marked present</small></div></article>
@@ -94,18 +98,11 @@
 
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.0 · Flexible columns</span></h2><p id="resultSummary">0 records · Click a row for a four-column employee profile</p></div>
+          <div><h2>Employee directory</h2><p id="resultSummary">0 records · Strength and Post Sensitivity are shown beside employee details</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
-            <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
             <button id="printFilteredButton" class="soft-btn print-filter-btn" type="button">Print filtered list</button>
-            <button id="manageColumnsButton" class="soft-btn column-manager-btn admin-only" type="button" title="Add or delete administrator-created employee columns">Manage columns</button>
-            <button id="editHeadersButton" class="soft-btn header-edit-btn admin-only" type="button" aria-pressed="false" title="Rename the visible dashboard column headings">Edit headers</button>
-            <button id="directEditToggle" class="soft-btn direct-edit-btn admin-only" type="button" aria-pressed="false" title="Edit employee data directly inside the table">Edit rows</button>
-            <button id="saveHeadersButton" class="soft-btn header-save-btn admin-only" type="button" hidden>Save headers</button>
-            <button id="resetHeadersButton" class="soft-btn header-reset-btn admin-only" type="button" hidden>Reset headers</button>
             <button id="importButton" class="soft-btn admin-only" type="button">Import CSV</button>
-            <button id="replaceAllButton" class="soft-btn danger-soft-btn admin-only" type="button" title="Back up the current list, delete it, and load only the selected CSV">Replace all data</button>
             <button id="exportButton" class="soft-btn" type="button">Export CSV</button>
           </div>
         </div>
@@ -113,13 +110,14 @@
         <div class="toolbar">
           <label class="search-box" for="globalSearch">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-            <input id="globalSearch" type="search" placeholder="Search name, code, designation, address, mobile, email…">
+            <input id="globalSearch" type="search" placeholder="Search name, employee code, designation, mobile, email…">
             <kbd>⌘ K</kbd>
           </label>
           <select id="groupFilter" aria-label="Filter by group"><option value="">All groups</option></select>
           <select id="categoryFilter" aria-label="Filter by category"><option value="">All categories</option></select>
           <select id="statusFilter" aria-label="Filter by present strength status"><option value="">All strength statuses</option></select>
           <select id="sensitivityFilter" aria-label="Filter by post sensitivity"><option value="">All post sensitivities</option></select>
+          <select id="appointmentFilter" aria-label="Filter by present or permanent status"><option value="">All appointment statuses</option></select>
           <button id="clearFilters" class="text-btn" type="button">Clear</button>
         </div>
 
@@ -189,7 +187,7 @@
               <option value="age">Age range on selected date</option>
               <option value="retirement">Retirement between dates</option>
               <option value="joining-govt">Joined Government between dates</option>
-              <option value="joining-office">Joined Current Office between dates</option>
+              <option value="joining-adg">Joined ADG between dates</option>
               <option value="relieving">Relieving / exit between dates</option>
               <option value="strength">Strength status</option>
               <option value="sensitivity">Present employees by post sensitivity</option>
@@ -245,8 +243,8 @@
         <label><span>Date of retirement</span><input id="fieldDoR" type="date"><small>Auto-calculated if left blank</small></label>
         <label><span>Category</span><select id="fieldCategory"><option value="">Select</option><option>UR</option><option>OBC</option><option>SC</option><option>ST</option><option>EWS</option></select></label>
         <label><span>Date of joining Govt.</span><input id="fieldDoJGovt" type="date"></label>
-        <label><span>Date of joining Current Office</span><input id="fieldDoJOffice" type="date"></label>
-        <label class="wide"><span>Present / Permanent Address</span><textarea id="fieldAddress" rows="3" maxlength="500" placeholder="Enter the employee's present or permanent residential address"></textarea></label>
+        <label><span>Date of joining ADG</span><input id="fieldDoJADG" type="date"></label>
+        <label><span>Present / Permanent</span><select id="fieldStatus"><option value="">Select</option><option>Present</option><option>Permanent</option><option>Present / Permanent</option><option>On Deputation</option><option>Transferred</option></select></label>
         <label><span>Post sensitivity *</span><select id="fieldPostSensitivity" required><option value="">Select</option><option>Sensitive</option><option>Non-Sensitive</option></select><small>Classifies the post as sensitive or non-sensitive</small></label>
         <label><span>Strength status *</span><select id="fieldStrengthStatus" required><option value="">Select</option><option>Present</option><option>Relieved</option><option>Transferred</option><option>Retired</option></select><small>Shows whether the employee is in present strength</small></label>
         <label><span>Relieving / exit date</span><input id="fieldRelievingDate" type="date" disabled><small id="relievingDateHint">Enabled when the employee is no longer in present strength</small></label>
@@ -255,25 +253,8 @@
         <label><span>Age</span><input id="fieldAge" readonly placeholder="Calculated from DoB"></label>
         <label class="wide"><span>Remarks (Administration)</span><textarea id="fieldRemarks" rows="3" maxlength="500"></textarea></label>
       </div>
-      <section class="custom-fields-section" hidden>
-        <div class="custom-fields-heading"><div><span>Additional information</span><small>Administrator-created employee columns</small></div></div>
-        <div id="customEmployeeFields" class="form-grid custom-employee-fields"></div>
-      </section>
       <p id="employeeFormError" class="form-error" role="alert"></p>
       <footer class="modal-footer"><button class="soft-btn" type="button" data-close-dialog="employeeDialog">Cancel</button><button id="saveEmployeeButton" class="primary-btn" type="submit">Save employee</button></footer>
-    </form>
-  </dialog>
-
-  <dialog id="columnManagerDialog" class="modal column-manager-modal">
-    <form id="columnManagerForm" method="dialog">
-      <header class="modal-header"><div><p class="eyebrow accent">Administrator control</p><h2>Manage employee columns</h2><p>Essential HR columns are protected. Add or delete your own custom columns here.</p></div><button class="modal-close" type="button" data-close-dialog="columnManagerDialog" aria-label="Close">×</button></header>
-      <div class="column-manager-body">
-        <div class="protected-column-note"><strong>18 protected HR columns</strong><span>Name, code, service dates, contact details, strength status, sensitivity and administration remarks cannot be deleted.</span></div>
-        <label class="new-column-field"><span>New column name</span><div><input id="newColumnName" type="text" maxlength="60" placeholder="Example: Place of Posting" required><button class="primary-btn" type="submit">Add column</button></div></label>
-        <section class="custom-column-list-wrap"><div class="custom-column-list-heading"><strong>Custom columns</strong><small>Deleting a column creates a Drive backup first.</small></div><p id="customColumnEmpty" class="custom-column-empty">No custom columns added yet.</p><div id="customColumnList" class="custom-column-list"></div></section>
-      </div>
-      <p id="columnManagerError" class="form-error" role="alert"></p>
-      <footer class="modal-footer"><button class="soft-btn" type="button" data-close-dialog="columnManagerDialog">Close</button></footer>
     </form>
   </dialog>
 
@@ -294,6 +275,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260812-flexible-columns-160"></script>
+  <script src="app.js?v=20260809-reports2"></script>
 </body>
 </html>
