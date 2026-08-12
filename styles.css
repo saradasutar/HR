@@ -1738,3 +1738,91 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   .table-footer { align-items: center; flex-direction: row; }
   .scroll-hint { font-size: 10px; }
 }
+
+/* Subtle metallic typography and comfortable sizing v1.6.19 */
+.dashboard-view { font-size: 16px; }
+.topbar-heading > strong { font-size: 15px; font-weight: 950; }
+.topbar-heading > span { font-size: 11px; font-weight: 800; }
+.data-panel .panel-heading h2 { font-size: 24px; font-weight: 950; letter-spacing: -.012em; }
+.data-panel .panel-heading p,
+.result-summary { font-size: 13.5px; font-weight: 850; }
+.toolbar input,
+.toolbar select,
+.toolbar button { font-size: 14.5px; font-weight: 850; }
+#employeeTable { font-size: 14.25px; }
+#employeeTable th { font-size: 12px; font-weight: 950; }
+#employeeTable tbody td { font-size: 14.25px; font-weight: 825; }
+#employeeTable .employee-name-column { font-size: 15.5px; font-weight: 950; }
+#employeeTable .badge { font-size: 11.5px; }
+#employeeTable .row-action { font-size: 11px; }
+#employeeTable .inline-edit-input,
+#employeeTable .inline-edit-select { font-size: 13px; }
+.table-footer { font-size: 13px; }
+.details-modal .detail-row dt { font-size: 12px; }
+.details-modal .detail-row dd { font-size: 14px; font-weight: 875; }
+.employee-edit-modal .form-grid label { font-size: 11.5px; }
+.employee-edit-modal .form-grid input,
+.employee-edit-modal .form-grid select,
+.employee-edit-modal .form-grid textarea { font-size: 13px; font-weight: 700; }
+.login-card .field-label { font-size: 13px; font-weight: 900; }
+.login-card .input-wrap input { font-size: 15px; font-weight: 700; }
+.metallic-text { font-weight: 950; text-shadow: 0 1px 0 rgba(255,255,255,.75); }
+.metallic-navy { color: #073e78; }
+.metallic-ruby { color: #8b1515; }
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .topbar-heading > strong,
+  .data-panel .panel-heading h2,
+  .modal-header h2 {
+    color: transparent;
+    background-image: linear-gradient(180deg, #ffffff 0%, #d7edf7 38%, #91b6ca 53%, #f7fdff 72%, #bad9e7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 1px 0 rgba(0,35,54,.45));
+  }
+  .employee-edit-modal .modal-header h2,
+  .column-view-modal .modal-header h2,
+  .column-manager-modal .modal-header h2,
+  .small-modal .modal-header h2 {
+    background-image: linear-gradient(180deg, #123f5a 0%, #4f7e98 38%, #0a3048 55%, #6d99ad 76%, #123f5a 100%);
+    filter: none;
+  }
+  .topbar .stat-card strong {
+    color: transparent;
+    background-image: linear-gradient(180deg, #754411 0%, #ca902d 32%, #4e2a08 52%, #d7aa4d 73%, #6f3f0e 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,.55));
+  }
+  .metallic-text {
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .metallic-navy {
+    background-image: linear-gradient(180deg, #0a579b 0%, #62a0cf 34%, #06386e 53%, #8dbde0 72%, #073f7a 100%);
+  }
+  .metallic-ruby {
+    background-image: linear-gradient(180deg, #bd4a4a 0%, #f39a91 34%, #761010 53%, #e36d68 72%, #851616 100%);
+  }
+  .metallic-navy mark {
+    color: #063b78;
+    -webkit-text-fill-color: #063b78;
+  }
+  .metallic-ruby mark {
+    color: #851616;
+    -webkit-text-fill-color: #851616;
+  }
+}
+
+@media (max-width: 620px) {
+  .dashboard-view { font-size: 15px; }
+  .data-panel .panel-heading h2 { font-size: 21px; }
+  #employeeTable,
+  #employeeTable tbody td { font-size: 13.5px; }
+  #employeeTable th { font-size: 11.5px; }
+  #employeeTable .employee-name-column { font-size: 14.5px; }
+}
