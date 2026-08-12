@@ -2,47 +2,33 @@
 
 /* Replace only this URL after deploying Code.gs as a Google Apps Script web app. */
 const CONFIG = Object.freeze({
-  API_URL: "https://script.google.com/macros/s/AKfycbwwFqxIGrYPvBQcWEnsUxqoltgTNjau-hK5X01YokqMC1BD5BeFDTWYIEwILYYesRDQ/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbyKl3NFNmrtlVQ1H4orpyLQiz9-W2O3VRiDx8rztnD3kltehP7z-itz6fYIyUu-Pw/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.5.8",
-  REQUIRED_BACKEND_VERSION: "1.5.7",
   PAGE_SIZE: 20,
   REQUEST_TIMEOUT_MS: 45000
 });
 
 const COLUMNS = [
   "Sl No.", "Employee Name", "Employee Code", "Designation", "Grp",
-  "DoB", "DoR", "Cat", "DoJ Govt", "DoJ in Current Office",
-  "Present/Permanent Address", "Mob", "Email", "AGE", "Strength Status",
-  "Relieving Date", "Post Sensitivity", "REMARK ADMN"
+  "Strength Status", "Post Sensitivity", "Cat", "Present/Permanent",
+  "DoB", "AGE", "DoR", "Relieving Date", "DoJ Govt", "DoJ in ADG",
+  "Mob", "Email", "REMARK ADMN"
 ];
-
-const DEFAULT_COLUMN_LABELS = Object.freeze(Object.assign(COLUMNS.reduce((labels, column) => {
-  labels[column] = column;
-  return labels;
-}, {}), {
-  "DoJ in Current Office": "DoJ in ADG",
-  "Present/Permanent Address": "Present/Permanent"
-}));
 
 const STRENGTH_STATUSES = Object.freeze(["Present", "Relieved", "Transferred", "Retired"]);
 const SENSITIVITY_VALUES = Object.freeze(["Sensitive", "Non-Sensitive"]);
-const CSV_HEADER_ALIASES = Object.freeze({
-  "DoJ in ADG": "DoJ in Current Office",
-  "Present/Permanent": "Present/Permanent Address"
-});
 
 const DETAIL_SECTIONS = Object.freeze([
   { title: "Identity and posting", fields: ["Sl No.", "Employee Name", "Employee Code", "Designation", "Grp", "Cat"] },
-  { title: "Service details", fields: ["Strength Status", "Post Sensitivity", "Relieving Date", "DoJ Govt", "DoJ in Current Office", "DoR"] },
-  { title: "Personal and contact details", fields: ["DoB", "AGE", "Present/Permanent Address", "Mob", "Email"] },
+  { title: "Service details", fields: ["Strength Status", "Post Sensitivity", "Relieving Date", "Present/Permanent", "DoJ Govt", "DoJ in ADG", "DoR"] },
+  { title: "Personal details", fields: ["DoB", "AGE", "Mob", "Email"] },
   { title: "Administration", fields: ["REMARK ADMN"] }
 ]);
 
 const DATE_REPORTS = Object.freeze({
   retirement: { field: "DoR", title: "Employees retiring" },
   "joining-govt": { field: "DoJ Govt", title: "Employees who joined Government" },
-  "joining-office": { field: "DoJ in Current Office", title: "Employees who joined the current office" },
+  "joining-adg": { field: "DoJ in ADG", title: "Employees who joined ADG" },
   relieving: { field: "Relieving Date", title: "Employees relieved / exited" }
 });
 
@@ -62,14 +48,7 @@ const state = {
   reportColumns: [],
   reportTitle: "",
   reportCriteria: "",
-  reportType: "age",
-  directEditEnabled: false,
-  headerEditEnabled: false,
-  inlineEditCode: "",
-  columnLabels: Object.assign({}, DEFAULT_COLUMN_LABELS),
-  headerLabelsDirty: false,
-  backendVersion: "",
-  backendMismatchNotified: false
+  reportType: "age"
 };
 
 const $ = (id) => document.getElementById(id);
@@ -83,12 +62,12 @@ function init() {
     "rememberUsername", "loginButton", "loginError", "logoutButton", "refreshButton",
     "lastUpdated", "displayName", "roleLabel", "userInitial", "statTotal", "statPresent",
     "statSensitive", "statNonSensitive", "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter",
-    "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTable", "tableHead", "tableBody", "emptyState",
-    "pageInfo", "pageNumber", "prevPage", "nextPage", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
-    "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "employeeDialog", "employeeForm",
+    "categoryFilter", "statusFilter", "sensitivityFilter", "appointmentFilter", "clearFilters", "employeeTable", "tableHead", "tableBody", "emptyState",
+    "pageInfo", "pageNumber", "prevPage", "nextPage", "exportButton", "importButton", "printFilteredButton",
+    "csvFileInput", "backupButton", "addEmployeeButton", "employeeDialog", "employeeForm",
     "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton",
     "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks",
-    "fieldDoB", "fieldDoR", "fieldCategory", "fieldDoJGovt", "fieldDoJOffice", "fieldAddress",
+    "fieldDoB", "fieldDoR", "fieldCategory", "fieldDoJGovt", "fieldDoJADG", "fieldStatus",
     "fieldPostSensitivity", "fieldStrengthStatus", "fieldRelievingDate", "relievingDateHint",
     "fieldMobile", "fieldEmail", "fieldAge", "loadingOverlay", "loadingText", "toastRegion",
     "employeeDetailsDialog", "detailsAvatar", "detailsEmployeeName", "detailsEmployeeSubtitle",
@@ -117,19 +96,14 @@ function init() {
   refs.categoryFilter.addEventListener("change", applyFilters);
   refs.statusFilter.addEventListener("change", applyFilters);
   refs.sensitivityFilter.addEventListener("change", applyFilters);
+  refs.appointmentFilter.addEventListener("change", applyFilters);
   refs.clearFilters.addEventListener("click", clearFilters);
   refs.prevPage.addEventListener("click", () => changePage(-1));
   refs.nextPage.addEventListener("click", () => changePage(1));
   refs.exportButton.addEventListener("click", exportFilteredCsv);
   refs.printFilteredButton.addEventListener("click", openFilteredReport);
-  refs.directEditToggle.addEventListener("click", toggleDirectEdit);
-  refs.editHeadersButton.addEventListener("click", toggleHeaderEdit);
-  refs.saveHeadersButton.addEventListener("click", saveHeaderLabels);
-  refs.resetHeadersButton.addEventListener("click", resetHeaderLabels);
   refs.importButton.addEventListener("click", () => refs.csvFileInput.click());
   refs.csvFileInput.addEventListener("change", importCsv);
-  refs.replaceAllButton.addEventListener("click", () => refs.replaceCsvFileInput.click());
-  refs.replaceCsvFileInput.addEventListener("change", replaceAllCsv);
   refs.backupButton.addEventListener("click", createBackup);
   refs.addEmployeeButton.addEventListener("click", () => openEmployeeDialog());
   refs.reportsButton.addEventListener("click", openReports);
@@ -152,8 +126,6 @@ function init() {
   document.addEventListener("keydown", handleKeyboardShortcut);
   refs.tableBody.addEventListener("click", handleTableAction);
   refs.tableBody.addEventListener("keydown", handleTableKeydown);
-  refs.tableBody.addEventListener("change", handleInlineFieldChange);
-  refs.tableHead.addEventListener("input", handleHeaderLabelInput);
 
   buildTableHeader();
   if (state.token) restoreSession();
@@ -219,14 +191,6 @@ function showDashboard() {
   refs.roleLabel.textContent = state.role === "admin" ? "Administrator access" : "View-only access";
   refs.userInitial.textContent = (state.displayName || state.username || "U").charAt(0).toUpperCase();
   document.querySelectorAll(".admin-only").forEach((node) => { node.hidden = state.role !== "admin"; });
-  if (state.role !== "admin") {
-    state.directEditEnabled = false;
-    state.headerEditEnabled = false;
-    state.inlineEditCode = "";
-    state.headerLabelsDirty = false;
-  }
-  updateDirectEditButton();
-  updateHeaderEditButtons();
 }
 
 function showLogin() {
@@ -248,7 +212,6 @@ async function logout() {
 function clearSession() {
   ["hrSessionToken", "hrRole", "hrDisplayName", "hrUsername"].forEach((key) => sessionStorage.removeItem(key));
   state.token = ""; state.role = ""; state.displayName = ""; state.username = "";
-  state.directEditEnabled = false; state.headerEditEnabled = false; state.inlineEditCode = ""; state.headerLabelsDirty = false;
 }
 
 async function loadEmployees(isRefresh) {
@@ -256,17 +219,10 @@ async function loadEmployees(isRefresh) {
   try {
     const response = await apiRequest("getEmployees", { force: Boolean(isRefresh) });
     state.employees = Array.isArray(response.employees) ? response.employees : [];
-    state.backendVersion = String(response.version || "").trim();
-    state.columnLabels = Object.assign({}, DEFAULT_COLUMN_LABELS, response.columnLabels || {});
-    state.headerLabelsDirty = false;
     state.page = 1;
     populateFilters();
     applyFilters();
     refs.lastUpdated.textContent = "Updated " + new Intl.DateTimeFormat("en-IN", { hour: "2-digit", minute: "2-digit" }).format(new Date());
-    if (!versionAtLeast(state.backendVersion, CONFIG.REQUIRED_BACKEND_VERSION) && !state.backendMismatchNotified) {
-      state.backendMismatchNotified = true;
-      showToast(`Backend update incomplete${state.backendVersion ? ` (currently v${state.backendVersion})` : ""}. Deploy Code.gs v${CONFIG.REQUIRED_BACKEND_VERSION} as a new version.`, true);
-    }
     if (isRefresh) showToast("Employee data refreshed.");
   } finally { hideLoading(); }
 }
@@ -275,98 +231,18 @@ function buildTableHeader() {
   refs.tableHead.innerHTML = "";
   COLUMNS.concat("Actions").forEach((column) => {
     const th = document.createElement("th");
+    th.textContent = column;
     if (column === "Actions") {
       th.className = "admin-column";
       th.hidden = state.role !== "admin";
-      th.textContent = state.directEditEnabled ? "Edit / Actions" : "Actions";
-    } else if (state.headerEditEnabled && state.role === "admin") {
-      th.className = "direct-edit-header";
-      const input = document.createElement("input");
-      input.className = "header-edit-input";
-      input.type = "text";
-      input.maxLength = 60;
-      input.required = true;
-      input.value = columnLabel(column);
-      input.dataset.headerKey = column;
-      input.setAttribute("aria-label", `Visible header name for ${column}`);
-      input.title = `Edit the visible name for ${column}. The protected data key will remain unchanged.`;
-      th.appendChild(input);
     } else {
-      th.textContent = columnLabel(column);
       th.tabIndex = 0;
-      th.title = "Sort by " + columnLabel(column);
+      th.title = "Sort by " + column;
       th.addEventListener("click", () => sortBy(column));
       th.addEventListener("keydown", (event) => { if (event.key === "Enter") sortBy(column); });
     }
     refs.tableHead.appendChild(th);
   });
-}
-
-function columnLabel(column) {
-  return String(state.columnLabels[column] || DEFAULT_COLUMN_LABELS[column] || column);
-}
-
-function handleHeaderLabelInput(event) {
-  if (!event.target.closest("[data-header-key]") || state.role !== "admin") return;
-  state.headerLabelsDirty = true;
-  refs.saveHeadersButton.disabled = false;
-}
-
-async function saveHeaderLabels() {
-  if (state.role !== "admin") return;
-  const inputs = [...refs.tableHead.querySelectorAll("[data-header-key]")];
-  const columnLabels = {};
-  const used = new Set();
-  for (const input of inputs) {
-    const label = input.value.trim();
-    if (!label) {
-      showToast("Every column must have a header name.", true);
-      input.focus();
-      return;
-    }
-    const duplicateKey = label.toLocaleLowerCase();
-    if (used.has(duplicateKey)) {
-      showToast("Each header name must be different.", true);
-      input.focus();
-      return;
-    }
-    used.add(duplicateKey);
-    columnLabels[input.dataset.headerKey] = label;
-  }
-
-  setButtonBusy(refs.saveHeadersButton, true, "Saving…");
-  try {
-    const response = await apiRequest("saveColumnLabels", { columnLabels });
-    state.columnLabels = Object.assign({}, DEFAULT_COLUMN_LABELS, response.columnLabels || columnLabels);
-    state.headerLabelsDirty = false;
-    showToast("Dashboard header names saved for all users.");
-    state.headerEditEnabled = false;
-    buildTableHeader();
-    updateHeaderEditButtons();
-  } catch (error) {
-    showToast(friendlyError(error), true);
-  } finally {
-    setButtonBusy(refs.saveHeadersButton, false, "Save headers");
-    refs.saveHeadersButton.disabled = !state.headerLabelsDirty;
-  }
-}
-
-async function resetHeaderLabels() {
-  if (state.role !== "admin" || !confirm("Restore all visible dashboard headers to their standard names?")) return;
-  setButtonBusy(refs.resetHeadersButton, true, "Resetting…");
-  try {
-    const response = await apiRequest("saveColumnLabels", { columnLabels: DEFAULT_COLUMN_LABELS });
-    state.columnLabels = Object.assign({}, DEFAULT_COLUMN_LABELS, response.columnLabels || {});
-    state.headerLabelsDirty = false;
-    state.headerEditEnabled = false;
-    buildTableHeader();
-    updateHeaderEditButtons();
-    showToast("Standard header names restored.");
-  } catch (error) {
-    showToast(friendlyError(error), true);
-  } finally {
-    setButtonBusy(refs.resetHeadersButton, false, "Reset headers");
-  }
 }
 
 function populateFilters() {
@@ -376,6 +252,7 @@ function populateFilters() {
   populateSelect(refs.statusFilter, values, "All strength statuses");
   const sensitivities = [...new Set(SENSITIVITY_VALUES.concat(state.employees.some((employee) => !String(employee["Post Sensitivity"] || "").trim()) ? ["Not set"] : []))];
   populateSelect(refs.sensitivityFilter, sensitivities, "All post sensitivities");
+  populateSelect(refs.appointmentFilter, uniqueValues("Present/Permanent"), "All appointment statuses");
 }
 
 function uniqueValues(key) {
@@ -394,6 +271,7 @@ function applyFilters() {
   const category = refs.categoryFilter.value;
   const status = refs.statusFilter.value;
   const sensitivity = refs.sensitivityFilter.value;
+  const appointment = refs.appointmentFilter.value;
   state.search = query;
   state.filtered = state.employees.filter((employee) => {
     const searchable = COLUMNS.map((key) => employee[key] || "").concat(strengthStatus(employee), sensitivityStatus(employee)).join(" ").toLocaleLowerCase();
@@ -401,7 +279,8 @@ function applyFilters() {
       (!group || employee.Grp === group) &&
       (!category || employee.Cat === category) &&
       (!status || strengthStatus(employee) === status) &&
-      (!sensitivity || sensitivityStatus(employee) === sensitivity);
+      (!sensitivity || sensitivityStatus(employee) === sensitivity) &&
+      (!appointment || String(employee["Present/Permanent"] || "") === appointment);
   });
   sortEmployees();
   state.page = Math.min(state.page, Math.max(1, Math.ceil(state.filtered.length / CONFIG.PAGE_SIZE)));
@@ -415,6 +294,7 @@ function clearFilters() {
   refs.categoryFilter.value = "";
   refs.statusFilter.value = "";
   refs.sensitivityFilter.value = "";
+  refs.appointmentFilter.value = "";
   state.page = 1;
   applyFilters();
 }
@@ -438,15 +318,13 @@ function renderTable() {
   const start = (state.page - 1) * CONFIG.PAGE_SIZE;
   const pageRows = state.filtered.slice(start, start + CONFIG.PAGE_SIZE);
   refs.tableBody.innerHTML = pageRows.map((employee) => {
-    const originalCode = String(employee["Employee Code"] || "");
-    const isInlineEditing = state.directEditEnabled && state.inlineEditCode === originalCode;
     const cells = COLUMNS.map((column) => {
-      if (isInlineEditing) return renderInlineCell(employee, column);
       let raw = employee[column] == null ? "" : String(employee[column]);
-      let display = ["DoB", "DoR", "DoJ Govt", "DoJ in Current Office", "Relieving Date"].includes(column) ? formatDate(raw) : raw;
+      let display = ["DoB", "DoR", "DoJ Govt", "DoJ in ADG", "Relieving Date"].includes(column) ? formatDate(raw) : raw;
       let value = highlight(display, state.search);
       if (column === "Grp" && raw) value = `<span class="badge group">${escapeHtml(raw)}</span>`;
       if (column === "Cat" && raw) value = `<span class="badge category">${escapeHtml(raw)}</span>`;
+      if (column === "Present/Permanent" && raw) value = `<span class="badge status">${escapeHtml(raw)}</span>`;
       if (column === "Strength Status") {
         display = strengthStatus(employee);
         value = `<span class="badge strength ${strengthClass(display)}">${escapeHtml(display)}</span>`;
@@ -455,33 +333,18 @@ function renderTable() {
         display = sensitivityStatus(employee);
         value = `<span class="badge sensitivity ${sensitivityClass(display)}">${escapeHtml(display)}</span>`;
       }
-      const className = ["REMARK ADMN", "Present/Permanent Address"].includes(column) ? "remarks-cell" : "";
+      const className = column === "REMARK ADMN" ? "remarks-cell" : "";
       return `<td class="${className}" title="${escapeAttribute(display)}">${value || "—"}</td>`;
     }).join("");
-    let actions = "";
-    if (state.role === "admin") {
-      if (isInlineEditing) {
-        actions = `<td><div class="action-cell inline-actions"><button class="row-action save" data-action="inline-save" data-code="${escapeAttribute(originalCode)}">Save</button><button class="row-action" data-action="inline-cancel" data-code="${escapeAttribute(originalCode)}">Cancel</button></div></td>`;
-      } else if (state.directEditEnabled) {
-        actions = `<td><div class="action-cell"><button class="row-action inline-edit" data-action="inline-edit" data-code="${escapeAttribute(originalCode)}">Edit row</button><button class="row-action" data-action="edit" data-code="${escapeAttribute(originalCode)}">Full form</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(originalCode)}">Delete</button></div></td>`;
-      } else {
-        actions = `<td><div class="action-cell"><button class="row-action" data-action="edit" data-code="${escapeAttribute(originalCode)}">Edit</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(originalCode)}">Delete</button></div></td>`;
-      }
-    }
+    const actions = state.role === "admin" ? `<td><div class="action-cell"><button class="row-action" data-action="edit" data-code="${escapeAttribute(employee["Employee Code"])}">Edit</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(employee["Employee Code"])}">Delete</button></div></td>` : "";
     const employeeCode = escapeAttribute(employee["Employee Code"]);
     const employeeName = escapeAttribute(employee["Employee Name"] || "employee");
-    const rowClass = isInlineEditing ? "employee-row inline-row-active" : "employee-row";
-    return `<tr class="${rowClass}" tabindex="${isInlineEditing ? "-1" : "0"}" data-employee-code="${employeeCode}" aria-label="${isInlineEditing ? "Editing" : "View full details for"} ${employeeName}">${cells}${actions}</tr>`;
+    return `<tr class="employee-row" tabindex="0" data-employee-code="${employeeCode}" aria-label="View full details for ${employeeName}">${cells}${actions}</tr>`;
   }).join("");
 
   refs.emptyState.hidden = total !== 0;
   refs.employeeTable.hidden = total === 0;
-  const instruction = state.headerEditEnabled
-    ? " · Header editing is on — rename headings, then choose Save headers"
-    : state.directEditEnabled
-    ? " · Row editing is on — choose Edit row, then Save"
-    : (total ? " · Click a row for full details" : "");
-  refs.resultSummary.textContent = `${total} record${total === 1 ? "" : "s"}${state.search ? " matching search" : ""}${instruction}`;
+  refs.resultSummary.textContent = `${total} record${total === 1 ? "" : "s"}${state.search ? " matching search" : ""}${total ? " · Click a row for full details" : ""}`;
   const shownStart = total ? start + 1 : 0;
   const shownEnd = Math.min(start + CONFIG.PAGE_SIZE, total);
   const pageCount = Math.max(1, Math.ceil(total / CONFIG.PAGE_SIZE));
@@ -489,87 +352,6 @@ function renderTable() {
   refs.pageNumber.textContent = `Page ${state.page} of ${pageCount}`;
   refs.prevPage.disabled = state.page <= 1;
   refs.nextPage.disabled = state.page >= pageCount;
-}
-
-function toggleDirectEdit() {
-  if (state.role !== "admin") return;
-  if (state.directEditEnabled && state.inlineEditCode && !confirm("Turn off row editing and discard the unsaved row changes?")) return;
-  if (!state.directEditEnabled && state.headerEditEnabled && state.headerLabelsDirty && !confirm("Discard the unsaved header-name changes and start editing rows?")) return;
-  state.headerEditEnabled = false;
-  state.headerLabelsDirty = false;
-  state.directEditEnabled = !state.directEditEnabled;
-  state.inlineEditCode = "";
-  updateDirectEditButton();
-  updateHeaderEditButtons();
-  renderTable();
-  showToast(state.directEditEnabled ? "Row editing is on. Choose Edit row beside an employee." : "Row editing is off.");
-}
-
-function updateDirectEditButton() {
-  if (!refs.directEditToggle) return;
-  refs.directEditToggle.classList.toggle("active", state.directEditEnabled);
-  refs.directEditToggle.setAttribute("aria-pressed", String(state.directEditEnabled));
-  refs.directEditToggle.textContent = state.directEditEnabled ? "Finish row edit" : "Edit rows";
-}
-
-function toggleHeaderEdit() {
-  if (state.role !== "admin") return;
-  if (state.headerEditEnabled && state.headerLabelsDirty && !confirm("Finish header editing and discard the unsaved header-name changes?")) return;
-  if (!state.headerEditEnabled && state.inlineEditCode && !confirm("Discard the unsaved row changes and start editing headers?")) return;
-  state.directEditEnabled = false;
-  state.inlineEditCode = "";
-  state.headerEditEnabled = !state.headerEditEnabled;
-  state.headerLabelsDirty = false;
-  updateDirectEditButton();
-  updateHeaderEditButtons();
-  renderTable();
-  showToast(state.headerEditEnabled ? "Header editing is on. Rename a heading and choose Save headers." : "Header editing is off.");
-}
-
-function updateHeaderEditButtons() {
-  if (!refs.editHeadersButton) return;
-  refs.editHeadersButton.classList.toggle("active", state.headerEditEnabled);
-  refs.editHeadersButton.setAttribute("aria-pressed", String(state.headerEditEnabled));
-  refs.editHeadersButton.textContent = state.headerEditEnabled ? "Cancel header edit" : "Edit headers";
-  const showHeaderActions = state.role === "admin" && state.headerEditEnabled;
-  refs.saveHeadersButton.hidden = !showHeaderActions;
-  refs.resetHeadersButton.hidden = !showHeaderActions;
-  refs.saveHeadersButton.disabled = !state.headerLabelsDirty;
-}
-
-function renderInlineCell(employee, column) {
-  const raw = employee[column] == null ? "" : String(employee[column]);
-  if (column === "Sl No." || column === "AGE") {
-    return `<td class="inline-readonly-cell"><span class="inline-readonly" data-inline-calculated="${escapeAttribute(column)}">${escapeHtml(raw || "—")}</span></td>`;
-  }
-
-  if (column === "Strength Status") {
-    return `<td>${inlineSelect(column, raw, STRENGTH_STATUSES, true)}</td>`;
-  }
-  if (column === "Post Sensitivity") {
-    return `<td>${inlineSelect(column, raw, SENSITIVITY_VALUES, true)}</td>`;
-  }
-
-  const dateColumns = ["DoB", "DoR", "Relieving Date", "DoJ Govt", "DoJ in Current Office"];
-  const type = dateColumns.includes(column) ? "date" : column === "Email" ? "email" : column === "Mob" ? "tel" : "text";
-  const value = type === "date" ? toIsoDate(raw) : raw;
-  const required = ["Employee Name", "Employee Code"].includes(column) ? " required" : "";
-  const disabled = column === "Relieving Date" && strengthStatus(employee) === "Present" ? " disabled" : "";
-  const maxLength = inlineMaxLength(column);
-  const cellClass = ["REMARK ADMN", "Present/Permanent Address"].includes(column) ? "remarks-cell" : "";
-  return `<td class="${cellClass}"><input class="inline-edit-input" type="${type}" data-inline-field="${escapeAttribute(column)}" value="${escapeAttribute(value)}" aria-label="${escapeAttribute(detailLabel(column))}"${required}${disabled}${maxLength ? ` maxlength="${maxLength}"` : ""}></td>`;
-}
-
-function inlineSelect(column, value, standardValues, required) {
-  const values = value && !standardValues.includes(value) ? [value].concat(standardValues) : standardValues;
-  const placeholder = `<option value="">Select…</option>`;
-  const options = values.map((option) => `<option value="${escapeAttribute(option)}"${option === value ? " selected" : ""}>${escapeHtml(option)}</option>`).join("");
-  return `<select class="inline-edit-select" data-inline-field="${escapeAttribute(column)}" aria-label="${escapeAttribute(detailLabel(column))}"${required ? " required" : ""}>${placeholder}${options}</select>`;
-}
-
-function inlineMaxLength(column) {
-  const lengths = { "Employee Name": 100, "Employee Code": 30, "Designation": 80, "Grp": 30, "REMARK ADMN": 500, "Cat": 30, "Present/Permanent Address": 500, "Mob": 15, "Email": 120 };
-  return lengths[column] || 0;
 }
 
 function updateStats() {
@@ -606,6 +388,7 @@ function currentFilterCriteria() {
   if (refs.categoryFilter.value) criteria.push(`Category: ${refs.categoryFilter.value}`);
   if (refs.statusFilter.value) criteria.push(`Strength Status: ${refs.statusFilter.value}`);
   if (refs.sensitivityFilter.value) criteria.push(`Post Sensitivity: ${refs.sensitivityFilter.value}`);
+  if (refs.appointmentFilter.value) criteria.push(`Appointment Status: ${refs.appointmentFilter.value}`);
   return criteria.length ? criteria.join(" · ") : "No dashboard filter applied; all employees are included.";
 }
 
@@ -781,6 +564,7 @@ function reportColumns(type, referenceDate) {
   const dor = { label: "Date of Retirement", get: (employee) => formatDate(employee.DoR || "") };
   const strength = { label: "Strength Status", get: (employee) => strengthStatus(employee) };
   const sensitivity = { label: "Post Sensitivity", get: (employee) => sensitivityStatus(employee) };
+  const appointment = { label: "Present / Permanent", get: (employee) => employee["Present/Permanent"] || "" };
   const exitDate = { label: "Relieving / Exit Date", get: (employee) => formatDate(employee["Relieving Date"] || "") };
   const currentAge = { label: "Current Age", get: (employee) => { const age = ageOnDate(employee.DoB, new Date()); return age == null ? "" : age; } };
 
@@ -795,7 +579,7 @@ function reportColumns(type, referenceDate) {
     return [sequence, name, code, designation, group, sensitivity, reportDate, strength, finalDate];
   }
   if (type === "sensitivity") return [sequence, name, code, designation, group, category, sensitivity, strength];
-  if (type === "filtered") return [sequence, name, code, designation, group, category, strength, sensitivity, dob, currentAge, dor, exitDate];
+  if (type === "filtered") return [sequence, name, code, designation, group, category, strength, sensitivity, appointment, dob, currentAge, dor, exitDate];
   return [sequence, name, code, designation, group, category, sensitivity, dob, currentAge, dor, strength, exitDate];
 }
 
@@ -875,99 +659,20 @@ function handleTableAction(event) {
     if (state.role !== "admin") return;
     const employee = findEmployee(button.dataset.code);
     if (!employee) return;
-    if (button.dataset.action === "inline-edit") beginInlineEdit(employee);
-    if (button.dataset.action === "inline-save") saveInlineEmployee(button.dataset.code, button.closest("tr"), button);
-    if (button.dataset.action === "inline-cancel") cancelInlineEdit();
     if (button.dataset.action === "edit") openEmployeeDialog(employee);
     if (button.dataset.action === "delete") deleteEmployee(employee);
     return;
   }
   const row = event.target.closest("[data-employee-code]");
-  if (row && !event.target.closest("input, select, textarea")) openEmployeeDetails(findEmployee(row.dataset.employeeCode));
+  if (row) openEmployeeDetails(findEmployee(row.dataset.employeeCode));
 }
 
 function handleTableKeydown(event) {
-  if (!(["Enter", " "].includes(event.key)) || event.target.closest("button, input, select, textarea")) return;
+  if (!(["Enter", " "].includes(event.key)) || event.target.closest("button")) return;
   const row = event.target.closest("[data-employee-code]");
   if (!row) return;
   event.preventDefault();
   openEmployeeDetails(findEmployee(row.dataset.employeeCode));
-}
-
-function beginInlineEdit(employee) {
-  const code = String(employee["Employee Code"] || "");
-  if (state.inlineEditCode && state.inlineEditCode !== code && !confirm("Discard the unsaved changes in the other row?")) return;
-  state.inlineEditCode = code;
-  renderTable();
-  const row = refs.tableBody.querySelector(`[data-employee-code="${cssEscape(code)}"]`);
-  const firstInput = row && row.querySelector("input, select");
-  if (firstInput) firstInput.focus();
-}
-
-function cancelInlineEdit() {
-  state.inlineEditCode = "";
-  renderTable();
-  showToast("Row changes discarded.");
-}
-
-function handleInlineFieldChange(event) {
-  const field = event.target.closest("[data-inline-field]");
-  if (!field) return;
-  const row = field.closest("tr");
-  if (!row) return;
-  if (field.dataset.inlineField === "Strength Status") {
-    const relievingDate = row.querySelector('[data-inline-field="Relieving Date"]');
-    if (relievingDate) {
-      const needsDate = field.value !== "Present";
-      relievingDate.disabled = !needsDate;
-      relievingDate.required = needsDate;
-      if (!needsDate) relievingDate.value = "";
-    }
-  }
-  if (field.dataset.inlineField === "DoB") {
-    const age = row.querySelector('[data-inline-calculated="AGE"]');
-    if (age) age.textContent = calculateAge(field.value) || "—";
-  }
-}
-
-async function saveInlineEmployee(originalEmployeeCode, row, button) {
-  if (!row) return;
-  const controls = [...row.querySelectorAll("[data-inline-field]")];
-  const invalid = controls.find((control) => !control.checkValidity());
-  if (invalid) {
-    invalid.reportValidity();
-    return;
-  }
-  const employee = {};
-  controls.forEach((control) => { employee[control.dataset.inlineField] = control.value.trim(); });
-  if (!employee["Employee Name"] || !employee["Employee Code"]) {
-    showToast("Employee name and employee code are required.", true);
-    return;
-  }
-  if (employee["Strength Status"] === "Present") employee["Relieving Date"] = "";
-  if (employee["Strength Status"] !== "Present" && !employee["Relieving Date"]) {
-    showToast("Relieving date is required for relieved, transferred or retired employees.", true);
-    const relievingDate = row.querySelector('[data-inline-field="Relieving Date"]');
-    if (relievingDate) relievingDate.focus();
-    return;
-  }
-
-  setButtonBusy(button, true, "Saving…");
-  try {
-    await apiRequest("saveEmployee", { employee, originalEmployeeCode });
-    state.inlineEditCode = "";
-    showToast("Employee row updated.");
-    await loadEmployees();
-  } catch (error) {
-    showToast(friendlyError(error), true);
-  } finally {
-    if (button.isConnected) setButtonBusy(button, false, "Save");
-  }
-}
-
-function cssEscape(value) {
-  if (window.CSS && typeof window.CSS.escape === "function") return window.CSS.escape(value);
-  return String(value).replace(/["\\]/g, "\\$&");
 }
 
 function findEmployee(employeeCode) {
@@ -1004,7 +709,7 @@ function detailRow(field, rawValue) {
   if (field === "Strength Status") raw = raw || "Not set";
   if (field === "Post Sensitivity") raw = raw || "Not set";
   let value = raw ? escapeHtml(raw) : '<span class="detail-empty">Not recorded</span>';
-  if (["DoB", "DoR", "DoJ Govt", "DoJ in Current Office", "Relieving Date"].includes(field) && raw) value = escapeHtml(formatDate(raw));
+  if (["DoB", "DoR", "DoJ Govt", "DoJ in ADG", "Relieving Date"].includes(field) && raw) value = escapeHtml(formatDate(raw));
   if (field === "Strength Status") value = `<span class="badge strength ${strengthClass(raw)}">${escapeHtml(raw)}</span>`;
   if (field === "Post Sensitivity") value = `<span class="badge sensitivity ${sensitivityClass(raw)}">${escapeHtml(raw)}</span>`;
   if (field === "Email" && raw) value = `<a href="mailto:${escapeAttribute(raw)}">${escapeHtml(raw)}</a>`;
@@ -1017,7 +722,7 @@ function detailLabel(field) {
   const labels = {
     "Sl No.": "Serial number", "Grp": "Group", "Cat": "Category", "REMARK ADMN": "Administration remarks",
     "DoB": "Date of birth", "DoR": "Date of retirement", "DoJ Govt": "Date of joining Government",
-    "DoJ in Current Office": "Date of joining current office", "Present/Permanent Address": "Present / permanent address",
+    "DoJ in ADG": "Date of joining ADG", "Present/Permanent": "Appointment status",
     "Mob": "Mobile", "AGE": "Age", "Relieving Date": "Relieving / exit date"
   };
   return labels[field] || field;
@@ -1045,8 +750,8 @@ function openEmployeeDialog(employee) {
   refs.fieldDoR.value = toIsoDate(item.DoR || "");
   setSelectValue(refs.fieldCategory, item.Cat || "");
   refs.fieldDoJGovt.value = toIsoDate(item["DoJ Govt"] || "");
-  refs.fieldDoJOffice.value = toIsoDate(item["DoJ in Current Office"] || item["DoJ in ADG"] || "");
-  refs.fieldAddress.value = item["Present/Permanent Address"] || item["Present/Permanent"] || "";
+  refs.fieldDoJADG.value = toIsoDate(item["DoJ in ADG"] || "");
+  setSelectValue(refs.fieldStatus, item["Present/Permanent"] || "");
   setSelectValue(refs.fieldPostSensitivity, item["Post Sensitivity"] || "");
   setSelectValue(refs.fieldStrengthStatus, item["Strength Status"] || (employee ? "" : "Present"));
   refs.fieldRelievingDate.value = toIsoDate(item["Relieving Date"] || "");
@@ -1091,8 +796,8 @@ async function saveEmployee(event) {
     "DoR": refs.fieldDoR.value,
     "Cat": refs.fieldCategory.value,
     "DoJ Govt": refs.fieldDoJGovt.value,
-    "DoJ in Current Office": refs.fieldDoJOffice.value,
-    "Present/Permanent Address": refs.fieldAddress.value.trim(),
+    "DoJ in ADG": refs.fieldDoJADG.value,
+    "Present/Permanent": refs.fieldStatus.value,
     "Mob": refs.fieldMobile.value.trim(),
     "Email": refs.fieldEmail.value.trim(),
     "AGE": refs.fieldAge.value,
@@ -1138,36 +843,6 @@ async function importCsv(event) {
   finally { hideLoading(); }
 }
 
-async function replaceAllCsv(event) {
-  const file = event.target.files[0];
-  event.target.value = "";
-  if (!file) return;
-  try {
-    const rows = parseCsv(await file.text());
-    if (!rows.length) throw new Error("The CSV file contains no employee rows.");
-    if (rows.length > 1000) throw new Error("Import a maximum of 1,000 employees at a time.");
-    const duplicate = findDuplicateEmployeeCode(rows);
-    if (duplicate) throw new Error(`Employee code appears more than once: ${duplicate}`);
-    const confirmed = confirm(
-      `Replace ALL dashboard employee data with ${rows.length} record(s)?\n\n` +
-      "The current employee list will be backed up automatically in Google Drive before it is deleted."
-    );
-    if (!confirmed) return;
-    if (prompt("Final confirmation: type REPLACE to continue.") !== "REPLACE") {
-      showToast("Replace-all cancelled. No data was changed.");
-      return;
-    }
-    showLoading(`Backing up current data and replacing it with ${rows.length} records…`);
-    const result = await apiRequest("replaceEmployees", { employees: rows });
-    showToast(`Replacement complete: ${result.replaced} employee record(s) loaded; ${result.previous} previous record(s) backed up.`);
-    await loadEmployees(true);
-    if (result.backupFileUrl && confirm(`Automatic backup created: ${result.backupFileName}. Open it in Google Drive?`)) {
-      window.open(result.backupFileUrl, "_blank", "noopener");
-    }
-  } catch (error) { showToast(friendlyError(error), true); }
-  finally { hideLoading(); }
-}
-
 function parseCsv(text) {
   const matrix = [];
   let row = [], cell = "", quoted = false;
@@ -1185,35 +860,16 @@ function parseCsv(text) {
   }
   if (cell || row.length) { row.push(cell.replace(/\r$/, "")); matrix.push(row); }
   if (!matrix.length) return [];
-  const headerRowIndex = matrix.findIndex((values) => {
-    const labels = values.map((value) => value.trim());
-    return labels.includes("Employee Name") && labels.includes("Employee Code");
-  });
-  if (headerRowIndex < 0) throw new Error("CSV columns missing: Employee Name and Employee Code.");
-  const headers = matrix[headerRowIndex].map((header) => CSV_HEADER_ALIASES[header.trim()] || header.trim());
+  const headers = matrix.shift().map((header) => header.trim());
   const required = ["Employee Name", "Employee Code"];
   required.forEach((header) => { if (!headers.includes(header)) throw new Error(`CSV column missing: ${header}`); });
-  return matrix.slice(headerRowIndex + 1).map((values) => {
-    const item = {};
-    headers.forEach((header, index) => { if (COLUMNS.includes(header)) item[header] = values[index] == null ? "" : values[index].trim(); });
-    return item;
-  }).filter((item) => COLUMNS.some((header) => !["Sl No.", "AGE"].includes(header) && String(item[header] || "").trim()));
-}
-
-function findDuplicateEmployeeCode(rows) {
-  const seen = new Set();
-  for (const row of rows) {
-    const code = String(row["Employee Code"] || "").trim().toLowerCase();
-    if (!code) continue;
-    if (seen.has(code)) return row["Employee Code"];
-    seen.add(code);
-  }
-  return "";
+  return matrix.filter((values) => values.some((value) => value.trim())).map((values) => {
+    const item = {}; headers.forEach((header, index) => { if (COLUMNS.includes(header)) item[header] = values[index] == null ? "" : values[index].trim(); }); return item;
+  });
 }
 
 function exportFilteredCsv() {
-  const rows = [COLUMNS.map((key) => DEFAULT_COLUMN_LABELS[key] || key)]
-    .concat(state.filtered.map((employee) => COLUMNS.map((key) => employee[key] || "")));
+  const rows = [COLUMNS].concat(state.filtered.map((employee) => COLUMNS.map((key) => employee[key] || "")));
   const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\r\n");
   downloadBlob(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" }), `ADG_HR_Employees_${isoToday()}.csv`);
   showToast(`Exported ${state.filtered.length} employee record(s).`);
@@ -1287,17 +943,8 @@ function hideLoading() { refs.loadingOverlay.hidden = true; }
 function showToast(message, isError) { const toast = document.createElement("div"); toast.className = "toast" + (isError ? " error" : ""); toast.textContent = message; refs.toastRegion.appendChild(toast); setTimeout(() => toast.remove(), 4500); }
 function setButtonBusy(button, busy, text) { button.disabled = busy; const first = button.querySelector("span") || button; first.textContent = text; }
 function friendlyError(error) {
-  const messages = { INVALID_LOGIN: "Incorrect username or password.", LOGIN_BLOCKED: "Too many failed attempts. Please wait 10 minutes.", SESSION_EXPIRED: "Your session expired. Please sign in again.", FORBIDDEN: "Your account does not have permission for this action.", DUPLICATE_CODE: "That employee code already exists.", DUPLICATE_IMPORT_CODE: "The CSV contains a duplicate employee code.", INVALID_IMPORT_ROW: error.message, INVALID_SENSITIVITY: "Select Sensitive or Non-Sensitive for Post Sensitivity.", ORIGIN_BLOCKED: "This GitHub address is not allowed by the backend.", UNKNOWN_ACTION: `Backend update incomplete. Deploy Code.gs v${CONFIG.REQUIRED_BACKEND_VERSION} as a new version, sign in again, and retry.`, SHEET_SCHEMA_MISMATCH: "The Sheet columns cannot be safely matched. Use Replace all data with the corrected CSV.", TIMEOUT: "The backend did not respond. Check the Apps Script deployment and internet connection.", NOT_CONFIGURED: "Connect the Apps Script web app URL in app.js first." };
+  const messages = { INVALID_LOGIN: "Incorrect username or password.", LOGIN_BLOCKED: "Too many failed attempts. Please wait 10 minutes.", SESSION_EXPIRED: "Your session expired. Please sign in again.", FORBIDDEN: "Your account does not have permission for this action.", DUPLICATE_CODE: "That employee code already exists.", INVALID_SENSITIVITY: "Select Sensitive or Non-Sensitive for Post Sensitivity.", ORIGIN_BLOCKED: "This GitHub address is not allowed by the backend.", TIMEOUT: "The backend did not respond. Check the Apps Script deployment and internet connection.", NOT_CONFIGURED: "Connect the Apps Script web app URL in app.js first." };
   return messages[error.code] || error.message || "Something went wrong. Please try again.";
-}
-function versionAtLeast(actual, required) {
-  const parse = (value) => String(value || "").split(".").map((part) => Number(part) || 0);
-  const a = parse(actual), r = parse(required);
-  for (let index = 0; index < Math.max(a.length, r.length); index += 1) {
-    if ((a[index] || 0) > (r[index] || 0)) return true;
-    if ((a[index] || 0) < (r[index] || 0)) return false;
-  }
-  return Boolean(actual);
 }
 function calculateAge(value) { const age = ageOnDate(value, new Date()); return age == null ? "" : String(age); }
 function calculateGovernmentRetirement(value) { const dob = parseDate(value); if (!dob) return ""; const year = dob.getFullYear() + 60; const month = dob.getMonth(); const date = dob.getDate() === 1 ? new Date(year, month, 0) : new Date(year, month + 1, 0); return toIsoLocal(date); }
