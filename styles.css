@@ -1113,7 +1113,10 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
 .column-view-item input { width: 16px; height: 16px; flex: none; accent-color: #0f8f82; }
 .column-order-actions { display: flex; gap: 3px; }
 .column-order-actions button { width: 27px; height: 27px; border: 1px solid #bad4d8; border-radius: 7px; color: #126477; background: white; font-size: 14px; font-weight: 950; }
+.column-order-actions .column-first-button { width: auto; min-width: 43px; padding: 0 6px; color: #79420a; border-color: #e4b86d; background: #fff4d8; font-size: 9px; text-transform: uppercase; }
 .column-order-actions button:disabled { opacity: .3; }
+.column-view-item.fixed-column-order { border-color: #8fb9d4; background: #edf7ff; box-shadow: inset 3px 0 #1d6d9c; }
+.column-view-item.fixed-column-order label span::after { content: " · Fixed"; color: #48738c; font-size: 8.5px; font-weight: 900; text-transform: uppercase; }
 .column-view-modal .modal-footer { position: static; padding: 9px 18px; }
 .column-restore-btn { color: #7c3c0b !important; border-color: #fdba74 !important; background: #fff7ed !important; }
 

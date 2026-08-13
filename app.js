@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.32",
+  FRONTEND_VERSION: "1.6.33",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -355,7 +355,9 @@ function visibleTableColumns() {
   const focusedColumns = state.fieldFilterColumns.concat(state.columnFilterRules.map((rule) => rule.column))
     .filter((column, index, columns) => state.columns.includes(column) && columns.indexOf(column) === index);
   if (focusedColumns.length) {
-    return frozenColumnsFirst(["Sl No.", "Employee Name"].concat(focusedColumns)
+    const preferredFocusedOrder = state.dashboardColumns.filter((column) => focusedColumns.includes(column))
+      .concat(focusedColumns.filter((column) => !state.dashboardColumns.includes(column)));
+    return frozenColumnsFirst(["Sl No.", "Employee Name"].concat(preferredFocusedOrder)
       .filter((column, index, columns) => state.columns.includes(column) && columns.indexOf(column) === index));
   }
   const selected = state.dashboardColumns.filter((column) => state.columns.includes(column));
@@ -458,14 +460,15 @@ function openDashboardColumnChooser() {
 
 function renderDashboardColumnChooser() {
   const selected = new Set(state.dashboardColumns);
-  const ordered = state.dashboardColumns.filter((column) => state.columns.includes(column))
-    .concat(state.columns.filter((column) => !selected.has(column)));
+  const ordered = frozenColumnsFirst(state.dashboardColumns.filter((column) => state.columns.includes(column))
+    .concat(state.columns.filter((column) => !selected.has(column))));
   refs.columnViewList.innerHTML = ordered.map((column, index) => `
     <div class="column-view-item" data-dashboard-column="${escapeAttribute(column)}">
       <label><input type="checkbox"${selected.has(column) ? " checked" : ""}><span>${escapeHtml(columnLabel(column))}</span></label>
-      <div class="column-order-actions"><button type="button" data-column-move="up" aria-label="Move ${escapeAttribute(columnLabel(column))} up"${index === 0 ? " disabled" : ""}>↑</button><button type="button" data-column-move="down" aria-label="Move ${escapeAttribute(columnLabel(column))} down"${index === ordered.length - 1 ? " disabled" : ""}>↓</button></div>
+      <div class="column-order-actions"><button class="column-first-button" type="button" data-column-move="front" aria-label="Place ${escapeAttribute(columnLabel(column))} as the first data column">First</button><button type="button" data-column-move="up" aria-label="Move ${escapeAttribute(columnLabel(column))} up">↑</button><button type="button" data-column-move="down" aria-label="Move ${escapeAttribute(columnLabel(column))} down">↓</button></div>
     </div>
   `).join("");
+  refreshDashboardColumnOrderButtons();
   updateDashboardColumnCount();
 }
 
@@ -473,6 +476,13 @@ function handleDashboardColumnOrder(event) {
   const button = event.target.closest("[data-column-move]");
   if (!button) return;
   const item = button.closest("[data-dashboard-column]");
+  if (button.dataset.columnMove === "front") {
+    const firstDataIndex = [...refs.columnViewList.children].filter((row) => ["Sl No.", "Employee Name"].includes(row.dataset.dashboardColumn)).length;
+    const target = refs.columnViewList.children[firstDataIndex];
+    if (target !== item) refs.columnViewList.insertBefore(item, target || null);
+    refreshDashboardColumnOrderButtons();
+    return;
+  }
   const sibling = button.dataset.columnMove === "up" ? item.previousElementSibling : item.nextElementSibling;
   if (!sibling) return;
   if (button.dataset.columnMove === "up") refs.columnViewList.insertBefore(item, sibling);
@@ -482,9 +492,14 @@ function handleDashboardColumnOrder(event) {
 
 function refreshDashboardColumnOrderButtons() {
   const items = [...refs.columnViewList.querySelectorAll("[data-dashboard-column]")];
+  const frozenColumns = new Set(["Sl No.", "Employee Name"]);
+  const firstDataIndex = items.filter((item) => frozenColumns.has(item.dataset.dashboardColumn)).length;
   items.forEach((item, index) => {
-    item.querySelector('[data-column-move="up"]').disabled = index === 0;
-    item.querySelector('[data-column-move="down"]').disabled = index === items.length - 1;
+    const frozen = frozenColumns.has(item.dataset.dashboardColumn);
+    item.classList.toggle("fixed-column-order", frozen);
+    item.querySelector('[data-column-move="front"]').disabled = frozen || index === firstDataIndex;
+    item.querySelector('[data-column-move="up"]').disabled = frozen || index <= firstDataIndex;
+    item.querySelector('[data-column-move="down"]').disabled = frozen || index === items.length - 1;
   });
 }
 
@@ -505,7 +520,7 @@ function applyDashboardColumnView() {
     showToast("Select at least one dashboard column.", true);
     return;
   }
-  state.dashboardColumns = selected;
+  state.dashboardColumns = frozenColumnsFirst(selected);
   saveDashboardColumnPreference();
   updateChooseColumnsButton();
   state.inlineEditCode = "";
