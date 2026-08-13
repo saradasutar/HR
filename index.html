@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260813-bold-red-pending-1628">
+  <link rel="stylesheet" href="styles.css?v=20260813-choose-filters-inline-edit-1629">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.28 · Clear bold-red pending work</p>
+          <p class="build-version">Dashboard v1.6.29 · Saved filters and filtered-row editing</p>
         </form>
       </main>
     </div>
@@ -95,12 +95,13 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.28 · Bold pending work</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.29 · Choose filters</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
             <button id="printFilteredButton" class="soft-btn print-filter-btn" type="button">Print filtered list</button>
             <button id="chooseColumnsButton" class="soft-btn column-view-btn" type="button" title="Choose and arrange dashboard columns. Your selection is saved automatically on this device.">Choose columns</button>
+            <button id="chooseFiltersButton" class="soft-btn filter-view-btn" type="button" title="Choose one or more dashboard filters and save them as the default view on this device.">Choose filters</button>
             <button id="manageColumnsButton" class="soft-btn column-manager-btn admin-only" type="button" title="Add or delete administrator-created employee columns">Manage columns</button>
             <button id="editHeadersButton" class="soft-btn header-edit-btn admin-only" type="button" aria-pressed="false" title="Rename the visible dashboard column headings">Edit headers</button>
             <button id="directEditToggle" class="soft-btn direct-edit-btn admin-only" type="button" aria-pressed="false" title="Edit employee data directly inside the table">Edit rows</button>
@@ -252,6 +253,24 @@
     </div>
   </dialog>
 
+  <dialog id="filterViewDialog" class="modal filter-view-modal">
+    <div class="filter-view-sheet">
+      <header class="modal-header"><div><p class="eyebrow accent">Personal dashboard view</p><h2>Choose dashboard filters</h2><p>Select one or multiple filters. Applying this view saves it as your default on this device, and every filtered result can be edited directly in the table.</p></div><button class="modal-close" type="button" data-close-dialog="filterViewDialog" aria-label="Close filter chooser">×</button></header>
+      <div class="filter-view-body">
+        <div class="filter-view-note"><strong id="filterViewSummary">No filters selected</strong><span>Filters work together. Only employees matching all selected conditions will appear.</span></div>
+        <div class="filter-view-grid">
+          <label class="filter-view-wide"><span>Search text</span><input id="filterViewSearch" type="search" maxlength="250" placeholder="Name, code, designation, address, mobile, email…"></label>
+          <label><span>Group</span><select id="filterViewGroup"><option value="">All groups</option></select></label>
+          <label><span>Category</span><select id="filterViewCategory"><option value="">All categories</option></select></label>
+          <label><span>Strength status</span><select id="filterViewStatus"><option value="">All strength statuses</option></select></label>
+          <label><span>Post sensitivity</span><select id="filterViewSensitivity"><option value="">All post sensitivities</option></select></label>
+        </div>
+        <section class="filter-field-section"><div><strong>Filled subject columns</strong><small>Select one or more columns to show employees whose selected fields are filled. The table will show only these selected columns.</small></div><div id="filterViewFieldOptions" class="filter-view-field-options" aria-label="Choose filled subject columns"></div></section>
+      </div>
+      <footer class="modal-footer"><button class="soft-btn" type="button" data-close-dialog="filterViewDialog">Cancel</button><button id="clearFilterViewButton" class="soft-btn filter-clear-btn" type="button">Clear saved filters</button><button id="applyFilterViewButton" class="primary-btn" type="button">Apply &amp; save default</button></footer>
+    </div>
+  </dialog>
+
   <dialog id="employeeDialog" class="modal employee-edit-modal">
     <form id="employeeForm" method="dialog">
       <header class="modal-header"><div><p class="eyebrow accent">Employee record</p><h2 id="employeeDialogTitle">Add employee</h2></div><button class="modal-close" type="button" data-close-dialog="employeeDialog" aria-label="Close">×</button></header>
@@ -314,6 +333,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260813-bold-red-pending-1628"></script>
+  <script src="app.js?v=20260813-choose-filters-inline-edit-1629"></script>
 </body>
 </html>

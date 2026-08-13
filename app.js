@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.28",
+  FRONTEND_VERSION: "1.6.29",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -88,7 +88,7 @@ function init() {
     "lastUpdated", "displayName", "roleLabel", "userInitial", "statTotal", "statPresent",
     "statSensitive", "statNonSensitive", "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter",
     "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTable", "tableHead", "tableBody", "emptyState",
-    "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
+    "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "chooseFiltersButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
     "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterPicker", "fieldFilterPickerSummary", "fieldFilterOptions", "applyFieldFilter", "clearFieldFilter",
     "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm",
     "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton",
@@ -106,7 +106,8 @@ function init() {
     "reportTable", "reportTableHead", "reportTableBody", "reportEmptyState", "reportFooterSummary",
     "reportExportButton", "reportPrintButton",
     "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword",
-    "confirmPassword", "passwordFormError", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton", "columnManagerDialog", "columnManagerForm",
+    "confirmPassword", "passwordFormError", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton",
+    "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewFieldOptions", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
     "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError"
   ].forEach((id) => { refs[id] = $(id); });
 
@@ -127,10 +128,15 @@ function init() {
   refs.exportButton.addEventListener("click", exportFilteredCsv);
   refs.printFilteredButton.addEventListener("click", openFilteredReport);
   refs.chooseColumnsButton.addEventListener("click", openDashboardColumnChooser);
+  refs.chooseFiltersButton.addEventListener("click", openDashboardFilterChooser);
   refs.columnViewList.addEventListener("click", handleDashboardColumnOrder);
   refs.columnViewList.addEventListener("change", updateDashboardColumnCount);
   refs.applyColumnViewButton.addEventListener("click", applyDashboardColumnView);
   refs.restoreAllColumnsButton.addEventListener("click", restoreAllDashboardColumns);
+  refs.filterViewDialog.addEventListener("input", updateFilterViewSummary);
+  refs.filterViewDialog.addEventListener("change", updateFilterViewSummary);
+  refs.applyFilterViewButton.addEventListener("click", applyDashboardFilterView);
+  refs.clearFilterViewButton.addEventListener("click", clearDashboardFilterView);
   refs.directEditToggle.addEventListener("click", toggleDirectEdit);
   refs.editHeadersButton.addEventListener("click", toggleHeaderEdit);
   refs.saveHeadersButton.addEventListener("click", saveHeaderLabels);
@@ -379,6 +385,7 @@ function saveDashboardFilterPreference() {
     fieldColumns: state.fieldFilterColumns.filter((column) => state.columns.includes(column))
   };
   try { localStorage.setItem("hrDashboardFilters", JSON.stringify(state.dashboardFilterPreference)); } catch { /* Device storage may be unavailable. */ }
+  updateChooseFiltersButton();
 }
 
 function restoreDashboardFilterPreference() {
@@ -389,6 +396,7 @@ function restoreDashboardFilterPreference() {
   setSavedSelectValue(refs.statusFilter, saved.status);
   setSavedSelectValue(refs.sensitivityFilter, saved.sensitivity);
   state.fieldFilterColumns = (saved.fieldColumns || []).filter((column, index, values) => state.columns.includes(column) && values.indexOf(column) === index);
+  updateChooseFiltersButton();
 }
 
 function setSavedSelectValue(select, value) {
@@ -487,6 +495,119 @@ function restoreAllDashboardColumns() {
   refs.columnViewDialog.close();
   renderTable();
   showToast("All dashboard columns restored.");
+}
+
+function dashboardFilterValues(source) {
+  const values = source || {};
+  return {
+    search: String(values.search || "").trim().slice(0, 250),
+    group: String(values.group || ""),
+    category: String(values.category || ""),
+    status: String(values.status || ""),
+    sensitivity: String(values.sensitivity || ""),
+    fieldColumns: Array.isArray(values.fieldColumns) ? values.fieldColumns.filter((column, index, list) => state.columns.includes(column) && list.indexOf(column) === index) : []
+  };
+}
+
+function currentDashboardFilterValues() {
+  return dashboardFilterValues({
+    search: refs.globalSearch.value,
+    group: refs.groupFilter.value,
+    category: refs.categoryFilter.value,
+    status: refs.statusFilter.value,
+    sensitivity: refs.sensitivityFilter.value,
+    fieldColumns: state.fieldFilterColumns
+  });
+}
+
+function dashboardFilterCount(values) {
+  const selected = dashboardFilterValues(values);
+  return [selected.search, selected.group, selected.category, selected.status, selected.sensitivity].filter(Boolean).length + selected.fieldColumns.length;
+}
+
+function hasActiveDashboardFilter() {
+  return dashboardFilterCount(currentDashboardFilterValues()) > 0;
+}
+
+function updateChooseFiltersButton() {
+  if (!refs.chooseFiltersButton || !refs.globalSearch) return;
+  const count = dashboardFilterCount(currentDashboardFilterValues());
+  refs.chooseFiltersButton.textContent = count ? `Choose filters · ${count}` : "Choose filters · None";
+  refs.chooseFiltersButton.classList.toggle("active", count > 0);
+}
+
+function copySelectOptions(source, target, selectedValue) {
+  target.innerHTML = [...source.options].map((option) => `<option value="${escapeAttribute(option.value)}">${escapeHtml(option.textContent)}</option>`).join("");
+  setSavedSelectValue(target, selectedValue);
+}
+
+function openDashboardFilterChooser() {
+  const current = currentDashboardFilterValues();
+  refs.filterViewSearch.value = current.search;
+  copySelectOptions(refs.groupFilter, refs.filterViewGroup, current.group);
+  copySelectOptions(refs.categoryFilter, refs.filterViewCategory, current.category);
+  copySelectOptions(refs.statusFilter, refs.filterViewStatus, current.status);
+  copySelectOptions(refs.sensitivityFilter, refs.filterViewSensitivity, current.sensitivity);
+  const selected = new Set(current.fieldColumns);
+  refs.filterViewFieldOptions.innerHTML = state.columns.map((column) => `<label><input type="checkbox" value="${escapeAttribute(column)}"${selected.has(column) ? " checked" : ""}><span>${escapeHtml(columnLabel(column))}</span></label>`).join("");
+  updateFilterViewSummary();
+  refs.filterViewDialog.showModal();
+}
+
+function selectedFilterViewValues() {
+  return dashboardFilterValues({
+    search: refs.filterViewSearch.value,
+    group: refs.filterViewGroup.value,
+    category: refs.filterViewCategory.value,
+    status: refs.filterViewStatus.value,
+    sensitivity: refs.filterViewSensitivity.value,
+    fieldColumns: [...refs.filterViewFieldOptions.querySelectorAll('input[type="checkbox"]:checked')].map((input) => input.value)
+  });
+}
+
+function updateFilterViewSummary() {
+  if (!refs.filterViewSummary) return;
+  const selected = selectedFilterViewValues();
+  const labels = [];
+  if (selected.search) labels.push(`Search: “${selected.search}”`);
+  if (selected.group) labels.push(`Group: ${selected.group}`);
+  if (selected.category) labels.push(`Category: ${selected.category}`);
+  if (selected.status) labels.push(`Status: ${selected.status}`);
+  if (selected.sensitivity) labels.push(`Post: ${selected.sensitivity}`);
+  selected.fieldColumns.forEach((column) => labels.push(`${columnLabel(column)} filled`));
+  refs.filterViewSummary.textContent = labels.length ? `${labels.length} selected · ${labels.join(" · ")}` : "No filters selected · All employees will show";
+}
+
+function setCurrentDashboardFilters(values) {
+  const selected = dashboardFilterValues(values);
+  refs.globalSearch.value = selected.search;
+  setSavedSelectValue(refs.groupFilter, selected.group);
+  setSavedSelectValue(refs.categoryFilter, selected.category);
+  setSavedSelectValue(refs.statusFilter, selected.status);
+  setSavedSelectValue(refs.sensitivityFilter, selected.sensitivity);
+  state.fieldFilterColumns = selected.fieldColumns;
+  populateFieldFilterColumns();
+}
+
+function applyDashboardFilterView() {
+  const selected = selectedFilterViewValues();
+  setCurrentDashboardFilters(selected);
+  state.inlineEditCode = "";
+  state.page = 1;
+  refs.filterViewDialog.close();
+  applyFilters();
+  const count = dashboardFilterCount(selected);
+  showToast(count ? `${count} dashboard filter${count === 1 ? "" : "s"} saved. Filtered rows are ready for direct editing.` : "Default dashboard filters cleared. All employees are shown.");
+}
+
+function clearDashboardFilterView() {
+  const cleared = dashboardFilterValues({});
+  setCurrentDashboardFilters(cleared);
+  refs.filterViewDialog.close();
+  state.inlineEditCode = "";
+  state.page = 1;
+  applyFilters();
+  showToast("Saved dashboard filters cleared. All employees are shown.");
 }
 
 function columnLabel(column) {
@@ -735,6 +856,7 @@ function applyFilters() {
   sortEmployees();
   updateStats();
   updateFieldFilterSummary();
+  updateChooseFiltersButton();
   renderTable();
 }
 
@@ -783,14 +905,14 @@ function renderTable() {
   const tableColumns = visibleTableColumns();
   refs.employeeTable.classList.toggle("focused-columns-table", hasParticularFieldFilter());
   refs.employeeTable.classList.toggle("customized-columns-table", isDashboardColumnCustomized());
-  refs.employeeTable.classList.toggle("wide-actions-table", state.role === "admin" && (state.directEditEnabled || hasParticularFieldFilter()));
+  refs.employeeTable.classList.toggle("wide-actions-table", state.role === "admin" && (state.directEditEnabled || hasActiveDashboardFilter()));
   const total = state.filtered.length;
   const start = 0;
   const pageRows = state.filtered;
   refs.tableBody.innerHTML = pageRows.map((employee, rowIndex) => {
     const displaySequence = start + rowIndex + 1;
     const originalCode = String(employee["Employee Code"] || "");
-    const filteredRowEditing = hasParticularFieldFilter();
+    const filteredRowEditing = hasActiveDashboardFilter();
     const isInlineEditing = state.inlineEditCode === originalCode;
     const cells = tableColumns.map((column) => {
       if (isInlineEditing) return renderInlineCell(employee, column, displaySequence);
@@ -841,8 +963,8 @@ function renderTable() {
   refs.employeeTable.hidden = total === 0;
   const instruction = state.headerEditEnabled
     ? " · Header editing is on — rename headings, then choose Save headers"
-    : hasParticularFieldFilter()
-    ? ` · Showing only ${state.fieldFilterColumns.map(columnLabel).join(", ")} — choose Edit filtered row, then Save`
+    : hasActiveDashboardFilter()
+    ? ` · Filtered view — choose Edit filtered row, then Save`
     : isDashboardColumnCustomized()
     ? ` · Custom view: ${tableColumns.length} selected columns`
     : state.directEditEnabled
