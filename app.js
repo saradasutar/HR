@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.31",
+  FRONTEND_VERSION: "1.6.32",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -116,7 +116,7 @@ function init() {
     "reportExportButton", "reportPrintButton",
     "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword",
     "confirmPassword", "passwordFormError", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton",
-    "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewFieldOptions", "columnFilterRuleList", "columnFilterRuleEmpty", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
+    "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewFieldOptions", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
     "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError"
   ].forEach((id) => { refs[id] = $(id); });
 
@@ -595,6 +595,7 @@ function copySelectOptions(source, target, selectedValue) {
 
 function openDashboardFilterChooser() {
   const current = currentDashboardFilterValues();
+  showFilterViewError("");
   refs.filterViewSearch.value = current.search;
   copySelectOptions(refs.groupFilter, refs.filterViewGroup, current.group);
   copySelectOptions(refs.categoryFilter, refs.filterViewCategory, current.category);
@@ -617,7 +618,7 @@ function renderColumnFilterRules(rules) {
 function columnFilterRuleMarkup(rule, index) {
   const columnOptions = `<option value="">Choose any column…</option>` + state.columns.map((column) => `<option value="${escapeAttribute(column)}"${rule.column === column ? " selected" : ""}>${escapeHtml(columnLabel(column))}</option>`).join("");
   const operatorOptions = COLUMN_FILTER_OPERATORS.map((operator) => `<option value="${operator.value}"${rule.operator === operator.value ? " selected" : ""}>${escapeHtml(operator.label)}</option>`).join("");
-  return `<div class="column-filter-rule" data-filter-rule-index="${index}"><label><span>Column</span><select data-rule-part="column">${columnOptions}</select></label><label><span>Condition</span><select data-rule-part="operator">${operatorOptions}</select></label><label class="column-filter-value"><span>Value</span><input data-rule-part="value" type="text" maxlength="500" value="${escapeAttribute(rule.value || "")}" placeholder="Enter value"></label><button class="column-filter-remove" type="button" data-rule-action="remove" aria-label="Remove this filter rule">Remove</button></div>`;
+  return `<div class="column-filter-rule" data-filter-rule-index="${index}"><label><span>Column</span><select data-rule-part="column">${columnOptions}</select></label><label><span>Condition</span><select data-rule-part="operator">${operatorOptions}</select></label><label class="column-filter-value"><span>Value</span><input data-rule-part="value" type="text" maxlength="500" value="${escapeAttribute(rule.value || "")}" list="columnFilterSuggestions${index}" placeholder="Type or choose a value"><datalist id="columnFilterSuggestions${index}" data-rule-suggestions></datalist></label><button class="column-filter-remove" type="button" data-rule-action="remove" aria-label="Remove this filter rule">Remove</button></div>`;
 }
 
 function rawColumnFilterRulesFromChooser() {
@@ -630,8 +631,9 @@ function rawColumnFilterRulesFromChooser() {
 
 function addColumnFilterRule() {
   const rules = rawColumnFilterRulesFromChooser();
-  rules.push({ column: "", operator: "contains", value: "" });
+  rules.push({ column: "", operator: "filled", value: "" });
   renderColumnFilterRules(rules);
+  showFilterViewError("");
   const row = refs.columnFilterRuleList.lastElementChild;
   if (row) row.querySelector('[data-rule-part="column"]').focus();
   updateFilterViewSummary();
@@ -640,6 +642,7 @@ function addColumnFilterRule() {
 function handleColumnFilterRuleChange(event) {
   const row = event.target.closest(".column-filter-rule");
   if (row) updateColumnFilterRuleValueState(row);
+  showFilterViewError("");
   updateFilterViewSummary();
 }
 
@@ -649,6 +652,7 @@ function handleColumnFilterRuleAction(event) {
   button.closest(".column-filter-rule").remove();
   [...refs.columnFilterRuleList.children].forEach((row, index) => { row.dataset.filterRuleIndex = String(index); });
   refs.columnFilterRuleEmpty.hidden = refs.columnFilterRuleList.children.length > 0;
+  showFilterViewError("");
   updateFilterViewSummary();
 }
 
@@ -656,27 +660,46 @@ function updateColumnFilterRuleValueState(row) {
   const column = row.querySelector('[data-rule-part="column"]').value;
   const operator = row.querySelector('[data-rule-part="operator"]').value;
   const valueField = row.querySelector('[data-rule-part="value"]');
+  const suggestions = row.querySelector("[data-rule-suggestions]");
   const needsValue = columnFilterNeedsValue(operator);
   valueField.disabled = !needsValue;
   valueField.required = Boolean(column && needsValue);
-  valueField.placeholder = column ? `Enter ${columnLabel(column)}` : "Enter value";
+  valueField.placeholder = column ? `Type or choose ${columnLabel(column)}` : "Type or choose a value";
+  suggestions.innerHTML = columnFilterSuggestions(column).map((value) => `<option value="${escapeAttribute(value)}"></option>`).join("");
   if (!needsValue) valueField.value = "";
   row.classList.toggle("value-not-required", !needsValue);
 }
 
 function validateColumnFilterRules() {
   for (const row of refs.columnFilterRuleList.querySelectorAll(".column-filter-rule")) {
-    const column = row.querySelector('[data-rule-part="column"]').value;
+    const columnField = row.querySelector('[data-rule-part="column"]');
+    const column = columnField.value;
     const operator = row.querySelector('[data-rule-part="operator"]').value;
     const valueField = row.querySelector('[data-rule-part="value"]');
-    if (!column) continue;
+    if (!column) {
+      showFilterViewError("Choose a column for every added filter rule, or remove the unused rule.");
+      columnField.focus();
+      return false;
+    }
     if (columnFilterNeedsValue(operator) && !valueField.value.trim()) {
-      showToast(`Enter a value for the ${columnLabel(column)} filter.`, true);
+      showFilterViewError(`Enter or choose a value for the ${columnLabel(column)} filter.`);
       valueField.focus();
       return false;
     }
   }
   return true;
+}
+
+function columnFilterSuggestions(column) {
+  if (!state.columns.includes(column)) return [];
+  return [...new Set(state.employees.map((employee) => employeeColumnFilterValue(employee, column)).filter(Boolean))]
+    .sort((first, second) => first.localeCompare(second, undefined, { numeric: true, sensitivity: "base" }))
+    .slice(0, 150);
+}
+
+function showFilterViewError(message) {
+  refs.filterViewError.textContent = message || "";
+  refs.filterViewError.hidden = !message;
 }
 
 function selectedFilterViewValues() {

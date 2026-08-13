@@ -1943,6 +1943,8 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
 .column-filter-remove { min-height: 36px; padding: 5px 10px; border: 1px solid #e7aaa6; border-radius: 8px; color: #952b24; background: #fff4f2; cursor: pointer; font-size: 10.5px; font-weight: 950; }
 .column-filter-remove:hover { color: white; border-color: #a9362c; background: #b53b31; }
 .column-filter-rule-empty { margin: 0; padding: 11px 13px; color: #617881; font-size: 11px; font-weight: 800; text-align: center; }
+.filter-view-error { margin: 0 8px 8px; padding: 8px 10px; border: 1px solid #edaaa4; border-left: 4px solid #bd3028; border-radius: 8px; color: #8f211b; background: #fff1ef; font-size: 11.5px; font-weight: 950; line-height: 1.35; }
+.filter-view-error[hidden] { display: none; }
 .filter-field-section { overflow: hidden; border: 1px solid #afd5d2; border-radius: 12px; background: rgba(255,255,255,.88); }
 .filter-field-section > div:first-child { padding: 9px 11px; border-bottom: 1px solid #cce2df; background: #e7f5f2; }
 .filter-field-section strong, .filter-field-section small { display: block; }

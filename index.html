@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260813-any-column-filters-1631">
+  <link rel="stylesheet" href="styles.css?v=20260813-filter-reliability-1632">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.31 · Filter any employee column</p>
+          <p class="build-version">Dashboard v1.6.32 · Reliable any-column filters</p>
         </form>
       </main>
     </div>
@@ -95,7 +95,7 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.31 · Any-column filters</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.32 · Reliable filters</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
@@ -269,10 +269,11 @@
           <div class="any-column-filter-heading"><div><strong>Filter any employee column</strong><small>Choose a column and condition. Add more rules when required; all rules work together.</small></div><button id="addColumnFilterRuleButton" class="soft-btn" type="button">＋ Add filter rule</button></div>
           <div id="columnFilterRuleList" class="column-filter-rule-list" aria-label="Any-column filter rules"></div>
           <p id="columnFilterRuleEmpty" class="column-filter-rule-empty">No column rule added. Choose “Add filter rule” to filter any field.</p>
+          <p id="filterViewError" class="filter-view-error" role="alert"></p>
         </section>
         <section class="filter-field-section"><div><strong>Filled subject columns</strong><small>Select one or more columns to show employees whose selected fields are filled. The table will show only these selected columns.</small></div><div id="filterViewFieldOptions" class="filter-view-field-options" aria-label="Choose filled subject columns"></div></section>
       </div>
-      <footer class="modal-footer"><button class="soft-btn" type="button" data-close-dialog="filterViewDialog">Cancel</button><button id="clearFilterViewButton" class="soft-btn filter-clear-btn" type="button">Clear saved filters</button><button id="applyFilterViewButton" class="primary-btn" type="button">Apply &amp; save default</button></footer>
+      <footer class="modal-footer"><button class="soft-btn" type="button" data-close-dialog="filterViewDialog">Cancel</button><button id="clearFilterViewButton" class="soft-btn filter-clear-btn" type="button">Clear saved filters</button><button id="applyFilterViewButton" class="primary-btn" type="button">Apply filters &amp; save</button></footer>
     </div>
   </dialog>
 
@@ -338,6 +339,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260813-any-column-filters-1631"></script>
+  <script src="app.js?v=20260813-filter-reliability-1632"></script>
 </body>
 </html>
