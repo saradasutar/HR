@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.26",
+  FRONTEND_VERSION: "1.6.27",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -61,6 +61,7 @@ const state = {
   detailEmployeeCode: "",
   fieldFilterColumns: [],
   dashboardColumns: readDashboardColumnPreference(),
+  dashboardFilterPreference: readDashboardFilterPreference(),
   reportRows: [],
   reportColumns: [],
   reportTitle: "",
@@ -278,6 +279,7 @@ async function loadEmployees(isRefresh) {
     state.page = 1;
     syncDashboardColumnPreference();
     populateFilters();
+    restoreDashboardFilterPreference();
     populateFieldFilterColumns();
     applyFilters();
     refs.lastUpdated.textContent = "Updated " + new Intl.DateTimeFormat("en-IN", { hour: "2-digit", minute: "2-digit" }).format(new Date());
@@ -348,6 +350,50 @@ function readDashboardColumnPreference() {
 
 function saveDashboardColumnPreference() {
   try { localStorage.setItem("hrDashboardColumns", JSON.stringify(state.dashboardColumns)); } catch { /* Device storage may be unavailable. */ }
+}
+
+function readDashboardFilterPreference() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("hrDashboardFilters") || "{}");
+    return {
+      search: String(saved.search || "").slice(0, 250),
+      group: String(saved.group || ""),
+      category: String(saved.category || ""),
+      status: String(saved.status || ""),
+      sensitivity: String(saved.sensitivity || ""),
+      fieldColumns: Array.isArray(saved.fieldColumns) ? saved.fieldColumns.map(String) : []
+    };
+  } catch {
+    return { search: "", group: "", category: "", status: "", sensitivity: "", fieldColumns: [] };
+  }
+}
+
+function saveDashboardFilterPreference() {
+  if (!refs.globalSearch) return;
+  state.dashboardFilterPreference = {
+    search: refs.globalSearch.value.trim(),
+    group: refs.groupFilter.value,
+    category: refs.categoryFilter.value,
+    status: refs.statusFilter.value,
+    sensitivity: refs.sensitivityFilter.value,
+    fieldColumns: state.fieldFilterColumns.filter((column) => state.columns.includes(column))
+  };
+  try { localStorage.setItem("hrDashboardFilters", JSON.stringify(state.dashboardFilterPreference)); } catch { /* Device storage may be unavailable. */ }
+}
+
+function restoreDashboardFilterPreference() {
+  const saved = state.dashboardFilterPreference || readDashboardFilterPreference();
+  refs.globalSearch.value = saved.search || "";
+  setSavedSelectValue(refs.groupFilter, saved.group);
+  setSavedSelectValue(refs.categoryFilter, saved.category);
+  setSavedSelectValue(refs.statusFilter, saved.status);
+  setSavedSelectValue(refs.sensitivityFilter, saved.sensitivity);
+  state.fieldFilterColumns = (saved.fieldColumns || []).filter((column, index, values) => state.columns.includes(column) && values.indexOf(column) === index);
+}
+
+function setSavedSelectValue(select, value) {
+  const selected = String(value || "");
+  select.value = [...select.options].some((option) => option.value === selected) ? selected : "";
 }
 
 function syncDashboardColumnPreference() {
@@ -675,6 +721,7 @@ function applyFilters() {
   const sensitivity = refs.sensitivityFilter.value;
   const fieldColumns = state.fieldFilterColumns;
   state.search = query;
+  saveDashboardFilterPreference();
   state.filtered = state.employees.filter((employee) => {
     const searchable = state.columns.map((key) => employee[key] || "").concat(strengthStatus(employee), sensitivityStatus(employee)).join(" ").toLocaleLowerCase();
     const selectedFieldsFilled = fieldColumns.every((column) => String(employee[column] == null ? "" : employee[column]).trim());
@@ -704,6 +751,7 @@ function clearFilters() {
   refs.clearFieldFilter.disabled = true;
   state.page = 1;
   applyFilters();
+  showToast("Filters cleared. The saved default filter view has been reset.");
 }
 
 function updateFieldFilterSummary() {

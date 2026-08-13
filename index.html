@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260812-clear-headings-1626">
+  <link rel="stylesheet" href="styles.css?v=20260813-remembered-view-1627">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.26 · Clear high-contrast headings</p>
+          <p class="build-version">Dashboard v1.6.27 · Remembered default view</p>
         </form>
       </main>
     </div>
@@ -95,12 +95,12 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.26 · Clear headings</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.27 · Saved view</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
             <button id="printFilteredButton" class="soft-btn print-filter-btn" type="button">Print filtered list</button>
-            <button id="chooseColumnsButton" class="soft-btn column-view-btn" type="button" title="Choose and arrange the columns shown in this dashboard">Choose columns</button>
+            <button id="chooseColumnsButton" class="soft-btn column-view-btn" type="button" title="Choose and arrange dashboard columns. Your selection is saved automatically on this device.">Choose columns</button>
             <button id="manageColumnsButton" class="soft-btn column-manager-btn admin-only" type="button" title="Add or delete administrator-created employee columns">Manage columns</button>
             <button id="editHeadersButton" class="soft-btn header-edit-btn admin-only" type="button" aria-pressed="false" title="Rename the visible dashboard column headings">Edit headers</button>
             <button id="directEditToggle" class="soft-btn direct-edit-btn admin-only" type="button" aria-pressed="false" title="Edit employee data directly inside the table">Edit rows</button>
@@ -122,7 +122,7 @@
           <select id="categoryFilter" aria-label="Filter by category"><option value="">All categories</option></select>
           <select id="statusFilter" aria-label="Filter by present strength status"><option value="">All strength statuses</option></select>
           <select id="sensitivityFilter" aria-label="Filter by post sensitivity"><option value="">All post sensitivities</option></select>
-          <button id="clearFilters" class="text-btn" type="button">Clear</button>
+          <button id="clearFilters" class="text-btn" type="button" title="Clear the current filters and reset the saved default filter view">Clear</button>
         </div>
 
         <div id="fieldFilterEditBar" class="field-filter-edit-bar admin-only">
@@ -314,6 +314,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260812-clear-headings-1626"></script>
+  <script src="app.js?v=20260813-remembered-view-1627"></script>
 </body>
 </html>
