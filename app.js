@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.38",
+  FRONTEND_VERSION: "1.6.39",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -1243,6 +1243,7 @@ function renderTable() {
       const emptyValue = !String(display || "").trim();
       let decoratedValue = value || "—";
       if (!emptyValue && visualClass === "employee-name-column") decoratedValue = `<span class="employee-name-deep-blue">${value}</span>`;
+      if (!emptyValue && isPendingWorkColumn(column)) decoratedValue = `<span class="pending-work-red-text">${value}</span>`;
       const cellContent = usesBadge
         ? value
         : `<span class="cell-text value-highlight${emptyValue ? " empty-value" : ""}">${decoratedValue}</span>`;
@@ -1828,6 +1829,7 @@ function detailRow(field, rawValue) {
   const visualClass = columnVisualClass(field);
   if (visualClass) rowClasses.push(visualClass);
   if (raw && visualClass === "employee-name-column") value = `<span class="employee-name-deep-blue">${value}</span>`;
+  if (raw && isPendingWorkColumn(field)) value = `<span class="pending-work-red-text">${value}</span>`;
   return `<div class="${rowClasses.join(" ")}" data-field="${escapeAttribute(field)}"><dt>${escapeHtml(detailLabel(field))}</dt><dd class="${valueClass}">${value}</dd></div>`;
 }
 

@@ -1956,6 +1956,24 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   white-space: pre-wrap;
   line-height: 1.35;
 }
+#employeeTable td.long-text-dashboard-column .pending-work-red-text,
+.details-modal .pending-work-red-text {
+  color: #a31212;
+  -webkit-text-fill-color: #a31212;
+  font-weight: 950;
+}
+#employeeTable td.long-text-dashboard-column .pending-work-red-text mark,
+.details-modal .pending-work-red-text mark {
+  color: #780000;
+  -webkit-text-fill-color: #780000;
+  background: #ffe59b;
+  font-weight: 950;
+}
+#employeeTable td.long-text-dashboard-column .inline-long-text[data-inline-field="Pending Work"] {
+  color: #a31212;
+  -webkit-text-fill-color: #a31212;
+  font-weight: 900;
+}
 #employeeTable tr:has(td.long-text-dashboard-column) td { height: auto; }
 .any-column-filter-section { overflow: hidden; border: 1px solid #8fc2da; border-radius: 12px; background: rgba(255,255,255,.92); box-shadow: 0 5px 14px rgba(22,83,111,.06); }
 .any-column-filter-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 11px; border-bottom: 1px solid #c9dfe9; background: linear-gradient(100deg, #e2f4ff, #e5f8f2); }
