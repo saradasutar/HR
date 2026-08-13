@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.41",
+  FRONTEND_VERSION: "1.6.42",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -28,11 +28,11 @@ const STRENGTH_STATUSES = Object.freeze(["Present", "Relieved", "Transferred", "
 const SENSITIVITY_VALUES = Object.freeze(["Sensitive", "Non-Sensitive"]);
 const COLUMN_FILTER_OPERATORS = Object.freeze([
   { value: "contains", label: "Contains" },
-  { value: "equals", label: "Equals" },
-  { value: "not-equals", label: "Does not equal" },
+  { value: "equals", label: "Is exactly" },
+  { value: "not-equals", label: "Is not" },
   { value: "starts-with", label: "Starts with" },
-  { value: "filled", label: "Is filled" },
-  { value: "blank", label: "Is blank" }
+  { value: "filled", label: "Has any text" },
+  { value: "blank", label: "Is empty" }
 ]);
 const CSV_HEADER_ALIASES = Object.freeze({
   "DoJ in ADG": "DoJ in Current Office",
@@ -117,7 +117,7 @@ function init() {
     "reportExportButton", "reportPrintButton",
     "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword",
     "confirmPassword", "passwordFormError", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton",
-    "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewDisplayColumns", "filterViewFieldOptions", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
+    "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
     "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError"
   ].forEach((id) => { refs[id] = $(id); });
 
@@ -360,14 +360,6 @@ function isLongDashboardTextColumn(column) {
 }
 
 function visibleTableColumns() {
-  const focusedColumns = [].concat(state.filterDisplayColumns, state.fieldFilterColumns, state.columnFilterRules.map((rule) => rule.column))
-    .filter((column, index, columns) => state.columns.includes(column) && columns.indexOf(column) === index);
-  if (focusedColumns.length) {
-    const preferredFocusedOrder = state.dashboardColumns.filter((column) => focusedColumns.includes(column))
-      .concat(focusedColumns.filter((column) => !state.dashboardColumns.includes(column)));
-    return frozenColumnsFirst(["Sl No.", "Employee Name"].concat(preferredFocusedOrder)
-      .filter((column, index, columns) => state.columns.includes(column) && columns.indexOf(column) === index));
-  }
   const selected = state.dashboardColumns.filter((column) => state.columns.includes(column));
   return frozenColumnsFirst(selected.length ? selected : state.columns);
 }
@@ -455,8 +447,10 @@ function restoreDashboardFilterPreference() {
     savedFieldColumns = savedFieldColumns.filter((column) => !legacyBlankPending.includes(column));
     savedColumnRules = savedColumnRules.filter((rule) => !(legacyBlankPending.includes(rule.column) && rule.operator === "filled"));
   }
-  state.filterDisplayColumns = savedDisplayColumns;
-  state.fieldFilterColumns = savedFieldColumns;
+  // v1.6.42 keeps column display exclusively under Choose columns. Retire the
+  // older filter-popup display/filled-field choices so saved views stay clear.
+  state.filterDisplayColumns = [];
+  state.fieldFilterColumns = [];
   state.columnFilterRules = savedColumnRules;
   updateChooseFiltersButton();
 }
@@ -621,8 +615,8 @@ function currentDashboardFilterValues() {
     category: refs.categoryFilter.value,
     status: refs.statusFilter.value,
     sensitivity: refs.sensitivityFilter.value,
-    displayColumns: state.filterDisplayColumns,
-    fieldColumns: state.fieldFilterColumns,
+    displayColumns: [],
+    fieldColumns: [],
     columnRules: state.columnFilterRules
   });
 }
@@ -656,10 +650,6 @@ function openDashboardFilterChooser() {
   copySelectOptions(refs.categoryFilter, refs.filterViewCategory, current.category);
   copySelectOptions(refs.statusFilter, refs.filterViewStatus, current.status);
   copySelectOptions(refs.sensitivityFilter, refs.filterViewSensitivity, current.sensitivity);
-  const displayed = new Set(current.displayColumns);
-  refs.filterViewDisplayColumns.innerHTML = state.columns.map((column) => `<label><input type="checkbox" value="${escapeAttribute(column)}"${displayed.has(column) ? " checked" : ""}><span>${escapeHtml(columnLabel(column))}</span></label>`).join("");
-  const selected = new Set(current.fieldColumns);
-  refs.filterViewFieldOptions.innerHTML = state.columns.map((column) => `<label><input type="checkbox" value="${escapeAttribute(column)}"${selected.has(column) ? " checked" : ""}><span>${escapeHtml(columnLabel(column))}</span></label>`).join("");
   renderColumnFilterRules(current.columnRules);
   updateFilterViewSummary();
   refs.filterViewDialog.showModal();
@@ -766,8 +756,8 @@ function selectedFilterViewValues() {
     category: refs.filterViewCategory.value,
     status: refs.filterViewStatus.value,
     sensitivity: refs.filterViewSensitivity.value,
-    displayColumns: [...refs.filterViewDisplayColumns.querySelectorAll('input[type="checkbox"]:checked')].map((input) => input.value),
-    fieldColumns: [...refs.filterViewFieldOptions.querySelectorAll('input[type="checkbox"]:checked')].map((input) => input.value),
+    displayColumns: [],
+    fieldColumns: [],
     columnRules: rawColumnFilterRulesFromChooser()
   });
 }
@@ -781,9 +771,7 @@ function updateFilterViewSummary() {
   if (selected.category) labels.push(`Category: ${selected.category}`);
   if (selected.status) labels.push(`Status: ${selected.status}`);
   if (selected.sensitivity) labels.push(`Post: ${selected.sensitivity}`);
-  selected.displayColumns.forEach((column) => labels.push(`Display: ${columnLabel(column)} (blank allowed)`));
   selected.columnRules.forEach((rule) => labels.push(`${columnLabel(rule.column)} ${columnFilterOperatorLabel(rule.operator).toLocaleLowerCase()}${columnFilterNeedsValue(rule.operator) ? ` “${rule.value}”` : ""}`));
-  selected.fieldColumns.forEach((column) => labels.push(`${columnLabel(column)} filled`));
   refs.filterViewSummary.textContent = labels.length ? `${labels.length} selected · ${labels.join(" · ")}` : "No filters selected · All employees will show";
 }
 
@@ -794,8 +782,8 @@ function setCurrentDashboardFilters(values) {
   setSavedSelectValue(refs.categoryFilter, selected.category);
   setSavedSelectValue(refs.statusFilter, selected.status);
   setSavedSelectValue(refs.sensitivityFilter, selected.sensitivity);
-  state.filterDisplayColumns = selected.displayColumns;
-  state.fieldFilterColumns = selected.fieldColumns;
+  state.filterDisplayColumns = [];
+  state.fieldFilterColumns = [];
   state.columnFilterRules = selected.columnRules;
   populateFieldFilterColumns();
 }

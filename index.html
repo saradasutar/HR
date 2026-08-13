@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260813-simple-filters-1641">
+  <link rel="stylesheet" href="styles.css?v=20260813-two-step-filters-1642">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.41 · Easier filters</p>
+          <p class="build-version">Dashboard v1.6.42 · Two-step filters</p>
         </form>
       </main>
     </div>
@@ -95,7 +95,7 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.41 · Simple responsive filters</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.42 · Clear filter workflow</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
@@ -126,7 +126,7 @@
           <button id="clearFilters" class="text-btn" type="button" title="Clear the current filters and reset the saved default filter view">Clear</button>
         </div>
 
-        <div id="fieldFilterEditBar" class="field-filter-edit-bar admin-only">
+        <div id="fieldFilterEditBar" class="field-filter-edit-bar admin-only retired-field-filter-bar" aria-hidden="true">
           <div class="field-filter-copy"><span>Filter by filled subject columns</span><small id="fieldFilterSummary">Choose one or more columns. Employees whose selected columns are all filled will appear for direct editing.</small></div>
           <div class="field-filter-control"><span>Fields / subjects</span><details id="fieldFilterPicker" class="field-filter-picker"><summary id="fieldFilterPickerSummary">Choose columns…</summary><div id="fieldFilterOptions" class="field-filter-options" aria-label="Select one or more filled employee fields"></div></details></div>
           <button id="applyFieldFilter" class="primary-btn" type="button">Apply &amp; edit</button>
@@ -255,26 +255,24 @@
 
   <dialog id="filterViewDialog" class="modal filter-view-modal">
     <div class="filter-view-sheet">
-      <header class="modal-header"><div><p class="eyebrow accent">Personal dashboard view</p><h2>Filter the employee directory</h2><p>Choose who to include and which columns to show. Your selection is remembered on this device.</p></div><button class="modal-close" type="button" data-close-dialog="filterViewDialog" aria-label="Close filter chooser">×</button></header>
+      <header class="modal-header"><div><p class="eyebrow accent">Employee directory</p><h2>Filter employees</h2><p>Choose one or more filters, then press <b>Show results</b>. Use the separate <b>Choose columns</b> button to change table columns.</p></div><button class="modal-close" type="button" data-close-dialog="filterViewDialog" aria-label="Close filter chooser">×</button></header>
       <div class="filter-view-body">
-        <div class="filter-view-note"><strong id="filterViewSummary">No filters selected</strong><span>All selected conditions work together. Leave a section blank when it is not needed.</span></div>
-        <section class="filter-quick-section"><div class="filter-section-heading"><strong>Quick employee filters</strong><small>Search or choose any combination of the four common filters.</small></div><div class="filter-view-grid">
+        <div class="filter-view-note"><strong id="filterViewSummary">No filters selected</strong><span>Leave any box unchanged when you do not want to filter by it.</span></div>
+        <section class="filter-quick-section"><div class="filter-section-heading"><strong>1. Choose employee filters</strong><small>Use search or select Group, Category, Strength Status and Post Sensitivity.</small></div><div class="filter-view-grid">
           <label class="filter-view-wide"><span>Search text</span><input id="filterViewSearch" type="search" maxlength="250" placeholder="Name, code, designation, address, mobile, email…"></label>
           <label><span>Group</span><select id="filterViewGroup"><option value="">All groups</option></select></label>
           <label><span>Category</span><select id="filterViewCategory"><option value="">All categories</option></select></label>
           <label><span>Strength status</span><select id="filterViewStatus"><option value="">All strength statuses</option></select></label>
           <label><span>Post sensitivity</span><select id="filterViewSensitivity"><option value="">All post sensitivities</option></select></label>
         </div></section>
-        <section class="filter-field-section filter-display-section"><div><strong>Columns to show</strong><small>Choose fields such as Pending Work or REMARK ADMN. Blank cells are allowed and employees are not removed.</small></div><div id="filterViewDisplayColumns" class="filter-view-field-options filter-view-display-options" aria-label="Choose columns to display even when blank"></div></section>
-        <section class="filter-field-section filled-field-section"><div><strong>Only rows with completed fields</strong><small>Choose fields that must contain data. The directory will show only matching employees and these selected columns.</small></div><div id="filterViewFieldOptions" class="filter-view-field-options" aria-label="Choose filled subject columns"></div></section>
         <section class="any-column-filter-section">
-          <div class="any-column-filter-heading"><div><strong>Advanced column conditions — optional</strong><small>Use this only for a specific value, blank field or filled field. Add more conditions when required.</small></div><button id="addColumnFilterRuleButton" class="soft-btn" type="button">＋ Add condition</button></div>
+          <div class="any-column-filter-heading"><div><strong>Optional: filter any other column</strong><small>For example: Pending Work has any text, REMARK ADMN contains “transfer”, or Email is empty.</small></div><button id="addColumnFilterRuleButton" class="soft-btn" type="button">＋ Add another filter</button></div>
           <div id="columnFilterRuleList" class="column-filter-rule-list" aria-label="Any-column filter rules"></div>
           <p id="columnFilterRuleEmpty" class="column-filter-rule-empty">No advanced condition added.</p>
           <p id="filterViewError" class="filter-view-error" role="alert"></p>
         </section>
       </div>
-      <footer class="modal-footer"><button class="soft-btn" type="button" data-close-dialog="filterViewDialog">Cancel</button><button id="clearFilterViewButton" class="soft-btn filter-clear-btn" type="button">Clear all</button><button id="applyFilterViewButton" class="primary-btn" type="button">Show filtered dashboard</button></footer>
+      <footer class="modal-footer"><button id="clearFilterViewButton" class="soft-btn filter-clear-btn" type="button">Reset filters</button><button id="applyFilterViewButton" class="primary-btn" type="button">2. Show results</button></footer>
     </div>
   </dialog>
 
@@ -340,6 +338,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260813-simple-filters-1641"></script>
+  <script src="app.js?v=20260813-two-step-filters-1642"></script>
 </body>
 </html>
