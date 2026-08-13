@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.33",
+  FRONTEND_VERSION: "1.6.34",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -27,6 +27,7 @@ const DEFAULT_COLUMN_LABELS = Object.freeze(Object.assign(CORE_COLUMNS.reduce((l
 const STRENGTH_STATUSES = Object.freeze(["Present", "Relieved", "Transferred", "Retired"]);
 const SENSITIVITY_VALUES = Object.freeze(["Sensitive", "Non-Sensitive"]);
 const COLUMN_FILTER_OPERATORS = Object.freeze([
+  { value: "show-all", label: "Show column — all employees" },
   { value: "contains", label: "Contains" },
   { value: "equals", label: "Equals" },
   { value: "not-equals", label: "Does not equal" },
@@ -425,9 +426,29 @@ function restoreDashboardFilterPreference() {
   setSavedSelectValue(refs.categoryFilter, saved.category);
   setSavedSelectValue(refs.statusFilter, saved.status);
   setSavedSelectValue(refs.sensitivityFilter, saved.sensitivity);
-  state.fieldFilterColumns = (saved.fieldColumns || []).filter((column, index, values) => state.columns.includes(column) && values.indexOf(column) === index);
-  state.columnFilterRules = normalizeColumnFilterRules(saved.columnRules);
+  let savedFieldColumns = (saved.fieldColumns || []).filter((column, index, values) => state.columns.includes(column) && values.indexOf(column) === index);
+  let savedColumnRules = normalizeColumnFilterRules(saved.columnRules);
+  try {
+    if (!localStorage.getItem("hrPendingWorkShowAllMigrationV1634")) {
+      const legacyPendingColumns = savedFieldColumns.concat(savedColumnRules.filter((rule) => rule.operator === "filled").map((rule) => rule.column))
+        .filter((column, index, columns) => isPendingWorkColumn(column) && columns.indexOf(column) === index);
+      savedFieldColumns = savedFieldColumns.filter((column) => !isPendingWorkColumn(column));
+      savedColumnRules = savedColumnRules.filter((rule) => !(isPendingWorkColumn(rule.column) && rule.operator === "filled"));
+      legacyPendingColumns.forEach((column) => {
+        if (!savedColumnRules.some((rule) => rule.column === column)) savedColumnRules.push({ column, operator: "show-all", value: "" });
+      });
+      localStorage.setItem("hrPendingWorkShowAllMigrationV1634", "1");
+    }
+  } catch { /* Device storage may be unavailable. */ }
+  state.fieldFilterColumns = savedFieldColumns;
+  state.columnFilterRules = savedColumnRules;
   updateChooseFiltersButton();
+}
+
+function isPendingWorkColumn(column) {
+  const normalizedKey = String(column || "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const normalizedLabel = String(columnLabel(column) || "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return normalizedKey.includes("pending work") || normalizedLabel.includes("pending work");
 }
 
 function setSavedSelectValue(select, value) {
@@ -559,7 +580,7 @@ function normalizeColumnFilterRules(rules) {
   if (!Array.isArray(rules)) return [];
   return rules.map((rule) => {
     const column = String(rule && rule.column || "");
-    const operator = validOperators.has(String(rule && rule.operator || "")) ? String(rule.operator) : "contains";
+    const operator = validOperators.has(String(rule && rule.operator || "")) ? String(rule.operator) : "show-all";
     const value = String(rule && rule.value || "").trim().slice(0, 500);
     if (!state.columns.includes(column) || (columnFilterNeedsValue(operator) && !value)) return null;
     return { column, operator, value };
@@ -567,12 +588,12 @@ function normalizeColumnFilterRules(rules) {
 }
 
 function columnFilterNeedsValue(operator) {
-  return !["filled", "blank"].includes(operator);
+  return !["show-all", "filled", "blank"].includes(operator);
 }
 
 function columnFilterOperatorLabel(operator) {
   const match = COLUMN_FILTER_OPERATORS.find((item) => item.value === operator);
-  return match ? match.label : "Contains";
+  return match ? match.label : "Show column — all employees";
 }
 
 function currentDashboardFilterValues() {
@@ -646,7 +667,7 @@ function rawColumnFilterRulesFromChooser() {
 
 function addColumnFilterRule() {
   const rules = rawColumnFilterRulesFromChooser();
-  rules.push({ column: "", operator: "filled", value: "" });
+  rules.push({ column: "", operator: "show-all", value: "" });
   renderColumnFilterRules(rules);
   showFilterViewError("");
   const row = refs.columnFilterRuleList.lastElementChild;
@@ -1002,6 +1023,7 @@ function employeeMatchesColumnRule(employee, rule) {
   const actual = employeeColumnFilterValue(employee, rule.column);
   const normalizedActual = actual.toLocaleLowerCase();
   const expected = String(rule.value || "").trim().toLocaleLowerCase();
+  if (rule.operator === "show-all") return true;
   if (rule.operator === "filled") return Boolean(actual);
   if (rule.operator === "blank") return !actual;
   if (rule.operator === "equals") return normalizedActual === expected;

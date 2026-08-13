@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260813-column-front-order-1633">
+  <link rel="stylesheet" href="styles.css?v=20260813-show-empty-column-1634">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.33 · Reliable column order</p>
+          <p class="build-version">Dashboard v1.6.34 · Show empty columns</p>
         </form>
       </main>
     </div>
@@ -95,7 +95,7 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.33 · Column order fix</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.34 · Show empty columns</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
@@ -266,7 +266,7 @@
           <label><span>Post sensitivity</span><select id="filterViewSensitivity"><option value="">All post sensitivities</option></select></label>
         </div>
         <section class="any-column-filter-section">
-          <div class="any-column-filter-heading"><div><strong>Filter any employee column</strong><small>Choose a column and condition. Add more rules when required; all rules work together.</small></div><button id="addColumnFilterRuleButton" class="soft-btn" type="button">＋ Add filter rule</button></div>
+          <div class="any-column-filter-heading"><div><strong>Show or filter any employee column</strong><small>Choose “Show column — all employees” to display a field even when every cell is blank. Other conditions narrow the employee list.</small></div><button id="addColumnFilterRuleButton" class="soft-btn" type="button">＋ Add column / filter</button></div>
           <div id="columnFilterRuleList" class="column-filter-rule-list" aria-label="Any-column filter rules"></div>
           <p id="columnFilterRuleEmpty" class="column-filter-rule-empty">No column rule added. Choose “Add filter rule” to filter any field.</p>
           <p id="filterViewError" class="filter-view-error" role="alert"></p>
@@ -339,6 +339,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260813-column-front-order-1633"></script>
+  <script src="app.js?v=20260813-show-empty-column-1634"></script>
 </body>
 </html>
