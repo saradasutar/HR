@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.40",
+  FRONTEND_VERSION: "1.6.41",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -67,7 +67,6 @@ const state = {
   sortDirection: "asc",
   search: "",
   detailEmployeeCode: "",
-  particularCell: { employeeCode: "", column: "" },
   filterDisplayColumns: [],
   fieldFilterColumns: [],
   columnFilterRules: [],
@@ -118,7 +117,7 @@ function init() {
     "reportExportButton", "reportPrintButton",
     "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword",
     "confirmPassword", "passwordFormError", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton",
-    "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewCellEmployee", "filterViewCellColumn", "filterViewDisplayColumns", "filterViewFieldOptions", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
+    "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewDisplayColumns", "filterViewFieldOptions", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
     "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError"
   ].forEach((id) => { refs[id] = $(id); });
 
@@ -146,7 +145,6 @@ function init() {
   refs.restoreAllColumnsButton.addEventListener("click", restoreAllDashboardColumns);
   refs.filterViewDialog.addEventListener("input", updateFilterViewSummary);
   refs.filterViewDialog.addEventListener("change", updateFilterViewSummary);
-  refs.filterViewCellEmployee.addEventListener("change", updateParticularCellChooserState);
   refs.columnFilterRuleList.addEventListener("change", handleColumnFilterRuleChange);
   refs.columnFilterRuleList.addEventListener("click", handleColumnFilterRuleAction);
   refs.addColumnFilterRuleButton.addEventListener("click", addColumnFilterRule);
@@ -362,7 +360,7 @@ function isLongDashboardTextColumn(column) {
 }
 
 function visibleTableColumns() {
-  const focusedColumns = [state.particularCell.column].concat(state.filterDisplayColumns, state.fieldFilterColumns, state.columnFilterRules.map((rule) => rule.column))
+  const focusedColumns = [].concat(state.filterDisplayColumns, state.fieldFilterColumns, state.columnFilterRules.map((rule) => rule.column))
     .filter((column, index, columns) => state.columns.includes(column) && columns.indexOf(column) === index);
   if (focusedColumns.length) {
     const preferredFocusedOrder = state.dashboardColumns.filter((column) => focusedColumns.includes(column))
@@ -401,10 +399,6 @@ function readDashboardFilterPreference() {
       category: String(saved.category || ""),
       status: String(saved.status || ""),
       sensitivity: String(saved.sensitivity || ""),
-      particularCell: {
-        employeeCode: String(saved.particularCell && saved.particularCell.employeeCode || ""),
-        column: String(saved.particularCell && saved.particularCell.column || "")
-      },
       displayColumns: Array.isArray(saved.displayColumns) ? saved.displayColumns.map(String) : [],
       fieldColumns: Array.isArray(saved.fieldColumns) ? saved.fieldColumns.map(String) : [],
       columnRules: Array.isArray(saved.columnRules) ? saved.columnRules.map((rule) => ({
@@ -414,7 +408,7 @@ function readDashboardFilterPreference() {
       })) : []
     };
   } catch {
-    return { search: "", group: "", category: "", status: "", sensitivity: "", particularCell: { employeeCode: "", column: "" }, displayColumns: [], fieldColumns: [], columnRules: [] };
+    return { search: "", group: "", category: "", status: "", sensitivity: "", displayColumns: [], fieldColumns: [], columnRules: [] };
   }
 }
 
@@ -426,7 +420,6 @@ function saveDashboardFilterPreference() {
     category: refs.categoryFilter.value,
     status: refs.statusFilter.value,
     sensitivity: refs.sensitivityFilter.value,
-    particularCell: normalizeParticularCell(state.particularCell),
     displayColumns: state.filterDisplayColumns.filter((column) => state.columns.includes(column)),
     fieldColumns: state.fieldFilterColumns.filter((column) => state.columns.includes(column)),
     columnRules: normalizeColumnFilterRules(state.columnFilterRules)
@@ -442,7 +435,6 @@ function restoreDashboardFilterPreference() {
   setSavedSelectValue(refs.categoryFilter, saved.category);
   setSavedSelectValue(refs.statusFilter, saved.status);
   setSavedSelectValue(refs.sensitivityFilter, saved.sensitivity);
-  state.particularCell = normalizeParticularCell(saved.particularCell);
   let savedDisplayColumns = (saved.displayColumns || []).filter((column, index, values) => state.columns.includes(column) && values.indexOf(column) === index);
   let savedFieldColumns = (saved.fieldColumns || []).filter((column, index, values) => state.columns.includes(column) && values.indexOf(column) === index);
   let savedColumnRules = normalizeColumnFilterRules(saved.columnRules);
@@ -473,16 +465,6 @@ function isPendingWorkColumn(column) {
   const normalizedKey = String(column || "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   const normalizedLabel = String(columnLabel(column) || "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   return normalizedKey.includes("pending work") || normalizedLabel.includes("pending work");
-}
-
-function normalizeParticularCell(cell) {
-  const employeeCode = String(cell && cell.employeeCode || "");
-  const column = String(cell && cell.column || "");
-  const employeeExists = state.employees.some((employee) => String(employee["Employee Code"] || "") === employeeCode);
-  if (!employeeExists || !state.columns.includes(column) || column === "Sl No." || column === "Employee Name") {
-    return { employeeCode: "", column: "" };
-  }
-  return { employeeCode, column };
 }
 
 function setSavedSelectValue(select, value) {
@@ -604,7 +586,6 @@ function dashboardFilterValues(source) {
     category: String(values.category || ""),
     status: String(values.status || ""),
     sensitivity: String(values.sensitivity || ""),
-    particularCell: normalizeParticularCell(values.particularCell),
     displayColumns: Array.isArray(values.displayColumns) ? values.displayColumns.filter((column, index, list) => state.columns.includes(column) && list.indexOf(column) === index) : [],
     fieldColumns: Array.isArray(values.fieldColumns) ? values.fieldColumns.filter((column, index, list) => state.columns.includes(column) && list.indexOf(column) === index) : [],
     columnRules: normalizeColumnFilterRules(values.columnRules)
@@ -640,7 +621,6 @@ function currentDashboardFilterValues() {
     category: refs.categoryFilter.value,
     status: refs.statusFilter.value,
     sensitivity: refs.sensitivityFilter.value,
-    particularCell: state.particularCell,
     displayColumns: state.filterDisplayColumns,
     fieldColumns: state.fieldFilterColumns,
     columnRules: state.columnFilterRules
@@ -649,7 +629,7 @@ function currentDashboardFilterValues() {
 
 function dashboardFilterCount(values) {
   const selected = dashboardFilterValues(values);
-  return [selected.search, selected.group, selected.category, selected.status, selected.sensitivity].filter(Boolean).length + (selected.particularCell.employeeCode && selected.particularCell.column ? 1 : 0) + selected.displayColumns.length + selected.fieldColumns.length + selected.columnRules.length;
+  return [selected.search, selected.group, selected.category, selected.status, selected.sensitivity].filter(Boolean).length + selected.displayColumns.length + selected.fieldColumns.length + selected.columnRules.length;
 }
 
 function hasActiveDashboardFilter() {
@@ -659,7 +639,7 @@ function hasActiveDashboardFilter() {
 function updateChooseFiltersButton() {
   if (!refs.chooseFiltersButton || !refs.globalSearch) return;
   const count = dashboardFilterCount(currentDashboardFilterValues());
-  refs.chooseFiltersButton.textContent = count ? `Choose filters · ${count}` : "Choose filters · None";
+  refs.chooseFiltersButton.textContent = count ? `Filters active · ${count}` : "Filter dashboard";
   refs.chooseFiltersButton.classList.toggle("active", count > 0);
 }
 
@@ -676,7 +656,6 @@ function openDashboardFilterChooser() {
   copySelectOptions(refs.categoryFilter, refs.filterViewCategory, current.category);
   copySelectOptions(refs.statusFilter, refs.filterViewStatus, current.status);
   copySelectOptions(refs.sensitivityFilter, refs.filterViewSensitivity, current.sensitivity);
-  populateParticularCellChooser(current.particularCell);
   const displayed = new Set(current.displayColumns);
   refs.filterViewDisplayColumns.innerHTML = state.columns.map((column) => `<label><input type="checkbox" value="${escapeAttribute(column)}"${displayed.has(column) ? " checked" : ""}><span>${escapeHtml(columnLabel(column))}</span></label>`).join("");
   const selected = new Set(current.fieldColumns);
@@ -684,29 +663,6 @@ function openDashboardFilterChooser() {
   renderColumnFilterRules(current.columnRules);
   updateFilterViewSummary();
   refs.filterViewDialog.showModal();
-}
-
-function employeeChooserLabel(employee) {
-  const name = String(employee["Employee Name"] || "Unnamed employee");
-  const code = String(employee["Employee Code"] || "");
-  return code ? `${name} · ${code}` : name;
-}
-
-function populateParticularCellChooser(cell) {
-  const selected = normalizeParticularCell(cell);
-  const employees = state.employees.slice().sort((first, second) => employeeChooserLabel(first).localeCompare(employeeChooserLabel(second), undefined, { numeric: true, sensitivity: "base" }));
-  refs.filterViewCellEmployee.innerHTML = `<option value="">No particular employee</option>` + employees.map((employee) => {
-    const code = String(employee["Employee Code"] || "");
-    return `<option value="${escapeAttribute(code)}"${selected.employeeCode === code ? " selected" : ""}>${escapeHtml(employeeChooserLabel(employee))}</option>`;
-  }).join("");
-  refs.filterViewCellColumn.innerHTML = `<option value="">Choose field / column</option>` + state.columns.filter((column) => !["Sl No.", "Employee Name"].includes(column)).map((column) => `<option value="${escapeAttribute(column)}"${selected.column === column ? " selected" : ""}>${escapeHtml(columnLabel(column))}</option>`).join("");
-  updateParticularCellChooserState();
-}
-
-function updateParticularCellChooserState() {
-  const hasEmployee = Boolean(refs.filterViewCellEmployee.value);
-  refs.filterViewCellColumn.disabled = !hasEmployee;
-  if (!hasEmployee) refs.filterViewCellColumn.value = "";
 }
 
 function renderColumnFilterRules(rules) {
@@ -732,7 +688,7 @@ function rawColumnFilterRulesFromChooser() {
 
 function addColumnFilterRule() {
   const rules = rawColumnFilterRulesFromChooser();
-  rules.push({ column: "", operator: "contains", value: "" });
+  rules.push({ column: "", operator: "filled", value: "" });
   renderColumnFilterRules(rules);
   showFilterViewError("");
   const row = refs.columnFilterRuleList.lastElementChild;
@@ -810,10 +766,6 @@ function selectedFilterViewValues() {
     category: refs.filterViewCategory.value,
     status: refs.filterViewStatus.value,
     sensitivity: refs.filterViewSensitivity.value,
-    particularCell: {
-      employeeCode: refs.filterViewCellEmployee.value,
-      column: refs.filterViewCellColumn.value
-    },
     displayColumns: [...refs.filterViewDisplayColumns.querySelectorAll('input[type="checkbox"]:checked')].map((input) => input.value),
     fieldColumns: [...refs.filterViewFieldOptions.querySelectorAll('input[type="checkbox"]:checked')].map((input) => input.value),
     columnRules: rawColumnFilterRulesFromChooser()
@@ -829,10 +781,6 @@ function updateFilterViewSummary() {
   if (selected.category) labels.push(`Category: ${selected.category}`);
   if (selected.status) labels.push(`Status: ${selected.status}`);
   if (selected.sensitivity) labels.push(`Post: ${selected.sensitivity}`);
-  if (selected.particularCell.employeeCode && selected.particularCell.column) {
-    const employee = state.employees.find((item) => String(item["Employee Code"] || "") === selected.particularCell.employeeCode);
-    labels.push(`Cell: ${employee ? employeeChooserLabel(employee) : selected.particularCell.employeeCode} · ${columnLabel(selected.particularCell.column)} (blank allowed)`);
-  }
   selected.displayColumns.forEach((column) => labels.push(`Display: ${columnLabel(column)} (blank allowed)`));
   selected.columnRules.forEach((rule) => labels.push(`${columnLabel(rule.column)} ${columnFilterOperatorLabel(rule.operator).toLocaleLowerCase()}${columnFilterNeedsValue(rule.operator) ? ` “${rule.value}”` : ""}`));
   selected.fieldColumns.forEach((column) => labels.push(`${columnLabel(column)} filled`));
@@ -846,7 +794,6 @@ function setCurrentDashboardFilters(values) {
   setSavedSelectValue(refs.categoryFilter, selected.category);
   setSavedSelectValue(refs.statusFilter, selected.status);
   setSavedSelectValue(refs.sensitivityFilter, selected.sensitivity);
-  state.particularCell = selected.particularCell;
   state.filterDisplayColumns = selected.displayColumns;
   state.fieldFilterColumns = selected.fieldColumns;
   state.columnFilterRules = selected.columnRules;
@@ -855,11 +802,6 @@ function setCurrentDashboardFilters(values) {
 
 function applyDashboardFilterView() {
   if (!validateColumnFilterRules()) return;
-  if (refs.filterViewCellEmployee.value && !refs.filterViewCellColumn.value) {
-    showFilterViewError("Choose the field / column for the selected employee cell, or clear the employee selection.");
-    refs.filterViewCellColumn.focus();
-    return;
-  }
   const selected = selectedFilterViewValues();
   setCurrentDashboardFilters(selected);
   state.inlineEditCode = "";
@@ -1092,7 +1034,7 @@ function hasParticularFieldFilter() {
 }
 
 function hasFocusedColumnFilter() {
-  return Boolean(state.particularCell.employeeCode && state.particularCell.column) || state.filterDisplayColumns.length > 0 || hasParticularFieldFilter() || state.columnFilterRules.length > 0;
+  return state.filterDisplayColumns.length > 0 || hasParticularFieldFilter() || state.columnFilterRules.length > 0;
 }
 
 function employeeColumnFilterValue(employee, column) {
@@ -1135,7 +1077,6 @@ function applyFilters() {
   const sensitivity = refs.sensitivityFilter.value;
   const fieldColumns = state.fieldFilterColumns;
   const columnRules = state.columnFilterRules;
-  const particularEmployeeCode = state.particularCell.employeeCode;
   state.search = query;
   saveDashboardFilterPreference();
   state.filtered = state.employees.filter((employee) => {
@@ -1149,8 +1090,7 @@ function applyFilters() {
       (!sensitivity || sensitivityStatus(employee) === sensitivity) &&
       (!fieldColumns.length || selectedFieldsFilled) &&
       (!columnRules.length || selectedColumnRulesMatch);
-    const matchesParticularEmployee = !particularEmployeeCode || String(employee["Employee Code"] || "") === particularEmployeeCode;
-    return matchesOrdinaryFilters && matchesParticularEmployee;
+    return matchesOrdinaryFilters;
   });
   sortEmployees();
   updateStats();
@@ -1165,7 +1105,6 @@ function clearFilters() {
   refs.categoryFilter.value = "";
   refs.statusFilter.value = "";
   refs.sensitivityFilter.value = "";
-  state.particularCell = { employeeCode: "", column: "" };
   state.filterDisplayColumns = [];
   state.fieldFilterColumns = [];
   state.columnFilterRules = [];
@@ -1238,7 +1177,6 @@ function renderTable() {
       if (isLongDashboardTextColumn(column)) classes.push("long-text-dashboard-column");
       const visualClass = columnVisualClass(column);
       if (visualClass) classes.push(visualClass);
-      if (state.particularCell.employeeCode === originalCode && state.particularCell.column === column) classes.push("particular-cell-focused");
       const usesBadge = ["Grp", "Cat", "Strength Status", "Post Sensitivity"].includes(column) && value;
       const emptyValue = !String(display || "").trim();
       let decoratedValue = value || "—";
@@ -1335,17 +1273,15 @@ function updateHeaderEditButtons() {
 function renderInlineCell(employee, column, displaySequence) {
   const raw = column === "Sl No." ? String(displaySequence) : employee[column] == null ? "" : String(employee[column]);
   const visualClass = columnVisualClass(column);
-  const particularCellFocused = state.particularCell.employeeCode === String(employee["Employee Code"] || "") && state.particularCell.column === column;
-  const particularCellClass = particularCellFocused ? " particular-cell-focused" : "";
   if (column === "Sl No." || column === "AGE") {
-    return `<td class="inline-readonly-cell${visualClass ? ` ${visualClass}` : ""}${particularCellClass}" data-column-key="${escapeAttribute(column)}"><span class="inline-readonly" data-inline-calculated="${escapeAttribute(column)}">${escapeHtml(raw || "—")}</span></td>`;
+    return `<td class="inline-readonly-cell${visualClass ? ` ${visualClass}` : ""}" data-column-key="${escapeAttribute(column)}"><span class="inline-readonly" data-inline-calculated="${escapeAttribute(column)}">${escapeHtml(raw || "—")}</span></td>`;
   }
 
   if (column === "Strength Status") {
-    return `<td class="${visualClass}${particularCellClass}" data-column-key="${escapeAttribute(column)}">${inlineSelect(column, raw, STRENGTH_STATUSES, true)}</td>`;
+    return `<td class="${visualClass}" data-column-key="${escapeAttribute(column)}">${inlineSelect(column, raw, STRENGTH_STATUSES, true)}</td>`;
   }
   if (column === "Post Sensitivity") {
-    return `<td class="${visualClass}${particularCellClass}" data-column-key="${escapeAttribute(column)}">${inlineSelect(column, raw, SENSITIVITY_VALUES, true)}</td>`;
+    return `<td class="${visualClass}" data-column-key="${escapeAttribute(column)}">${inlineSelect(column, raw, SENSITIVITY_VALUES, true)}</td>`;
   }
 
   const dateColumns = ["DoB", "DoR", "Relieving Date", "DoJ Govt", "DoJ in Current Office"];
@@ -1358,7 +1294,6 @@ function renderInlineCell(employee, column, displaySequence) {
   if (["REMARK ADMN", "Present/Permanent Address"].includes(column)) cellClasses.push("remarks-cell");
   if (isLongDashboardTextColumn(column)) cellClasses.push("long-text-dashboard-column");
   if (visualClass) cellClasses.push(visualClass);
-  if (particularCellFocused) cellClasses.push("particular-cell-focused");
   if (isLongDashboardTextColumn(column)) {
     return `<td class="${cellClasses.join(" ")}" data-column-key="${escapeAttribute(column)}"><textarea class="inline-edit-input inline-long-text" data-inline-field="${escapeAttribute(column)}" rows="2" aria-label="${escapeAttribute(detailLabel(column))}"${required}${maxLength ? ` maxlength="${maxLength}"` : ""}>${escapeHtml(value)}</textarea></td>`;
   }

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260813-compact-long-text-1640">
+  <link rel="stylesheet" href="styles.css?v=20260813-simple-filters-1641">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.40 · Compact multiline text</p>
+          <p class="build-version">Dashboard v1.6.41 · Easier filters</p>
         </form>
       </main>
     </div>
@@ -95,13 +95,13 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.40 · Narrow wrapped remarks</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.41 · Simple responsive filters</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
             <button id="printFilteredButton" class="soft-btn print-filter-btn" type="button">Print filtered list</button>
             <button id="chooseColumnsButton" class="soft-btn column-view-btn" type="button" title="Choose and arrange dashboard columns. Your selection is saved automatically on this device.">Choose columns</button>
-            <button id="chooseFiltersButton" class="soft-btn filter-view-btn" type="button" title="Choose one or more dashboard filters and save them as the default view on this device.">Choose filters</button>
+            <button id="chooseFiltersButton" class="soft-btn filter-view-btn" type="button" title="Filter employees, select visible columns and save the view on this device.">Filter dashboard</button>
             <button id="manageColumnsButton" class="soft-btn column-manager-btn admin-only" type="button" title="Add or delete administrator-created employee columns">Manage columns</button>
             <button id="editHeadersButton" class="soft-btn header-edit-btn admin-only" type="button" aria-pressed="false" title="Rename the visible dashboard column headings">Edit headers</button>
             <button id="directEditToggle" class="soft-btn direct-edit-btn admin-only" type="button" aria-pressed="false" title="Edit employee data directly inside the table">Edit rows</button>
@@ -255,27 +255,26 @@
 
   <dialog id="filterViewDialog" class="modal filter-view-modal">
     <div class="filter-view-sheet">
-      <header class="modal-header"><div><p class="eyebrow accent">Personal dashboard view</p><h2>Choose dashboard filters</h2><p>Display an entire column or one particular employee cell—even when blank—then independently apply any other filters.</p></div><button class="modal-close" type="button" data-close-dialog="filterViewDialog" aria-label="Close filter chooser">×</button></header>
+      <header class="modal-header"><div><p class="eyebrow accent">Personal dashboard view</p><h2>Filter the employee directory</h2><p>Choose who to include and which columns to show. Your selection is remembered on this device.</p></div><button class="modal-close" type="button" data-close-dialog="filterViewDialog" aria-label="Close filter chooser">×</button></header>
       <div class="filter-view-body">
-        <div class="filter-view-note"><strong id="filterViewSummary">No filters selected</strong><span>Filters work together. Only employees matching all selected conditions will appear.</span></div>
-        <div class="filter-view-grid">
+        <div class="filter-view-note"><strong id="filterViewSummary">No filters selected</strong><span>All selected conditions work together. Leave a section blank when it is not needed.</span></div>
+        <section class="filter-quick-section"><div class="filter-section-heading"><strong>Quick employee filters</strong><small>Search or choose any combination of the four common filters.</small></div><div class="filter-view-grid">
           <label class="filter-view-wide"><span>Search text</span><input id="filterViewSearch" type="search" maxlength="250" placeholder="Name, code, designation, address, mobile, email…"></label>
           <label><span>Group</span><select id="filterViewGroup"><option value="">All groups</option></select></label>
           <label><span>Category</span><select id="filterViewCategory"><option value="">All categories</option></select></label>
           <label><span>Strength status</span><select id="filterViewStatus"><option value="">All strength statuses</option></select></label>
           <label><span>Post sensitivity</span><select id="filterViewSensitivity"><option value="">All post sensitivities</option></select></label>
-        </div>
-        <section class="particular-cell-section"><div class="particular-cell-heading"><strong>1. Display a particular cell — blank or filled</strong><small>Choose one employee and one field. Only that employee and selected field will be focused in the dashboard, regardless of whether the cell has an entry.</small></div><div class="particular-cell-grid"><label><span>Employee</span><select id="filterViewCellEmployee"><option value="">No particular employee</option></select></label><label><span>Field / column</span><select id="filterViewCellColumn" disabled><option value="">Choose field / column</option></select></label></div></section>
-        <section class="filter-field-section filter-display-section"><div><strong>2. Columns to display — blank values allowed</strong><small>Tick Pending Work or any other field here. It will appear in the dashboard even when every cell is blank, without hiding any employee.</small></div><div id="filterViewDisplayColumns" class="filter-view-field-options filter-view-display-options" aria-label="Choose columns to display even when blank"></div></section>
+        </div></section>
+        <section class="filter-field-section filter-display-section"><div><strong>Columns to show</strong><small>Choose fields such as Pending Work or REMARK ADMN. Blank cells are allowed and employees are not removed.</small></div><div id="filterViewDisplayColumns" class="filter-view-field-options filter-view-display-options" aria-label="Choose columns to display even when blank"></div></section>
+        <section class="filter-field-section filled-field-section"><div><strong>Only rows with completed fields</strong><small>Choose fields that must contain data. The directory will show only matching employees and these selected columns.</small></div><div id="filterViewFieldOptions" class="filter-view-field-options" aria-label="Choose filled subject columns"></div></section>
         <section class="any-column-filter-section">
-          <div class="any-column-filter-heading"><div><strong>3. Filter employees by column values (optional)</strong><small>Add conditions only when you want to narrow the employee list. The display selections above remain independent of blank or filled values.</small></div><button id="addColumnFilterRuleButton" class="soft-btn" type="button">＋ Add value filter</button></div>
+          <div class="any-column-filter-heading"><div><strong>Advanced column conditions — optional</strong><small>Use this only for a specific value, blank field or filled field. Add more conditions when required.</small></div><button id="addColumnFilterRuleButton" class="soft-btn" type="button">＋ Add condition</button></div>
           <div id="columnFilterRuleList" class="column-filter-rule-list" aria-label="Any-column filter rules"></div>
-          <p id="columnFilterRuleEmpty" class="column-filter-rule-empty">No value filter added. All employees remain visible unless another filter above is selected.</p>
+          <p id="columnFilterRuleEmpty" class="column-filter-rule-empty">No advanced condition added.</p>
           <p id="filterViewError" class="filter-view-error" role="alert"></p>
         </section>
-        <section class="filter-field-section"><div><strong>Filled subject columns</strong><small>Select one or more columns to show employees whose selected fields are filled. The table will show only these selected columns.</small></div><div id="filterViewFieldOptions" class="filter-view-field-options" aria-label="Choose filled subject columns"></div></section>
       </div>
-      <footer class="modal-footer"><button class="soft-btn" type="button" data-close-dialog="filterViewDialog">Cancel</button><button id="clearFilterViewButton" class="soft-btn filter-clear-btn" type="button">Clear saved filters</button><button id="applyFilterViewButton" class="primary-btn" type="button">Apply filters &amp; save</button></footer>
+      <footer class="modal-footer"><button class="soft-btn" type="button" data-close-dialog="filterViewDialog">Cancel</button><button id="clearFilterViewButton" class="soft-btn filter-clear-btn" type="button">Clear all</button><button id="applyFilterViewButton" class="primary-btn" type="button">Show filtered dashboard</button></footer>
     </div>
   </dialog>
 
@@ -341,6 +340,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260813-compact-long-text-1640"></script>
+  <script src="app.js?v=20260813-simple-filters-1641"></script>
 </body>
 </html>
