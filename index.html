@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260813-separate-display-filter-1635">
+  <link rel="stylesheet" href="styles.css?v=20260813-uniform-pending-work-1637">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.35 · Blank-column display selector</p>
+          <p class="build-version">Dashboard v1.6.37 · Uniform column styling</p>
         </form>
       </main>
     </div>
@@ -95,7 +95,7 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.35 · Display columns independently</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.37 · Calm uniform columns</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
@@ -255,7 +255,7 @@
 
   <dialog id="filterViewDialog" class="modal filter-view-modal">
     <div class="filter-view-sheet">
-      <header class="modal-header"><div><p class="eyebrow accent">Personal dashboard view</p><h2>Choose dashboard filters</h2><p>First choose columns to display—even if blank—then independently filter employees by any one or multiple fields.</p></div><button class="modal-close" type="button" data-close-dialog="filterViewDialog" aria-label="Close filter chooser">×</button></header>
+      <header class="modal-header"><div><p class="eyebrow accent">Personal dashboard view</p><h2>Choose dashboard filters</h2><p>Display an entire column or one particular employee cell—even when blank—then independently apply any other filters.</p></div><button class="modal-close" type="button" data-close-dialog="filterViewDialog" aria-label="Close filter chooser">×</button></header>
       <div class="filter-view-body">
         <div class="filter-view-note"><strong id="filterViewSummary">No filters selected</strong><span>Filters work together. Only employees matching all selected conditions will appear.</span></div>
         <div class="filter-view-grid">
@@ -265,9 +265,10 @@
           <label><span>Strength status</span><select id="filterViewStatus"><option value="">All strength statuses</option></select></label>
           <label><span>Post sensitivity</span><select id="filterViewSensitivity"><option value="">All post sensitivities</option></select></label>
         </div>
-        <section class="filter-field-section filter-display-section"><div><strong>1. Columns to display — blank values allowed</strong><small>Tick Pending Work or any other field here. It will appear in the dashboard even when every cell is blank, without hiding any employee.</small></div><div id="filterViewDisplayColumns" class="filter-view-field-options filter-view-display-options" aria-label="Choose columns to display even when blank"></div></section>
+        <section class="particular-cell-section"><div class="particular-cell-heading"><strong>1. Display a particular cell — blank or filled</strong><small>Choose one employee and one field. Only that employee and selected field will be focused in the dashboard, regardless of whether the cell has an entry.</small></div><div class="particular-cell-grid"><label><span>Employee</span><select id="filterViewCellEmployee"><option value="">No particular employee</option></select></label><label><span>Field / column</span><select id="filterViewCellColumn" disabled><option value="">Choose field / column</option></select></label></div></section>
+        <section class="filter-field-section filter-display-section"><div><strong>2. Columns to display — blank values allowed</strong><small>Tick Pending Work or any other field here. It will appear in the dashboard even when every cell is blank, without hiding any employee.</small></div><div id="filterViewDisplayColumns" class="filter-view-field-options filter-view-display-options" aria-label="Choose columns to display even when blank"></div></section>
         <section class="any-column-filter-section">
-          <div class="any-column-filter-heading"><div><strong>2. Filter employees by column values (optional)</strong><small>Add conditions only when you want to narrow the employee list. The display selection above remains visible independently.</small></div><button id="addColumnFilterRuleButton" class="soft-btn" type="button">＋ Add value filter</button></div>
+          <div class="any-column-filter-heading"><div><strong>3. Filter employees by column values (optional)</strong><small>Add conditions only when you want to narrow the employee list. The display selections above remain independent of blank or filled values.</small></div><button id="addColumnFilterRuleButton" class="soft-btn" type="button">＋ Add value filter</button></div>
           <div id="columnFilterRuleList" class="column-filter-rule-list" aria-label="Any-column filter rules"></div>
           <p id="columnFilterRuleEmpty" class="column-filter-rule-empty">No value filter added. All employees remain visible unless another filter above is selected.</p>
           <p id="filterViewError" class="filter-view-error" role="alert"></p>
@@ -340,6 +341,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260813-separate-display-filter-1635"></script>
+  <script src="app.js?v=20260813-uniform-pending-work-1637"></script>
 </body>
 </html>
