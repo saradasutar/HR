@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.29",
+  FRONTEND_VERSION: "1.6.30",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -340,9 +340,14 @@ function columnVisualClass(column) {
 }
 
 function visibleTableColumns() {
-  if (hasParticularFieldFilter()) return state.fieldFilterColumns.filter((column) => state.columns.includes(column));
+  if (hasParticularFieldFilter()) return frozenColumnsFirst(state.fieldFilterColumns.filter((column) => state.columns.includes(column)));
   const selected = state.dashboardColumns.filter((column) => state.columns.includes(column));
-  return selected.length ? selected : state.columns;
+  return frozenColumnsFirst(selected.length ? selected : state.columns);
+}
+
+function frozenColumnsFirst(columns) {
+  const frozen = ["Sl No.", "Employee Name"].filter((column) => columns.includes(column));
+  return frozen.concat(columns.filter((column) => !frozen.includes(column)));
 }
 
 function readDashboardColumnPreference() {
@@ -903,6 +908,8 @@ function sortEmployees() {
 function renderTable() {
   buildTableHeader();
   const tableColumns = visibleTableColumns();
+  refs.employeeTable.classList.toggle("has-frozen-serial", tableColumns.includes("Sl No."));
+  refs.employeeTable.classList.toggle("has-frozen-employee-name", tableColumns.includes("Employee Name"));
   refs.employeeTable.classList.toggle("focused-columns-table", hasParticularFieldFilter());
   refs.employeeTable.classList.toggle("customized-columns-table", isDashboardColumnCustomized());
   refs.employeeTable.classList.toggle("wide-actions-table", state.role === "admin" && (state.directEditEnabled || hasActiveDashboardFilter()));
