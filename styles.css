@@ -1915,12 +1915,12 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
 .employee-table td.particular-cell-focused .inline-edit-input,
 .employee-table td.particular-cell-focused .inline-edit-select { border-color: #9c6812; background: #fffdf1; box-shadow: 0 0 0 3px rgba(156,104,18,.12); }
 
-/* Full, left-aligned, auto-sized long text v1.6.38 */
+/* Compact, full, left-aligned long text v1.6.40 */
 #employeeTable th.long-text-dashboard-column,
 #employeeTable td.long-text-dashboard-column {
-  width: clamp(210px, 24vw, 380px);
-  min-width: 210px;
-  max-width: 380px;
+  width: clamp(150px, 16vw, 210px);
+  min-width: 150px;
+  max-width: 210px;
   text-align: left;
   vertical-align: top;
   white-space: normal;
@@ -1929,7 +1929,7 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   word-break: break-word;
 }
 #employeeTable th.long-text-dashboard-column { vertical-align: middle; }
-#employeeTable td.long-text-dashboard-column.remarks-cell { max-width: 380px; text-overflow: clip; }
+#employeeTable td.long-text-dashboard-column.remarks-cell { max-width: 210px; text-overflow: clip; }
 #employeeTable td.long-text-dashboard-column .cell-text,
 #employeeTable td.long-text-dashboard-column .value-highlight {
   display: block;
@@ -2024,7 +2024,7 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
 
 @media (max-width: 620px) {
   #employeeTable th.long-text-dashboard-column,
-  #employeeTable td.long-text-dashboard-column { width: 220px; min-width: 220px; max-width: 260px; }
+  #employeeTable td.long-text-dashboard-column { width: 150px; min-width: 150px; max-width: 180px; }
 }
 
 /* Frozen directory headings, serial number and employee name v1.6.30 */
