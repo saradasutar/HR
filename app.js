@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.30",
+  FRONTEND_VERSION: "1.6.31",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -26,6 +26,14 @@ const DEFAULT_COLUMN_LABELS = Object.freeze(Object.assign(CORE_COLUMNS.reduce((l
 
 const STRENGTH_STATUSES = Object.freeze(["Present", "Relieved", "Transferred", "Retired"]);
 const SENSITIVITY_VALUES = Object.freeze(["Sensitive", "Non-Sensitive"]);
+const COLUMN_FILTER_OPERATORS = Object.freeze([
+  { value: "contains", label: "Contains" },
+  { value: "equals", label: "Equals" },
+  { value: "not-equals", label: "Does not equal" },
+  { value: "starts-with", label: "Starts with" },
+  { value: "filled", label: "Is filled" },
+  { value: "blank", label: "Is blank" }
+]);
 const CSV_HEADER_ALIASES = Object.freeze({
   "DoJ in ADG": "DoJ in Current Office",
   "Present/Permanent": "Present/Permanent Address"
@@ -60,6 +68,7 @@ const state = {
   search: "",
   detailEmployeeCode: "",
   fieldFilterColumns: [],
+  columnFilterRules: [],
   dashboardColumns: readDashboardColumnPreference(),
   dashboardFilterPreference: readDashboardFilterPreference(),
   reportRows: [],
@@ -107,7 +116,7 @@ function init() {
     "reportExportButton", "reportPrintButton",
     "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword",
     "confirmPassword", "passwordFormError", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton",
-    "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewFieldOptions", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
+    "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewFieldOptions", "columnFilterRuleList", "columnFilterRuleEmpty", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
     "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError"
   ].forEach((id) => { refs[id] = $(id); });
 
@@ -135,6 +144,9 @@ function init() {
   refs.restoreAllColumnsButton.addEventListener("click", restoreAllDashboardColumns);
   refs.filterViewDialog.addEventListener("input", updateFilterViewSummary);
   refs.filterViewDialog.addEventListener("change", updateFilterViewSummary);
+  refs.columnFilterRuleList.addEventListener("change", handleColumnFilterRuleChange);
+  refs.columnFilterRuleList.addEventListener("click", handleColumnFilterRuleAction);
+  refs.addColumnFilterRuleButton.addEventListener("click", addColumnFilterRule);
   refs.applyFilterViewButton.addEventListener("click", applyDashboardFilterView);
   refs.clearFilterViewButton.addEventListener("click", clearDashboardFilterView);
   refs.directEditToggle.addEventListener("click", toggleDirectEdit);
@@ -340,7 +352,12 @@ function columnVisualClass(column) {
 }
 
 function visibleTableColumns() {
-  if (hasParticularFieldFilter()) return frozenColumnsFirst(state.fieldFilterColumns.filter((column) => state.columns.includes(column)));
+  const focusedColumns = state.fieldFilterColumns.concat(state.columnFilterRules.map((rule) => rule.column))
+    .filter((column, index, columns) => state.columns.includes(column) && columns.indexOf(column) === index);
+  if (focusedColumns.length) {
+    return frozenColumnsFirst(["Sl No.", "Employee Name"].concat(focusedColumns)
+      .filter((column, index, columns) => state.columns.includes(column) && columns.indexOf(column) === index));
+  }
   const selected = state.dashboardColumns.filter((column) => state.columns.includes(column));
   return frozenColumnsFirst(selected.length ? selected : state.columns);
 }
@@ -372,10 +389,15 @@ function readDashboardFilterPreference() {
       category: String(saved.category || ""),
       status: String(saved.status || ""),
       sensitivity: String(saved.sensitivity || ""),
-      fieldColumns: Array.isArray(saved.fieldColumns) ? saved.fieldColumns.map(String) : []
+      fieldColumns: Array.isArray(saved.fieldColumns) ? saved.fieldColumns.map(String) : [],
+      columnRules: Array.isArray(saved.columnRules) ? saved.columnRules.map((rule) => ({
+        column: String(rule && rule.column || ""),
+        operator: String(rule && rule.operator || "contains"),
+        value: String(rule && rule.value || "").slice(0, 500)
+      })) : []
     };
   } catch {
-    return { search: "", group: "", category: "", status: "", sensitivity: "", fieldColumns: [] };
+    return { search: "", group: "", category: "", status: "", sensitivity: "", fieldColumns: [], columnRules: [] };
   }
 }
 
@@ -387,7 +409,8 @@ function saveDashboardFilterPreference() {
     category: refs.categoryFilter.value,
     status: refs.statusFilter.value,
     sensitivity: refs.sensitivityFilter.value,
-    fieldColumns: state.fieldFilterColumns.filter((column) => state.columns.includes(column))
+    fieldColumns: state.fieldFilterColumns.filter((column) => state.columns.includes(column)),
+    columnRules: normalizeColumnFilterRules(state.columnFilterRules)
   };
   try { localStorage.setItem("hrDashboardFilters", JSON.stringify(state.dashboardFilterPreference)); } catch { /* Device storage may be unavailable. */ }
   updateChooseFiltersButton();
@@ -401,6 +424,7 @@ function restoreDashboardFilterPreference() {
   setSavedSelectValue(refs.statusFilter, saved.status);
   setSavedSelectValue(refs.sensitivityFilter, saved.sensitivity);
   state.fieldFilterColumns = (saved.fieldColumns || []).filter((column, index, values) => state.columns.includes(column) && values.indexOf(column) === index);
+  state.columnFilterRules = normalizeColumnFilterRules(saved.columnRules);
   updateChooseFiltersButton();
 }
 
@@ -417,7 +441,7 @@ function syncDashboardColumnPreference() {
 
 function isDashboardColumnCustomized() {
   const selected = visibleTableColumns();
-  return !hasParticularFieldFilter() && (selected.length !== state.columns.length || selected.some((column, index) => column !== state.columns[index]));
+  return !hasFocusedColumnFilter() && (selected.length !== state.columns.length || selected.some((column, index) => column !== state.columns[index]));
 }
 
 function updateChooseColumnsButton() {
@@ -510,8 +534,30 @@ function dashboardFilterValues(source) {
     category: String(values.category || ""),
     status: String(values.status || ""),
     sensitivity: String(values.sensitivity || ""),
-    fieldColumns: Array.isArray(values.fieldColumns) ? values.fieldColumns.filter((column, index, list) => state.columns.includes(column) && list.indexOf(column) === index) : []
+    fieldColumns: Array.isArray(values.fieldColumns) ? values.fieldColumns.filter((column, index, list) => state.columns.includes(column) && list.indexOf(column) === index) : [],
+    columnRules: normalizeColumnFilterRules(values.columnRules)
   };
+}
+
+function normalizeColumnFilterRules(rules) {
+  const validOperators = new Set(COLUMN_FILTER_OPERATORS.map((operator) => operator.value));
+  if (!Array.isArray(rules)) return [];
+  return rules.map((rule) => {
+    const column = String(rule && rule.column || "");
+    const operator = validOperators.has(String(rule && rule.operator || "")) ? String(rule.operator) : "contains";
+    const value = String(rule && rule.value || "").trim().slice(0, 500);
+    if (!state.columns.includes(column) || (columnFilterNeedsValue(operator) && !value)) return null;
+    return { column, operator, value };
+  }).filter(Boolean);
+}
+
+function columnFilterNeedsValue(operator) {
+  return !["filled", "blank"].includes(operator);
+}
+
+function columnFilterOperatorLabel(operator) {
+  const match = COLUMN_FILTER_OPERATORS.find((item) => item.value === operator);
+  return match ? match.label : "Contains";
 }
 
 function currentDashboardFilterValues() {
@@ -521,13 +567,14 @@ function currentDashboardFilterValues() {
     category: refs.categoryFilter.value,
     status: refs.statusFilter.value,
     sensitivity: refs.sensitivityFilter.value,
-    fieldColumns: state.fieldFilterColumns
+    fieldColumns: state.fieldFilterColumns,
+    columnRules: state.columnFilterRules
   });
 }
 
 function dashboardFilterCount(values) {
   const selected = dashboardFilterValues(values);
-  return [selected.search, selected.group, selected.category, selected.status, selected.sensitivity].filter(Boolean).length + selected.fieldColumns.length;
+  return [selected.search, selected.group, selected.category, selected.status, selected.sensitivity].filter(Boolean).length + selected.fieldColumns.length + selected.columnRules.length;
 }
 
 function hasActiveDashboardFilter() {
@@ -555,8 +602,81 @@ function openDashboardFilterChooser() {
   copySelectOptions(refs.sensitivityFilter, refs.filterViewSensitivity, current.sensitivity);
   const selected = new Set(current.fieldColumns);
   refs.filterViewFieldOptions.innerHTML = state.columns.map((column) => `<label><input type="checkbox" value="${escapeAttribute(column)}"${selected.has(column) ? " checked" : ""}><span>${escapeHtml(columnLabel(column))}</span></label>`).join("");
+  renderColumnFilterRules(current.columnRules);
   updateFilterViewSummary();
   refs.filterViewDialog.showModal();
+}
+
+function renderColumnFilterRules(rules) {
+  const entries = Array.isArray(rules) ? rules : [];
+  refs.columnFilterRuleList.innerHTML = entries.map((rule, index) => columnFilterRuleMarkup(rule, index)).join("");
+  refs.columnFilterRuleEmpty.hidden = entries.length > 0;
+  refs.columnFilterRuleList.querySelectorAll(".column-filter-rule").forEach(updateColumnFilterRuleValueState);
+}
+
+function columnFilterRuleMarkup(rule, index) {
+  const columnOptions = `<option value="">Choose any column…</option>` + state.columns.map((column) => `<option value="${escapeAttribute(column)}"${rule.column === column ? " selected" : ""}>${escapeHtml(columnLabel(column))}</option>`).join("");
+  const operatorOptions = COLUMN_FILTER_OPERATORS.map((operator) => `<option value="${operator.value}"${rule.operator === operator.value ? " selected" : ""}>${escapeHtml(operator.label)}</option>`).join("");
+  return `<div class="column-filter-rule" data-filter-rule-index="${index}"><label><span>Column</span><select data-rule-part="column">${columnOptions}</select></label><label><span>Condition</span><select data-rule-part="operator">${operatorOptions}</select></label><label class="column-filter-value"><span>Value</span><input data-rule-part="value" type="text" maxlength="500" value="${escapeAttribute(rule.value || "")}" placeholder="Enter value"></label><button class="column-filter-remove" type="button" data-rule-action="remove" aria-label="Remove this filter rule">Remove</button></div>`;
+}
+
+function rawColumnFilterRulesFromChooser() {
+  return [...refs.columnFilterRuleList.querySelectorAll(".column-filter-rule")].map((row) => ({
+    column: row.querySelector('[data-rule-part="column"]').value,
+    operator: row.querySelector('[data-rule-part="operator"]').value,
+    value: row.querySelector('[data-rule-part="value"]').value
+  }));
+}
+
+function addColumnFilterRule() {
+  const rules = rawColumnFilterRulesFromChooser();
+  rules.push({ column: "", operator: "contains", value: "" });
+  renderColumnFilterRules(rules);
+  const row = refs.columnFilterRuleList.lastElementChild;
+  if (row) row.querySelector('[data-rule-part="column"]').focus();
+  updateFilterViewSummary();
+}
+
+function handleColumnFilterRuleChange(event) {
+  const row = event.target.closest(".column-filter-rule");
+  if (row) updateColumnFilterRuleValueState(row);
+  updateFilterViewSummary();
+}
+
+function handleColumnFilterRuleAction(event) {
+  const button = event.target.closest('[data-rule-action="remove"]');
+  if (!button) return;
+  button.closest(".column-filter-rule").remove();
+  [...refs.columnFilterRuleList.children].forEach((row, index) => { row.dataset.filterRuleIndex = String(index); });
+  refs.columnFilterRuleEmpty.hidden = refs.columnFilterRuleList.children.length > 0;
+  updateFilterViewSummary();
+}
+
+function updateColumnFilterRuleValueState(row) {
+  const column = row.querySelector('[data-rule-part="column"]').value;
+  const operator = row.querySelector('[data-rule-part="operator"]').value;
+  const valueField = row.querySelector('[data-rule-part="value"]');
+  const needsValue = columnFilterNeedsValue(operator);
+  valueField.disabled = !needsValue;
+  valueField.required = Boolean(column && needsValue);
+  valueField.placeholder = column ? `Enter ${columnLabel(column)}` : "Enter value";
+  if (!needsValue) valueField.value = "";
+  row.classList.toggle("value-not-required", !needsValue);
+}
+
+function validateColumnFilterRules() {
+  for (const row of refs.columnFilterRuleList.querySelectorAll(".column-filter-rule")) {
+    const column = row.querySelector('[data-rule-part="column"]').value;
+    const operator = row.querySelector('[data-rule-part="operator"]').value;
+    const valueField = row.querySelector('[data-rule-part="value"]');
+    if (!column) continue;
+    if (columnFilterNeedsValue(operator) && !valueField.value.trim()) {
+      showToast(`Enter a value for the ${columnLabel(column)} filter.`, true);
+      valueField.focus();
+      return false;
+    }
+  }
+  return true;
 }
 
 function selectedFilterViewValues() {
@@ -566,7 +686,8 @@ function selectedFilterViewValues() {
     category: refs.filterViewCategory.value,
     status: refs.filterViewStatus.value,
     sensitivity: refs.filterViewSensitivity.value,
-    fieldColumns: [...refs.filterViewFieldOptions.querySelectorAll('input[type="checkbox"]:checked')].map((input) => input.value)
+    fieldColumns: [...refs.filterViewFieldOptions.querySelectorAll('input[type="checkbox"]:checked')].map((input) => input.value),
+    columnRules: rawColumnFilterRulesFromChooser()
   });
 }
 
@@ -579,6 +700,7 @@ function updateFilterViewSummary() {
   if (selected.category) labels.push(`Category: ${selected.category}`);
   if (selected.status) labels.push(`Status: ${selected.status}`);
   if (selected.sensitivity) labels.push(`Post: ${selected.sensitivity}`);
+  selected.columnRules.forEach((rule) => labels.push(`${columnLabel(rule.column)} ${columnFilterOperatorLabel(rule.operator).toLocaleLowerCase()}${columnFilterNeedsValue(rule.operator) ? ` “${rule.value}”` : ""}`));
   selected.fieldColumns.forEach((column) => labels.push(`${columnLabel(column)} filled`));
   refs.filterViewSummary.textContent = labels.length ? `${labels.length} selected · ${labels.join(" · ")}` : "No filters selected · All employees will show";
 }
@@ -591,10 +713,12 @@ function setCurrentDashboardFilters(values) {
   setSavedSelectValue(refs.statusFilter, selected.status);
   setSavedSelectValue(refs.sensitivityFilter, selected.sensitivity);
   state.fieldFilterColumns = selected.fieldColumns;
+  state.columnFilterRules = selected.columnRules;
   populateFieldFilterColumns();
 }
 
 function applyDashboardFilterView() {
+  if (!validateColumnFilterRules()) return;
   const selected = selectedFilterViewValues();
   setCurrentDashboardFilters(selected);
   state.inlineEditCode = "";
@@ -826,6 +950,28 @@ function hasParticularFieldFilter() {
   return state.fieldFilterColumns.length > 0;
 }
 
+function hasFocusedColumnFilter() {
+  return hasParticularFieldFilter() || state.columnFilterRules.length > 0;
+}
+
+function employeeColumnFilterValue(employee, column) {
+  if (column === "Strength Status") return strengthStatus(employee);
+  if (column === "Post Sensitivity") return sensitivityStatus(employee);
+  return String(employee[column] == null ? "" : employee[column]).trim();
+}
+
+function employeeMatchesColumnRule(employee, rule) {
+  const actual = employeeColumnFilterValue(employee, rule.column);
+  const normalizedActual = actual.toLocaleLowerCase();
+  const expected = String(rule.value || "").trim().toLocaleLowerCase();
+  if (rule.operator === "filled") return Boolean(actual);
+  if (rule.operator === "blank") return !actual;
+  if (rule.operator === "equals") return normalizedActual === expected;
+  if (rule.operator === "not-equals") return normalizedActual !== expected;
+  if (rule.operator === "starts-with") return normalizedActual.startsWith(expected);
+  return normalizedActual.includes(expected);
+}
+
 function uniqueValues(key) {
   return [...new Set(state.employees.map((item) => String(item[key] || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 }
@@ -846,17 +992,20 @@ function applyFilters() {
   const status = refs.statusFilter.value;
   const sensitivity = refs.sensitivityFilter.value;
   const fieldColumns = state.fieldFilterColumns;
+  const columnRules = state.columnFilterRules;
   state.search = query;
   saveDashboardFilterPreference();
   state.filtered = state.employees.filter((employee) => {
     const searchable = state.columns.map((key) => employee[key] || "").concat(strengthStatus(employee), sensitivityStatus(employee)).join(" ").toLocaleLowerCase();
     const selectedFieldsFilled = fieldColumns.every((column) => String(employee[column] == null ? "" : employee[column]).trim());
+    const selectedColumnRulesMatch = columnRules.every((rule) => employeeMatchesColumnRule(employee, rule));
     return (!query || searchable.includes(query)) &&
       (!group || employee.Grp === group) &&
       (!category || employee.Cat === category) &&
       (!status || strengthStatus(employee) === status) &&
       (!sensitivity || sensitivityStatus(employee) === sensitivity) &&
-      (!fieldColumns.length || selectedFieldsFilled);
+      (!fieldColumns.length || selectedFieldsFilled) &&
+      (!columnRules.length || selectedColumnRulesMatch);
   });
   sortEmployees();
   updateStats();
@@ -872,6 +1021,7 @@ function clearFilters() {
   refs.statusFilter.value = "";
   refs.sensitivityFilter.value = "";
   state.fieldFilterColumns = [];
+  state.columnFilterRules = [];
   refs.fieldFilterOptions.querySelectorAll('input[type="checkbox"]').forEach((input) => { input.checked = false; });
   updateFieldFilterPickerSummary();
   refs.fieldFilterPicker.open = false;
@@ -910,7 +1060,7 @@ function renderTable() {
   const tableColumns = visibleTableColumns();
   refs.employeeTable.classList.toggle("has-frozen-serial", tableColumns.includes("Sl No."));
   refs.employeeTable.classList.toggle("has-frozen-employee-name", tableColumns.includes("Employee Name"));
-  refs.employeeTable.classList.toggle("focused-columns-table", hasParticularFieldFilter());
+  refs.employeeTable.classList.toggle("focused-columns-table", hasFocusedColumnFilter());
   refs.employeeTable.classList.toggle("customized-columns-table", isDashboardColumnCustomized());
   refs.employeeTable.classList.toggle("wide-actions-table", state.role === "admin" && (state.directEditEnabled || hasActiveDashboardFilter()));
   const total = state.filtered.length;
