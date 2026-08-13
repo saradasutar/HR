@@ -1914,6 +1914,49 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
 .employee-table td.particular-cell-focused { color: #6d3900; background: linear-gradient(135deg, #fff0ad, #f8e3ff) !important; box-shadow: inset 0 0 0 2px #bb8123, inset 5px 0 #8a4eb1; font-weight: 950; }
 .employee-table td.particular-cell-focused .inline-edit-input,
 .employee-table td.particular-cell-focused .inline-edit-select { border-color: #9c6812; background: #fffdf1; box-shadow: 0 0 0 3px rgba(156,104,18,.12); }
+
+/* Full, left-aligned, auto-sized long text v1.6.38 */
+#employeeTable th.long-text-dashboard-column,
+#employeeTable td.long-text-dashboard-column {
+  width: clamp(210px, 24vw, 380px);
+  min-width: 210px;
+  max-width: 380px;
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+#employeeTable th.long-text-dashboard-column { vertical-align: middle; }
+#employeeTable td.long-text-dashboard-column.remarks-cell { max-width: 380px; text-overflow: clip; }
+#employeeTable td.long-text-dashboard-column .cell-text,
+#employeeTable td.long-text-dashboard-column .value-highlight {
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  text-align: left;
+  white-space: pre-wrap;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+}
+#employeeTable td.long-text-dashboard-column .value-highlight { padding: 5px 8px; line-height: 1.35; }
+#employeeTable td.long-text-dashboard-column .inline-long-text {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  height: auto;
+  resize: vertical;
+  overflow: hidden;
+  text-align: left;
+  white-space: pre-wrap;
+  line-height: 1.35;
+}
+#employeeTable tr:has(td.long-text-dashboard-column) td { height: auto; }
 .any-column-filter-section { overflow: hidden; border: 1px solid #8fc2da; border-radius: 12px; background: rgba(255,255,255,.92); box-shadow: 0 5px 14px rgba(22,83,111,.06); }
 .any-column-filter-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 11px; border-bottom: 1px solid #c9dfe9; background: linear-gradient(100deg, #e2f4ff, #e5f8f2); }
 .any-column-filter-heading strong, .any-column-filter-heading small { display: block; }
@@ -1959,6 +2002,11 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   .column-filter-remove { width: 100%; }
   .filter-view-modal .modal-footer { flex-wrap: wrap; }
   .filter-view-modal .modal-footer button { flex: 1 1 150px; }
+}
+
+@media (max-width: 620px) {
+  #employeeTable th.long-text-dashboard-column,
+  #employeeTable td.long-text-dashboard-column { width: 220px; min-width: 220px; max-width: 260px; }
 }
 
 /* Frozen directory headings, serial number and employee name v1.6.30 */

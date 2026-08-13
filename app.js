@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.37",
+  FRONTEND_VERSION: "1.6.38",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -189,6 +189,7 @@ function init() {
   refs.tableBody.addEventListener("click", handleTableAction);
   refs.tableBody.addEventListener("keydown", handleTableKeydown);
   refs.tableBody.addEventListener("change", handleInlineFieldChange);
+  refs.tableBody.addEventListener("input", handleInlineLongTextResize);
   refs.tableHead.addEventListener("input", handleHeaderLabelInput);
 
   buildTableHeader();
@@ -342,6 +343,7 @@ function buildTableHeader() {
     }
     const visualClass = columnVisualClass(column);
     if (visualClass) th.classList.add(visualClass);
+    if (isLongDashboardTextColumn(column)) th.classList.add("long-text-dashboard-column");
     refs.tableHead.appendChild(th);
   });
 }
@@ -351,6 +353,12 @@ function columnVisualClass(column) {
   const normalizedLabel = column === "Actions" ? "actions" : String(columnLabel(column) || "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   if (normalizedKey === "employee name") return "employee-name-column";
   return "";
+}
+
+function isLongDashboardTextColumn(column) {
+  const normalizedKey = String(column || "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const normalizedLabel = String(columnLabel(column) || "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return normalizedKey === "remark admn" || normalizedLabel === "remark admn" || normalizedLabel === "remarks administration" || normalizedKey.includes("pending work") || normalizedLabel.includes("pending work");
 }
 
 function visibleTableColumns() {
@@ -1227,6 +1235,7 @@ function renderTable() {
       }
       const classes = [];
       if (["REMARK ADMN", "Present/Permanent Address"].includes(column)) classes.push("remarks-cell");
+      if (isLongDashboardTextColumn(column)) classes.push("long-text-dashboard-column");
       const visualClass = columnVisualClass(column);
       if (visualClass) classes.push(visualClass);
       if (state.particularCell.employeeCode === originalCode && state.particularCell.column === column) classes.push("particular-cell-focused");
@@ -1254,6 +1263,10 @@ function renderTable() {
     const rowClass = isInlineEditing ? "employee-row inline-row-active" : "employee-row";
     return `<tr class="${rowClass}" tabindex="${isInlineEditing ? "-1" : "0"}" data-employee-code="${employeeCode}" aria-label="${isInlineEditing ? "Editing" : "View full details for"} ${employeeName}">${cells}${actions}</tr>`;
   }).join("");
+  refs.tableBody.querySelectorAll(".inline-long-text").forEach((field) => {
+    field.style.height = "auto";
+    field.style.height = `${field.scrollHeight}px`;
+  });
 
   refs.emptyState.hidden = total !== 0;
   refs.employeeTable.hidden = total === 0;
@@ -1342,9 +1355,20 @@ function renderInlineCell(employee, column, displaySequence) {
   const maxLength = inlineMaxLength(column);
   const cellClasses = [];
   if (["REMARK ADMN", "Present/Permanent Address"].includes(column)) cellClasses.push("remarks-cell");
+  if (isLongDashboardTextColumn(column)) cellClasses.push("long-text-dashboard-column");
   if (visualClass) cellClasses.push(visualClass);
   if (particularCellFocused) cellClasses.push("particular-cell-focused");
+  if (isLongDashboardTextColumn(column)) {
+    return `<td class="${cellClasses.join(" ")}" data-column-key="${escapeAttribute(column)}"><textarea class="inline-edit-input inline-long-text" data-inline-field="${escapeAttribute(column)}" rows="2" aria-label="${escapeAttribute(detailLabel(column))}"${required}${maxLength ? ` maxlength="${maxLength}"` : ""}>${escapeHtml(value)}</textarea></td>`;
+  }
   return `<td class="${cellClasses.join(" ")}" data-column-key="${escapeAttribute(column)}"><input class="inline-edit-input" type="${type}" data-inline-field="${escapeAttribute(column)}" value="${escapeAttribute(value)}" aria-label="${escapeAttribute(detailLabel(column))}"${required}${disabled}${maxLength ? ` maxlength="${maxLength}"` : ""}></td>`;
+}
+
+function handleInlineLongTextResize(event) {
+  const field = event.target.closest(".inline-long-text");
+  if (!field) return;
+  field.style.height = "auto";
+  field.style.height = `${field.scrollHeight}px`;
 }
 
 function inlineSelect(column, value, standardValues, required) {
