@@ -1938,6 +1938,76 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   }
 }
 
+/* Solid bold-red Pending Work column v1.6.28 */
+#employeeTable th.pending-work-column {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: #8b0000 !important;
+  font-weight: 950;
+  text-shadow: 0 1px 1px rgba(40,0,0,.72);
+}
+#employeeTable tbody td.pending-work-column,
+#employeeTable tbody tr:nth-child(even) td.pending-work-column {
+  color: #8b0000 !important;
+  background: #fff0f0;
+  font-weight: 950;
+}
+#employeeTable tbody tr:hover td.pending-work-column,
+#employeeTable tbody tr:nth-child(even):hover td.pending-work-column {
+  background: #ffdede !important;
+}
+#employeeTable tbody td.pending-work-column .value-highlight {
+  color: #8b0000 !important;
+  border: 1px solid #e3a2a2;
+  background: #ffe7e7;
+  font-weight: 950;
+}
+.pending-work-bold-red {
+  display: inline;
+  color: #8b0000 !important;
+  -webkit-text-fill-color: #8b0000 !important;
+  -webkit-text-stroke: 0 !important;
+  background: none !important;
+  filter: none !important;
+  font-weight: 950;
+  letter-spacing: .01em;
+  text-shadow: none !important;
+}
+.pending-work-bold-red mark {
+  color: #650000 !important;
+  -webkit-text-fill-color: #650000 !important;
+  font-weight: 950;
+}
+#employeeTable .pending-work-column .inline-edit-input {
+  color: #8b0000 !important;
+  -webkit-text-fill-color: #8b0000 !important;
+  border: 2px solid #bf5a5a;
+  background: #fffafa;
+  font-weight: 900;
+}
+#employeeTable th.pending-work-column .header-edit-input {
+  color: #650000 !important;
+  -webkit-text-fill-color: #650000 !important;
+  border-color: #f3b6b6;
+  background: #ffffff;
+  font-weight: 950;
+}
+.details-modal .pending-work-column .detail-value {
+  color: #8b0000 !important;
+  border-color: #e3a2a2;
+  background: #ffe7e7;
+  font-weight: 950;
+}
+
+@media (prefers-contrast: more) {
+  .pending-work-bold-red,
+  #employeeTable tbody td.pending-work-column,
+  .details-modal .pending-work-column .detail-value {
+    color: #720000 !important;
+    -webkit-text-fill-color: #720000 !important;
+  }
+}
+
 /* Solid high-contrast dashboard headings v1.6.26 */
 .topbar-heading > strong {
   color: #fff8e7 !important;
