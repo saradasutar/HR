@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.47",
+  FRONTEND_VERSION: "1.6.48",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -1719,7 +1719,7 @@ function reportPeriod(fromDate, toDate) {
 }
 
 function reportColumns(type, referenceDate) {
-  const sequence = { label: "Sl No.", get: (_employee, index) => index + 1 };
+  const sequence = { key: "Sl No.", label: "Sl No.", get: (_employee, index) => index + 1 };
   const name = { label: "Employee Name", get: (employee) => employee["Employee Name"] || "" };
   const code = { label: "Employee Code", get: (employee) => employee["Employee Code"] || "" };
   const designation = { label: "Designation", get: (employee) => employee.Designation || "" };
@@ -1743,8 +1743,23 @@ function reportColumns(type, referenceDate) {
     return [sequence, name, code, designation, group, sensitivity, reportDate, strength, finalDate];
   }
   if (type === "sensitivity") return [sequence, name, code, designation, group, category, sensitivity, strength];
-  if (type === "filtered") return [sequence, name, code, designation, group, category, strength, sensitivity, dob, currentAge, dor, exitDate];
+  if (type === "filtered") return dashboardViewReportColumns();
   return [sequence, name, code, designation, group, category, sensitivity, dob, currentAge, dor, strength, exitDate];
+}
+
+function dashboardViewReportColumns() {
+  const dateColumns = new Set(["DoB", "DoR", "DoJ Govt", "DoJ in Current Office", "Relieving Date"]);
+  return visibleTableColumns().map((column) => ({
+    key: column,
+    label: columnLabel(column),
+    get: (employee, index) => {
+      if (column === "Sl No.") return index + 1;
+      if (column === "Strength Status") return strengthStatus(employee);
+      if (column === "Post Sensitivity") return sensitivityStatus(employee);
+      const value = employee[column] == null ? "" : employee[column];
+      return dateColumns.has(column) ? formatDate(value) : value;
+    }
+  }));
 }
 
 function renderReport() {
@@ -1754,15 +1769,16 @@ function renderReport() {
   refs.reportCount.textContent = `${count.toLocaleString("en-IN")} employee${count === 1 ? "" : "s"}`;
   refs.reportGeneratedAt.textContent = `Generated ${new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(new Date())}`;
   refs.reportTableHead.innerHTML = state.reportColumns.map((column) => {
-    const className = reportColumnClass(column.label);
+    const className = reportColumnClass(column.key || column.label);
     return `<th class="${className}">${escapeHtml(column.label)}</th>`;
   }).join("");
   refs.reportTableBody.innerHTML = state.reportRows.map((employee, index) => `<tr>${state.reportColumns.map((column) => {
     const raw = column.get(employee, index);
     const value = raw == null || raw === "" ? "—" : raw;
-    const className = reportColumnClass(column.label);
-    if (column.label === "Post Sensitivity") return `<td class="${className}"><span class="badge sensitivity ${sensitivityClass(value)}">${escapeHtml(value)}</span></td>`;
-    if (column.label === "Strength Status") return `<td class="${className}"><span class="badge strength ${strengthClass(value)}">${escapeHtml(value)}</span></td>`;
+    const columnKey = column.key || column.label;
+    const className = reportColumnClass(columnKey);
+    if (columnKey === "Post Sensitivity") return `<td class="${className}"><span class="badge sensitivity ${sensitivityClass(value)}">${escapeHtml(value)}</span></td>`;
+    if (columnKey === "Strength Status") return `<td class="${className}"><span class="badge strength ${strengthClass(value)}">${escapeHtml(value)}</span></td>`;
     return `<td class="${className}">${escapeHtml(value)}</td>`;
   }).join("")}</tr>`).join("");
   refs.reportTableWrap.hidden = count === 0;
