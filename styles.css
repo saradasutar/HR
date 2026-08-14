@@ -594,6 +594,17 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #e9f8f5; }
   box-shadow: 0 6px 18px rgba(189, 86, 28, .16);
 }
 .panel-heading .print-filter-btn:hover { color: #6a2508; border-color: #f09a52; background: #ffe2c3; }
+.panel-heading .print-filter-btn.saved-order-print {
+  color: #ffffff;
+  border-color: #6c45ad;
+  background: linear-gradient(135deg, #7048b7, #9a69d3);
+  box-shadow: 0 7px 18px rgba(89,54,151,.25);
+}
+.panel-heading .print-filter-btn.saved-order-print:hover {
+  color: #ffffff;
+  border-color: #4e2c8d;
+  background: linear-gradient(135deg, #5d359f, #8250bd);
+}
 
 .toolbar {
   border-bottom-color: #acd0d3;

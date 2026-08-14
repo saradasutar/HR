@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.44",
+  FRONTEND_VERSION: "1.6.45",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -763,6 +763,12 @@ function updateSaveOrderButtons() {
   refs.saveOrderButton.textContent = saved && state.savedOrderRestored ? "Order saved ✓" : "Save order";
   refs.saveOrderButton.classList.toggle("active", saved && state.savedOrderRestored);
   refs.resetOrderButton.hidden = state.role !== "admin" || !saved;
+  const printingSavedOrder = saved && state.savedOrderRestored;
+  refs.printFilteredButton.textContent = printingSavedOrder ? "Print saved filter" : "Print filtered list";
+  refs.printFilteredButton.title = printingSavedOrder
+    ? "Print the current saved filter in its restored employee order"
+    : "Print the employees currently shown by the dashboard filter";
+  refs.printFilteredButton.classList.toggle("saved-order-print", printingSavedOrder);
 }
 
 function updateChooseFiltersButton() {
@@ -1521,6 +1527,8 @@ function currentFilterCriteria() {
   if (refs.categoryFilter.value) criteria.push(`Category: ${refs.categoryFilter.value}`);
   if (refs.statusFilter.value) criteria.push(`Strength Status: ${refs.statusFilter.value}`);
   if (refs.sensitivityFilter.value) criteria.push(`Post Sensitivity: ${refs.sensitivityFilter.value}`);
+  state.columnFilterRules.forEach((rule) => criteria.push(`${columnLabel(rule.column)} ${columnFilterOperatorLabel(rule.operator).toLocaleLowerCase()}${columnFilterNeedsValue(rule.operator) ? ` “${rule.value}”` : ""}`));
+  if (state.savedOrderRestored) criteria.push("Saved employee order restored");
   return criteria.length ? criteria.join(" · ") : "No dashboard filter applied; all employees are included.";
 }
 
@@ -1636,18 +1644,23 @@ function generateReport(event) {
     return true;
   });
 
-  rows = rows.slice().sort((a, b) => {
-    if (type === "age") {
-      const ageDifference = ageOnDate(a.DoB, referenceDate) - ageOnDate(b.DoB, referenceDate);
-      if (ageDifference) return ageDifference;
-    }
-    if (Object.prototype.hasOwnProperty.call(DATE_REPORTS, type)) {
-      const aDate = parseDate(a[DATE_REPORTS[type].field]);
-      const bDate = parseDate(b[DATE_REPORTS[type].field]);
-      if (aDate && bDate && aDate.getTime() !== bDate.getTime()) return aDate - bDate;
-    }
-    return String(a["Employee Name"] || "").localeCompare(String(b["Employee Name"] || ""), undefined, { sensitivity: "base" });
-  });
+  rows = rows.slice();
+  // A filtered report must keep the exact dashboard order, including a saved
+  // manual ↑/↓ arrangement. Other report types retain their report-specific sort.
+  if (type !== "filtered") {
+    rows.sort((a, b) => {
+      if (type === "age") {
+        const ageDifference = ageOnDate(a.DoB, referenceDate) - ageOnDate(b.DoB, referenceDate);
+        if (ageDifference) return ageDifference;
+      }
+      if (Object.prototype.hasOwnProperty.call(DATE_REPORTS, type)) {
+        const aDate = parseDate(a[DATE_REPORTS[type].field]);
+        const bDate = parseDate(b[DATE_REPORTS[type].field]);
+        if (aDate && bDate && aDate.getTime() !== bDate.getTime()) return aDate - bDate;
+      }
+      return String(a["Employee Name"] || "").localeCompare(String(b["Employee Name"] || ""), undefined, { sensitivity: "base" });
+    });
+  }
 
   const description = describeReport(type, { referenceDate, minimumAge, maximumAge, fromDate, toDate, selectedValue, textValue });
   state.reportRows = rows;
@@ -1670,7 +1683,7 @@ function describeReport(type, values) {
   }
   if (type === "strength") return { title: selectedLabel === "All" ? "Employees by strength status" : `${selectedLabel} employees`, criteria: selectedLabel === "All" ? "All strength statuses are included." : `Strength Status is ${selectedLabel}.` };
   if (type === "sensitivity") return { title: selectedLabel === "All" ? "Present employees by post sensitivity" : `Present employees on ${selectedLabel.toLowerCase()} posts`, criteria: selectedLabel === "All" ? "All present employees are included, grouped by Post Sensitivity." : `Strength Status is Present and Post Sensitivity is ${selectedLabel}.` };
-  if (type === "filtered") return { title: "Filtered Employee Report", criteria: currentFilterCriteria() };
+  if (type === "filtered") return { title: state.savedOrderRestored ? "Saved Filter Employee Report" : "Filtered Employee Report", criteria: currentFilterCriteria() };
   if (type === "not-present") return { title: "Relieved, transferred and retired employees", criteria: "Employees not forming part of present strength, based on Strength Status." };
   if (type === "group") return { title: selectedLabel === "All" ? "Group-wise employee report" : `${selectedLabel} employees`, criteria: selectedLabel === "All" ? "All employee groups are included." : `Employee group is ${selectedLabel}.` };
   if (type === "category") return { title: selectedLabel === "All" ? "Category-wise employee report" : `${selectedLabel} category employees`, criteria: selectedLabel === "All" ? "All employee categories are included." : `Employee category is ${selectedLabel}.` };
