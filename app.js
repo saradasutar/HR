@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.46",
+  FRONTEND_VERSION: "1.6.47",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -120,7 +120,7 @@ function init() {
     "reportExportButton", "reportPrintButton",
     "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword",
     "confirmPassword", "passwordFormError", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton",
-    "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewSortColumn", "filterViewSortDirection", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
+    "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewSortColumn", "filterViewSortDirection", "filterScrollUp", "filterScrollDown", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
     "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError"
   ].forEach((id) => { refs[id] = $(id); });
 
@@ -150,6 +150,9 @@ function init() {
   refs.restoreAllColumnsButton.addEventListener("click", restoreAllDashboardColumns);
   refs.filterViewDialog.addEventListener("input", updateFilterViewSummary);
   refs.filterViewDialog.addEventListener("change", updateFilterViewSummary);
+  refs.filterViewDialog.addEventListener("scroll", updateFilterScrollButtons, { passive: true });
+  refs.filterScrollUp.addEventListener("click", () => scrollFilterDialog(-1));
+  refs.filterScrollDown.addEventListener("click", () => scrollFilterDialog(1));
   refs.columnFilterRuleList.addEventListener("change", handleColumnFilterRuleChange);
   refs.columnFilterRuleList.addEventListener("click", handleColumnFilterRuleAction);
   refs.addColumnFilterRuleButton.addEventListener("click", addColumnFilterRule);
@@ -797,8 +800,22 @@ function openDashboardFilterChooser() {
   renderColumnFilterRules(current.columnRules);
   updateFilterViewSummary();
   refs.filterViewDialog.showModal();
-  const scrollArea = refs.filterViewDialog.querySelector(".filter-view-body");
-  if (scrollArea) scrollArea.scrollTop = 0;
+  refs.filterViewDialog.scrollTop = 0;
+  setTimeout(updateFilterScrollButtons, 0);
+}
+
+function scrollFilterDialog(direction) {
+  const distance = Math.max(260, Math.round(refs.filterViewDialog.clientHeight * 0.68));
+  refs.filterViewDialog.scrollBy({ top: direction * distance, behavior: "smooth" });
+  setTimeout(updateFilterScrollButtons, 360);
+}
+
+function updateFilterScrollButtons() {
+  if (!refs.filterViewDialog || !refs.filterScrollUp || !refs.filterScrollDown) return;
+  const maximum = Math.max(0, refs.filterViewDialog.scrollHeight - refs.filterViewDialog.clientHeight);
+  refs.filterScrollUp.disabled = refs.filterViewDialog.scrollTop <= 2;
+  refs.filterScrollDown.disabled = refs.filterViewDialog.scrollTop >= maximum - 2;
+  refs.filterScrollDown.title = maximum > 2 ? "Scroll down through more filter options" : "All filter options are already visible";
 }
 
 function renderColumnFilterRules(rules) {
@@ -806,6 +823,7 @@ function renderColumnFilterRules(rules) {
   refs.columnFilterRuleList.innerHTML = entries.map((rule, index) => columnFilterRuleMarkup(rule, index)).join("");
   refs.columnFilterRuleEmpty.hidden = entries.length > 0;
   refs.columnFilterRuleList.querySelectorAll(".column-filter-rule").forEach(updateColumnFilterRuleValueState);
+  setTimeout(updateFilterScrollButtons, 0);
 }
 
 function columnFilterRuleMarkup(rule, index) {

@@ -1927,18 +1927,27 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   height: min(92dvh, 820px);
   max-height: min(92vh, 820px);
   max-height: min(92dvh, 820px);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+  scrollbar-width: auto;
+  scrollbar-color: #237f91 #dceff1;
 }
+.filter-view-modal::-webkit-scrollbar { width: 14px; }
+.filter-view-modal::-webkit-scrollbar-track { border-radius: 999px; background: #dceff1; }
+.filter-view-modal::-webkit-scrollbar-thumb { border: 3px solid #dceff1; border-radius: 999px; background: linear-gradient(180deg, #2499a5, #166a82); }
+.filter-view-modal::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #187f8d, #0f5269); }
 .filter-view-sheet {
-  display: grid;
-  grid-template-rows: auto minmax(0,1fr) auto;
+  position: relative;
+  display: block;
   width: 100%;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
+  min-height: 100%;
+  overflow: visible;
   background: linear-gradient(145deg, #fffaf0, #eef8f7 58%, #eef3ff);
 }
-.filter-view-modal .modal-header { position: static; align-items: flex-start; padding: 17px 20px; background: linear-gradient(110deg, #fff0c9, #dcf5ef 54%, #e4edff); }
+.filter-view-modal .modal-header { position: sticky; top: 0; z-index: 12; align-items: flex-start; padding: 17px 20px; background: linear-gradient(110deg, #fff0c9, #dcf5ef 54%, #e4edff); box-shadow: 0 5px 14px rgba(25,71,86,.09); }
 .filter-view-modal .modal-header h2 { font-size: 22px; font-weight: 950; }
 .filter-view-modal .modal-header p:last-child { max-width: 650px; margin: 4px 0 0; color: #4d6a78; font-size: 11.5px; font-weight: 800; line-height: 1.4; }
 .filter-view-body {
@@ -1946,21 +1955,14 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   grid-template-columns: 1fr;
   align-content: start;
   gap: 12px;
-  min-height: 0;
+  min-height: auto;
   overflow-x: hidden;
-  overflow-y: scroll;
+  overflow-y: visible;
   overscroll-behavior: contain;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable;
-  scrollbar-width: auto;
-  scrollbar-color: #237f91 #dceff1;
-  padding: 13px 18px 18px;
+  padding: 13px 58px 18px 18px;
 }
-.filter-view-body::-webkit-scrollbar { width: 13px; }
-.filter-view-body::-webkit-scrollbar-track { border-radius: 999px; background: #dceff1; }
-.filter-view-body::-webkit-scrollbar-thumb { border: 3px solid #dceff1; border-radius: 999px; background: linear-gradient(180deg, #2499a5, #166a82); }
-.filter-view-body::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #187f8d, #0f5269); }
 .filter-view-note, .filter-quick-section, .any-column-filter-section { grid-column: 1; }
 .filter-view-note { display: grid; gap: 3px; padding: 10px 12px; border: 1px solid #deb968; border-radius: 11px; background: #fff3d4; }
 .filter-view-note strong { color: #74420a; font-size: 12px; font-weight: 950; line-height: 1.4; }
@@ -2075,7 +2077,14 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
 .filter-view-field-options span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .filter-view-display-options label:has(input:checked) { color: #073e70; border-color: #5d9fce; background: #e2f1ff; box-shadow: inset 3px 0 #1765a1; }
 .filter-view-display-options input { accent-color: #1765a1; }
-.filter-view-modal .modal-footer { position: static; gap: 9px; padding: 12px 18px; border-top: 1px solid #bdd9d8; background: rgba(248,253,252,.97); box-shadow: 0 -8px 20px rgba(25,71,86,.08); }
+.filter-scroll-controls { position: fixed; z-index: 18; top: 50%; right: max(calc((100vw - min(880px, calc(100vw - 28px))) / 2 + 8px), 12px); display: grid; gap: 7px; transform: translateY(-50%); }
+.filter-scroll-controls button { width: 44px; min-width: 44px; min-height: 52px; display: grid; place-items: center; gap: 1px; padding: 5px 3px; border: 2px solid #ffffff; border-radius: 13px; color: #ffffff; background: linear-gradient(145deg, #137b8d, #07546b); box-shadow: 0 8px 20px rgba(4,61,80,.32); cursor: pointer; font-weight: 950; }
+.filter-scroll-controls button span { font-size: 18px; line-height: 1; }
+.filter-scroll-controls button small { font-size: 9px; font-weight: 950; }
+.filter-scroll-controls button:hover:not(:disabled) { background: linear-gradient(145deg, #1598a4, #09647c); transform: translateY(-1px); }
+.filter-scroll-controls button:focus-visible { outline: 3px solid rgba(255,202,94,.65); outline-offset: 2px; }
+.filter-scroll-controls button:disabled { color: #8398a1; border-color: #d2dfe3; background: #edf3f4; box-shadow: none; cursor: not-allowed; opacity: .72; }
+.filter-view-modal .modal-footer { position: sticky; bottom: 0; z-index: 12; gap: 9px; padding: 12px 18px; border-top: 1px solid #bdd9d8; background: rgba(248,253,252,.98); box-shadow: 0 -8px 20px rgba(25,71,86,.12); }
 .filter-view-modal .modal-footer button { min-height: 43px; padding-inline: 16px; font-size: 12px; font-weight: 950; }
 .filter-clear-btn { color: #8b1e18 !important; border-color: #efaaa3 !important; background: #fff2f0 !important; }
 .retired-field-filter-bar { display: none !important; }
@@ -2090,11 +2099,13 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
     margin: auto;
     border-radius: 16px;
   }
-  .filter-view-sheet { height: 100%; max-height: none; }
+  .filter-view-sheet { min-height: 100%; max-height: none; }
   .filter-view-modal .modal-header { padding: 14px 15px; }
   .filter-view-modal .modal-header h2 { font-size: 20px; }
   .filter-view-modal .modal-header p:last-child { font-size: 11px; }
-  .filter-view-body { grid-template-columns: 1fr; gap: 10px; padding: 10px 8px 12px 10px; scrollbar-gutter: stable; }
+  .filter-view-body { grid-template-columns: 1fr; gap: 10px; padding: 10px 48px 12px 10px; }
+  .filter-scroll-controls { right: 9px; }
+  .filter-scroll-controls button { width: 38px; min-width: 38px; min-height: 48px; border-radius: 11px; }
   .filter-view-note, .filter-quick-section, .filter-field-section, .any-column-filter-section { grid-column: 1; }
   .filter-view-grid { grid-template-columns: repeat(2, minmax(0,1fr)); padding: 9px; }
   .any-column-filter-heading { align-items: flex-start; flex-direction: column; }

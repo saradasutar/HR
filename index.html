@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260814-filter-scroll-1646">
+  <link rel="stylesheet" href="styles.css?v=20260814-reliable-filter-scroll-1647">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.46 · Easy filter scrolling</p>
+          <p class="build-version">Dashboard v1.6.47 · Reliable filter scrolling</p>
         </form>
       </main>
     </div>
@@ -95,7 +95,7 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.46 · Scroll, save and print filters</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.47 · Reliable filter scrolling</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
@@ -275,6 +275,10 @@
           <p id="filterViewError" class="filter-view-error" role="alert"></p>
         </section>
       </div>
+      <div class="filter-scroll-controls" aria-label="Filter window scrolling controls">
+        <button id="filterScrollUp" type="button" title="Scroll up through filter options" aria-label="Scroll filter options up"><span aria-hidden="true">▲</span><small>Up</small></button>
+        <button id="filterScrollDown" type="button" title="Scroll down through more filter options" aria-label="Scroll filter options down"><span aria-hidden="true">▼</span><small>Down</small></button>
+      </div>
       <footer class="modal-footer"><button id="clearFilterViewButton" class="soft-btn filter-clear-btn" type="button">Reset filters</button><button id="applyFilterViewButton" class="primary-btn" type="button">3. Show arranged results</button></footer>
     </div>
   </dialog>
@@ -341,6 +345,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260814-filter-scroll-1646"></script>
+  <script src="app.js?v=20260814-reliable-filter-scroll-1647"></script>
 </body>
 </html>
