@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.45",
+  FRONTEND_VERSION: "1.6.46",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -797,6 +797,8 @@ function openDashboardFilterChooser() {
   renderColumnFilterRules(current.columnRules);
   updateFilterViewSummary();
   refs.filterViewDialog.showModal();
+  const scrollArea = refs.filterViewDialog.querySelector(".filter-view-body");
+  if (scrollArea) scrollArea.scrollTop = 0;
 }
 
 function renderColumnFilterRules(rules) {
