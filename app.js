@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.48",
+  FRONTEND_VERSION: "1.6.49",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -68,6 +68,7 @@ const state = {
   manualOrderActive: false,
   savedOrderRestored: false,
   savedManualOrders: readSavedManualOrders(),
+  namedFilterViews: readNamedFilterViews(),
   search: "",
   detailEmployeeCode: "",
   filterDisplayColumns: [],
@@ -120,7 +121,7 @@ function init() {
     "reportExportButton", "reportPrintButton",
     "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword",
     "confirmPassword", "passwordFormError", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton",
-    "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewSortColumn", "filterViewSortDirection", "filterScrollUp", "filterScrollDown", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
+    "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewSortColumn", "filterViewSortDirection", "filterScrollUp", "filterScrollDown", "savedFilterViewsPanel", "savedFilterViewCount", "savedFilterViewList", "savedFilterViewEmpty", "savedFilterViewName", "saveNamedFilterViewButton", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
     "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError"
   ].forEach((id) => { refs[id] = $(id); });
 
@@ -153,6 +154,15 @@ function init() {
   refs.filterViewDialog.addEventListener("scroll", updateFilterScrollButtons, { passive: true });
   refs.filterScrollUp.addEventListener("click", () => scrollFilterDialog(-1));
   refs.filterScrollDown.addEventListener("click", () => scrollFilterDialog(1));
+  refs.savedFilterViewsPanel.addEventListener("toggle", () => setTimeout(updateFilterScrollButtons, 0));
+  refs.savedFilterViewList.addEventListener("click", handleNamedFilterViewAction);
+  refs.saveNamedFilterViewButton.addEventListener("click", saveNamedFilterView);
+  refs.savedFilterViewName.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      saveNamedFilterView();
+    }
+  });
   refs.columnFilterRuleList.addEventListener("change", handleColumnFilterRuleChange);
   refs.columnFilterRuleList.addEventListener("click", handleColumnFilterRuleAction);
   refs.addColumnFilterRuleButton.addEventListener("click", addColumnFilterRule);
@@ -412,6 +422,31 @@ function readSavedManualOrders() {
     }]));
   } catch {
     return {};
+  }
+}
+
+function readNamedFilterViews() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem("hrDashboardNamedFilterViews") || "[]");
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((view) => view && typeof view === "object" && String(view.name || "").trim()).map((view) => ({
+      id: String(view.id || ""),
+      name: String(view.name || "").trim().slice(0, 60),
+      filters: view.filters && typeof view.filters === "object" ? view.filters : {},
+      columns: Array.isArray(view.columns) ? view.columns.map(String) : [],
+      savedAt: Number(view.savedAt) || 0
+    })).slice(0, 30);
+  } catch {
+    return [];
+  }
+}
+
+function persistNamedFilterViews() {
+  try {
+    localStorage.setItem("hrDashboardNamedFilterViews", JSON.stringify(state.namedFilterViews));
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -798,10 +833,92 @@ function openDashboardFilterChooser() {
   setSavedSelectValue(refs.filterViewSortColumn, current.sortColumn);
   refs.filterViewSortDirection.value = current.sortDirection;
   renderColumnFilterRules(current.columnRules);
+  refs.savedFilterViewName.value = "";
+  refs.savedFilterViewsPanel.open = false;
+  renderNamedFilterViews();
   updateFilterViewSummary();
   refs.filterViewDialog.showModal();
   refs.filterViewDialog.scrollTop = 0;
   setTimeout(updateFilterScrollButtons, 0);
+}
+
+function renderNamedFilterViews() {
+  const views = state.namedFilterViews.slice().sort((first, second) => (Number(second.savedAt) || 0) - (Number(first.savedAt) || 0));
+  refs.savedFilterViewCount.textContent = views.length ? `${views.length} saved` : "None saved";
+  refs.savedFilterViewEmpty.hidden = views.length > 0;
+  refs.savedFilterViewList.innerHTML = views.map((view) => {
+    const selected = dashboardFilterValues(view.filters);
+    const filterCount = dashboardFilterCount(selected);
+    const validColumns = view.columns.filter((column, index, list) => state.columns.includes(column) && list.indexOf(column) === index);
+    const summary = `${filterCount || "No"} filter${filterCount === 1 ? "" : "s"} · ${validColumns.length || state.columns.length} column${(validColumns.length || state.columns.length) === 1 ? "" : "s"} · ${selected.sortDirection === "desc" ? "Descending" : "Ascending"}`;
+    return `<article class="saved-filter-view-card" data-saved-filter-view="${escapeAttribute(view.id)}"><button class="saved-filter-main" type="button" data-saved-filter-action="open"><strong>${escapeHtml(view.name)}</strong><small>${escapeHtml(summary)}</small></button><div class="saved-filter-actions"><button type="button" data-saved-filter-action="open">Open</button><button type="button" data-saved-filter-action="print">Print</button><button class="delete" type="button" data-saved-filter-action="delete">Delete</button></div></article>`;
+  }).join("");
+  setTimeout(updateFilterScrollButtons, 0);
+}
+
+function saveNamedFilterView() {
+  if (!validateColumnFilterRules()) return;
+  const name = refs.savedFilterViewName.value.trim().replace(/\s+/g, " ").slice(0, 60);
+  if (!name) {
+    showFilterViewError("Enter a short name for this saved filter view.");
+    refs.savedFilterViewsPanel.open = true;
+    refs.savedFilterViewName.focus();
+    return;
+  }
+  const previousViews = state.namedFilterViews;
+  const existing = state.namedFilterViews.find((view) => view.name.toLocaleLowerCase() === name.toLocaleLowerCase());
+  const savedView = {
+    id: existing ? existing.id : `view-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+    name,
+    filters: selectedFilterViewValues(),
+    columns: visibleTableColumns(),
+    savedAt: Date.now()
+  };
+  state.namedFilterViews = [savedView].concat(state.namedFilterViews.filter((view) => view.id !== savedView.id)).slice(0, 30);
+  if (!persistNamedFilterViews()) {
+    state.namedFilterViews = previousViews;
+    showFilterViewError("This filter view could not be saved. Check whether browser storage is allowed.");
+    return;
+  }
+  refs.savedFilterViewName.value = "";
+  refs.savedFilterViewsPanel.open = true;
+  showFilterViewError("");
+  renderNamedFilterViews();
+  showToast(existing ? `Saved filter view “${name}” updated.` : `Filter view “${name}” saved on this device.`);
+}
+
+function handleNamedFilterViewAction(event) {
+  const button = event.target.closest("[data-saved-filter-action]");
+  const card = event.target.closest("[data-saved-filter-view]");
+  if (!button || !card) return;
+  const view = state.namedFilterViews.find((item) => item.id === card.dataset.savedFilterView);
+  if (!view) return;
+  const action = button.dataset.savedFilterAction;
+  if (action === "delete") {
+    if (!confirm(`Delete the saved filter view “${view.name}”?`)) return;
+    state.namedFilterViews = state.namedFilterViews.filter((item) => item.id !== view.id);
+    persistNamedFilterViews();
+    renderNamedFilterViews();
+    showToast(`Saved filter view “${view.name}” deleted.`);
+    return;
+  }
+  applyNamedFilterView(view, action === "print");
+}
+
+function applyNamedFilterView(view, printAfterOpening) {
+  const selectedColumns = view.columns.filter((column, index, list) => state.columns.includes(column) && list.indexOf(column) === index);
+  if (selectedColumns.length) {
+    state.dashboardColumns = frozenColumnsFirst(selectedColumns);
+    saveDashboardColumnPreference();
+    updateChooseColumnsButton();
+  }
+  setCurrentDashboardFilters(view.filters);
+  state.inlineEditCode = "";
+  state.page = 1;
+  refs.filterViewDialog.close();
+  applyFilters();
+  showToast(`Saved filter view “${view.name}” opened.`);
+  if (printAfterOpening) setTimeout(openFilteredReport, 80);
 }
 
 function scrollFilterDialog(direction) {
