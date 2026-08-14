@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.42",
+  FRONTEND_VERSION: "1.6.43",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -65,6 +65,7 @@ const state = {
   page: 1,
   sortColumn: "Sl No.",
   sortDirection: "asc",
+  manualOrderActive: false,
   search: "",
   detailEmployeeCode: "",
   filterDisplayColumns: [],
@@ -117,7 +118,7 @@ function init() {
     "reportExportButton", "reportPrintButton",
     "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword",
     "confirmPassword", "passwordFormError", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton",
-    "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
+    "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewSortColumn", "filterViewSortDirection", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
     "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError"
   ].forEach((id) => { refs[id] = $(id); });
 
@@ -333,9 +334,21 @@ function buildTableHeader() {
       input.title = `Edit the visible name for ${column}. The protected data key will remain unchanged.`;
       th.appendChild(input);
     } else {
-      th.textContent = columnLabel(column);
+      const label = document.createElement("span");
+      label.className = "column-sort-label";
+      label.textContent = columnLabel(column);
+      const arrow = document.createElement("span");
+      const isActiveSort = state.sortColumn === column;
+      arrow.className = `column-sort-arrow${isActiveSort ? " active" : ""}`;
+      arrow.textContent = isActiveSort ? (state.sortDirection === "asc" ? "↑" : "↓") : "↕";
+      arrow.setAttribute("aria-hidden", "true");
+      th.append(label, arrow);
+      th.classList.add("sortable-header");
       th.tabIndex = 0;
-      th.title = "Sort by " + columnLabel(column);
+      th.setAttribute("role", "button");
+      th.setAttribute("aria-sort", isActiveSort ? (state.sortDirection === "asc" ? "ascending" : "descending") : "none");
+      th.setAttribute("aria-label", `${columnLabel(column)}. ${isActiveSort ? `Currently ${state.sortDirection === "asc" ? "ascending" : "descending"}. Activate to reverse order.` : "Activate to sort."}`);
+      th.title = isActiveSort ? `Sorted ${state.sortDirection === "asc" ? "ascending" : "descending"}. Click to reverse order.` : "Sort by " + columnLabel(column);
       th.addEventListener("click", () => sortBy(column));
       th.addEventListener("keydown", (event) => { if (event.key === "Enter") sortBy(column); });
     }
@@ -391,6 +404,8 @@ function readDashboardFilterPreference() {
       category: String(saved.category || ""),
       status: String(saved.status || ""),
       sensitivity: String(saved.sensitivity || ""),
+      sortColumn: String(saved.sortColumn || "Sl No."),
+      sortDirection: saved.sortDirection === "desc" ? "desc" : "asc",
       displayColumns: Array.isArray(saved.displayColumns) ? saved.displayColumns.map(String) : [],
       fieldColumns: Array.isArray(saved.fieldColumns) ? saved.fieldColumns.map(String) : [],
       columnRules: Array.isArray(saved.columnRules) ? saved.columnRules.map((rule) => ({
@@ -400,7 +415,7 @@ function readDashboardFilterPreference() {
       })) : []
     };
   } catch {
-    return { search: "", group: "", category: "", status: "", sensitivity: "", displayColumns: [], fieldColumns: [], columnRules: [] };
+    return { search: "", group: "", category: "", status: "", sensitivity: "", sortColumn: "Sl No.", sortDirection: "asc", displayColumns: [], fieldColumns: [], columnRules: [] };
   }
 }
 
@@ -412,6 +427,8 @@ function saveDashboardFilterPreference() {
     category: refs.categoryFilter.value,
     status: refs.statusFilter.value,
     sensitivity: refs.sensitivityFilter.value,
+    sortColumn: state.columns.includes(state.sortColumn) ? state.sortColumn : "Sl No.",
+    sortDirection: state.sortDirection === "desc" ? "desc" : "asc",
     displayColumns: state.filterDisplayColumns.filter((column) => state.columns.includes(column)),
     fieldColumns: state.fieldFilterColumns.filter((column) => state.columns.includes(column)),
     columnRules: normalizeColumnFilterRules(state.columnFilterRules)
@@ -427,6 +444,8 @@ function restoreDashboardFilterPreference() {
   setSavedSelectValue(refs.categoryFilter, saved.category);
   setSavedSelectValue(refs.statusFilter, saved.status);
   setSavedSelectValue(refs.sensitivityFilter, saved.sensitivity);
+  state.sortColumn = state.columns.includes(saved.sortColumn) ? saved.sortColumn : "Sl No.";
+  state.sortDirection = saved.sortDirection === "desc" ? "desc" : "asc";
   let savedDisplayColumns = (saved.displayColumns || []).filter((column, index, values) => state.columns.includes(column) && values.indexOf(column) === index);
   let savedFieldColumns = (saved.fieldColumns || []).filter((column, index, values) => state.columns.includes(column) && values.indexOf(column) === index);
   let savedColumnRules = normalizeColumnFilterRules(saved.columnRules);
@@ -580,6 +599,8 @@ function dashboardFilterValues(source) {
     category: String(values.category || ""),
     status: String(values.status || ""),
     sensitivity: String(values.sensitivity || ""),
+    sortColumn: state.columns.includes(String(values.sortColumn || "")) ? String(values.sortColumn) : "Sl No.",
+    sortDirection: values.sortDirection === "desc" ? "desc" : "asc",
     displayColumns: Array.isArray(values.displayColumns) ? values.displayColumns.filter((column, index, list) => state.columns.includes(column) && list.indexOf(column) === index) : [],
     fieldColumns: Array.isArray(values.fieldColumns) ? values.fieldColumns.filter((column, index, list) => state.columns.includes(column) && list.indexOf(column) === index) : [],
     columnRules: normalizeColumnFilterRules(values.columnRules)
@@ -615,6 +636,8 @@ function currentDashboardFilterValues() {
     category: refs.categoryFilter.value,
     status: refs.statusFilter.value,
     sensitivity: refs.sensitivityFilter.value,
+    sortColumn: state.sortColumn,
+    sortDirection: state.sortDirection,
     displayColumns: [],
     fieldColumns: [],
     columnRules: state.columnFilterRules
@@ -650,6 +673,9 @@ function openDashboardFilterChooser() {
   copySelectOptions(refs.categoryFilter, refs.filterViewCategory, current.category);
   copySelectOptions(refs.statusFilter, refs.filterViewStatus, current.status);
   copySelectOptions(refs.sensitivityFilter, refs.filterViewSensitivity, current.sensitivity);
+  refs.filterViewSortColumn.innerHTML = state.columns.map((column) => `<option value="${escapeAttribute(column)}">${escapeHtml(columnLabel(column))}</option>`).join("");
+  setSavedSelectValue(refs.filterViewSortColumn, current.sortColumn);
+  refs.filterViewSortDirection.value = current.sortDirection;
   renderColumnFilterRules(current.columnRules);
   updateFilterViewSummary();
   refs.filterViewDialog.showModal();
@@ -756,6 +782,8 @@ function selectedFilterViewValues() {
     category: refs.filterViewCategory.value,
     status: refs.filterViewStatus.value,
     sensitivity: refs.filterViewSensitivity.value,
+    sortColumn: refs.filterViewSortColumn.value,
+    sortDirection: refs.filterViewSortDirection.value,
     displayColumns: [],
     fieldColumns: [],
     columnRules: rawColumnFilterRulesFromChooser()
@@ -772,7 +800,8 @@ function updateFilterViewSummary() {
   if (selected.status) labels.push(`Status: ${selected.status}`);
   if (selected.sensitivity) labels.push(`Post: ${selected.sensitivity}`);
   selected.columnRules.forEach((rule) => labels.push(`${columnLabel(rule.column)} ${columnFilterOperatorLabel(rule.operator).toLocaleLowerCase()}${columnFilterNeedsValue(rule.operator) ? ` “${rule.value}”` : ""}`));
-  refs.filterViewSummary.textContent = labels.length ? `${labels.length} selected · ${labels.join(" · ")}` : "No filters selected · All employees will show";
+  const arranged = `Arrange by ${columnLabel(selected.sortColumn)} · ${selected.sortDirection === "desc" ? "Descending" : "Ascending"}`;
+  refs.filterViewSummary.textContent = labels.length ? `${labels.length} filter${labels.length === 1 ? "" : "s"} · ${labels.join(" · ")} · ${arranged}` : `All employees · ${arranged}`;
 }
 
 function setCurrentDashboardFilters(values) {
@@ -782,6 +811,8 @@ function setCurrentDashboardFilters(values) {
   setSavedSelectValue(refs.categoryFilter, selected.category);
   setSavedSelectValue(refs.statusFilter, selected.status);
   setSavedSelectValue(refs.sensitivityFilter, selected.sensitivity);
+  state.sortColumn = selected.sortColumn;
+  state.sortDirection = selected.sortDirection;
   state.filterDisplayColumns = [];
   state.fieldFilterColumns = [];
   state.columnFilterRules = selected.columnRules;
@@ -1058,6 +1089,7 @@ function applyFilters() {
   // Every new search/filter result begins at serial 1. All matching employees
   // remain in the same scrollable directory, so the sequence is continuous.
   state.page = 1;
+  state.manualOrderActive = false;
   const query = refs.globalSearch.value.trim().toLocaleLowerCase();
   const group = refs.groupFilter.value;
   const category = refs.categoryFilter.value;
@@ -1119,6 +1151,8 @@ function updateFieldFilterSummary() {
 function sortBy(column) {
   if (state.sortColumn === column) state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
   else { state.sortColumn = column; state.sortDirection = "asc"; }
+  state.manualOrderActive = false;
+  saveDashboardFilterPreference();
   sortEmployees();
   renderTable();
 }
@@ -1126,7 +1160,32 @@ function sortBy(column) {
 function sortEmployees() {
   const direction = state.sortDirection === "asc" ? 1 : -1;
   const column = state.sortColumn;
-  state.filtered.sort((a, b) => String(a[column] || "").localeCompare(String(b[column] || ""), undefined, { numeric: true, sensitivity: "base" }) * direction);
+  const dateColumns = new Set(["DoB", "DoR", "DoJ Govt", "DoJ in Current Office", "Relieving Date"]);
+  state.filtered.sort((a, b) => {
+    const firstRaw = column === "Strength Status" ? strengthStatus(a) : column === "Post Sensitivity" ? sensitivityStatus(a) : String(a[column] == null ? "" : a[column]).trim();
+    const secondRaw = column === "Strength Status" ? strengthStatus(b) : column === "Post Sensitivity" ? sensitivityStatus(b) : String(b[column] == null ? "" : b[column]).trim();
+    if (!firstRaw && !secondRaw) return 0;
+    if (!firstRaw) return 1;
+    if (!secondRaw) return -1;
+    if (dateColumns.has(column)) {
+      const firstDate = parseDate(firstRaw);
+      const secondDate = parseDate(secondRaw);
+      if (firstDate && secondDate) return (firstDate.getTime() - secondDate.getTime()) * direction;
+    }
+    return firstRaw.localeCompare(secondRaw, undefined, { numeric: true, sensitivity: "base" }) * direction;
+  });
+}
+
+function moveFilteredEmployee(code, direction) {
+  if (!hasActiveDashboardFilter()) return;
+  const currentIndex = state.filtered.findIndex((employee) => String(employee["Employee Code"] || "") === String(code || ""));
+  const targetIndex = currentIndex + direction;
+  if (currentIndex < 0 || targetIndex < 0 || targetIndex >= state.filtered.length) return;
+  [state.filtered[currentIndex], state.filtered[targetIndex]] = [state.filtered[targetIndex], state.filtered[currentIndex]];
+  state.manualOrderActive = true;
+  state.inlineEditCode = "";
+  renderTable();
+  showToast(`Employee moved ${direction < 0 ? "up" : "down"}. Serial numbers have been updated for this filtered view.`);
 }
 
 function renderTable() {
@@ -1175,18 +1234,21 @@ function renderTable() {
         : `<span class="cell-text value-highlight${emptyValue ? " empty-value" : ""}">${decoratedValue}</span>`;
       return `<td class="${classes.join(" ")}" data-column-key="${escapeAttribute(column)}" title="${escapeAttribute(display)}">${cellContent}</td>`;
     }).join("");
+    const employeeName = escapeAttribute(employee["Employee Name"] || "employee");
     let actions = "";
     if (state.role === "admin") {
       if (isInlineEditing) {
         actions = `<td class="admin-column" data-column-key="Actions"><div class="action-cell inline-actions"><button class="row-action save" data-action="inline-save" data-code="${escapeAttribute(originalCode)}">Save</button><button class="row-action" data-action="inline-cancel" data-code="${escapeAttribute(originalCode)}">Cancel</button></div></td>`;
       } else if (state.directEditEnabled || filteredRowEditing) {
-        actions = `<td class="admin-column" data-column-key="Actions"><div class="action-cell"><button class="row-action inline-edit" data-action="inline-edit" data-code="${escapeAttribute(originalCode)}">${filteredRowEditing ? "Edit filtered row" : "Edit row"}</button><button class="row-action" data-action="edit" data-code="${escapeAttribute(originalCode)}">Full form</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(originalCode)}">Delete</button></div></td>`;
+        const manualOrderControls = filteredRowEditing
+          ? `<span class="manual-order-controls" aria-label="Manually arrange this employee in the filtered list"><button class="row-action order-arrow" data-action="move-up" data-code="${escapeAttribute(originalCode)}" title="Move employee up" aria-label="Move ${employeeName} up"${rowIndex === 0 ? " disabled" : ""}>↑</button><button class="row-action order-arrow" data-action="move-down" data-code="${escapeAttribute(originalCode)}" title="Move employee down" aria-label="Move ${employeeName} down"${rowIndex === total - 1 ? " disabled" : ""}>↓</button></span>`
+          : "";
+        actions = `<td class="admin-column" data-column-key="Actions"><div class="action-cell">${manualOrderControls}<button class="row-action inline-edit" data-action="inline-edit" data-code="${escapeAttribute(originalCode)}">${filteredRowEditing ? "Edit filtered row" : "Edit row"}</button><button class="row-action" data-action="edit" data-code="${escapeAttribute(originalCode)}">Full form</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(originalCode)}">Delete</button></div></td>`;
       } else {
         actions = `<td class="admin-column" data-column-key="Actions"><div class="action-cell"><button class="row-action" data-action="edit" data-code="${escapeAttribute(originalCode)}">Edit</button><button class="row-action delete" data-action="delete" data-code="${escapeAttribute(originalCode)}">Delete</button></div></td>`;
       }
     }
     const employeeCode = escapeAttribute(employee["Employee Code"]);
-    const employeeName = escapeAttribute(employee["Employee Name"] || "employee");
     const rowClass = isInlineEditing ? "employee-row inline-row-active" : "employee-row";
     return `<tr class="${rowClass}" tabindex="${isInlineEditing ? "-1" : "0"}" data-employee-code="${employeeCode}" aria-label="${isInlineEditing ? "Editing" : "View full details for"} ${employeeName}">${cells}${actions}</tr>`;
   }).join("");
@@ -1200,7 +1262,7 @@ function renderTable() {
   const instruction = state.headerEditEnabled
     ? " · Header editing is on — rename headings, then choose Save headers"
     : hasActiveDashboardFilter()
-    ? ` · Filtered view — choose Edit filtered row, then Save`
+    ? ` · Filtered view — click a header arrow to sort or use row ↑ ↓ to arrange manually; choose Edit filtered row, then Save${state.manualOrderActive ? " · Manual row order active" : ""}`
     : isDashboardColumnCustomized()
     ? ` · Custom view: ${tableColumns.length} selected columns`
     : state.directEditEnabled
@@ -1604,6 +1666,8 @@ function handleTableAction(event) {
     if (state.role !== "admin") return;
     const employee = findEmployee(button.dataset.code);
     if (!employee) return;
+    if (button.dataset.action === "move-up") moveFilteredEmployee(button.dataset.code, -1);
+    if (button.dataset.action === "move-down") moveFilteredEmployee(button.dataset.code, 1);
     if (button.dataset.action === "inline-edit") beginInlineEdit(employee);
     if (button.dataset.action === "inline-save") saveInlineEmployee(button.dataset.code, button.closest("tr"), button);
     if (button.dataset.action === "inline-cancel") cancelInlineEdit();

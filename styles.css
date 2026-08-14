@@ -1898,6 +1898,7 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
 .filter-view-note strong { color: #74420a; font-size: 12px; font-weight: 950; line-height: 1.4; }
 .filter-view-note span { color: #66737a; font-size: 10.5px; font-weight: 800; }
 .filter-quick-section { overflow: hidden; border: 1px solid #8ec8c3; border-radius: 12px; background: rgba(255,255,255,.92); }
+.filter-sort-section { overflow: hidden; border: 1px solid #b6a6dc; border-radius: 12px; background: rgba(255,255,255,.94); box-shadow: 0 5px 14px rgba(75,52,130,.06); }
 .filter-section-heading { padding: 9px 11px; border-bottom: 1px solid #c5e1dd; background: linear-gradient(100deg, #ddf5f0, #e5f2ff); }
 .filter-section-heading strong, .filter-section-heading small { display: block; }
 .filter-section-heading strong { color: #075d68; font-size: 13px; font-weight: 950; }
@@ -1907,6 +1908,10 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
 .filter-view-grid .filter-view-wide { grid-column: 1 / -1; }
 .filter-view-grid input, .filter-view-grid select { width: 100%; min-height: 46px; padding: 8px 11px; border: 2px solid #9bc8c8; border-radius: 10px; outline: 0; color: #17384d; background: white; font-size: 13px; font-weight: 850; }
 .filter-view-grid input:focus, .filter-view-grid select:focus { border-color: #087f91; box-shadow: 0 0 0 3px rgba(8,127,145,.11); }
+.filter-sort-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; padding: 10px; }
+.filter-sort-grid label { display: grid; gap: 5px; color: #3a3568; font-size: 12px; font-weight: 950; }
+.filter-sort-grid select { width: 100%; min-height: 46px; padding: 8px 11px; border: 2px solid #b9acdc; border-radius: 10px; outline: 0; color: #302857; background: #fff; font-size: 13px; font-weight: 850; }
+.filter-sort-grid select:focus { border-color: #7054b4; box-shadow: 0 0 0 3px rgba(112,84,180,.11); }
 
 /* Compact, full, left-aligned long text v1.6.40 */
 #employeeTable th.long-text-dashboard-column,
@@ -2026,8 +2031,104 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
 }
 
 @media (max-width: 430px) {
-  .filter-view-grid, .filter-view-field-options { grid-template-columns: 1fr; }
+  .filter-view-grid, .filter-view-field-options, .filter-sort-grid { grid-template-columns: 1fr; }
   .filter-view-field-options { max-height: 190px; }
+}
+
+/* Larger dashboard and popup typography v1.6.43 */
+.dashboard-view { font-size: 17px; }
+.topbar-heading > strong { font-size: 17px; }
+.topbar-heading > span { font-size: 12.5px; }
+.topbar .stat-card span { font-size: 13.5px; font-weight: 950; }
+.topbar .stat-card strong { font-size: 26px; }
+.topbar .stat-card small { font-size: 11.5px; font-weight: 850; }
+.data-panel .panel-heading h2 { font-size: 26px; }
+.data-panel .panel-heading p,
+.result-summary { font-size: 15px; }
+.panel-actions button,
+.toolbar input,
+.toolbar select,
+.toolbar button { font-size: 15px; font-weight: 900; }
+#employeeTable { font-size: 15.5px; }
+#employeeTable th { font-size: 13px; font-weight: 950; }
+#employeeTable th.sortable-header { align-items: center; gap: 7px; }
+#employeeTable th.sortable-header .column-sort-label { vertical-align: middle; }
+#employeeTable th.sortable-header .column-sort-arrow { display: inline-flex; width: 23px; height: 23px; margin-left: 6px; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.52); border-radius: 7px; color: #ffffff; background: rgba(255,255,255,.16); box-shadow: inset 0 1px rgba(255,255,255,.2); font-size: 15px; font-weight: 950; line-height: 1; vertical-align: middle; }
+#employeeTable th.sortable-header .column-sort-arrow.active { color: #39236e; border-color: #fff1a8; background: linear-gradient(145deg, #fff4bb, #ffc95f); box-shadow: 0 2px 7px rgba(43,27,91,.28); }
+#employeeTable th.sortable-header:hover .column-sort-arrow { transform: translateY(-1px); }
+#employeeTable tbody td { font-size: 15.5px; font-weight: 875; line-height: 1.38; }
+#employeeTable .employee-name-column { font-size: 17px; font-weight: 950; }
+#employeeTable .badge { font-size: 12.5px; }
+#employeeTable .row-action { font-size: 12px; }
+#employeeTable .manual-order-controls { display: inline-flex; align-items: center; gap: 4px; padding-right: 6px; border-right: 2px solid rgba(56,86,106,.18); }
+#employeeTable .row-action.order-arrow { width: 34px; min-width: 34px; height: 34px; padding: 0; color: #ffffff; border: 1px solid #5d3ca4; background: linear-gradient(145deg, #7956c4, #4b2f8b); box-shadow: 0 3px 8px rgba(75,47,139,.22); font-size: 19px; font-weight: 950; line-height: 1; cursor: pointer; }
+#employeeTable .row-action.order-arrow:hover:not(:disabled) { border-color: #3f247b; background: linear-gradient(145deg, #8a66d4, #56359b); transform: translateY(-1px); }
+#employeeTable .row-action.order-arrow:focus-visible { outline: 3px solid rgba(121,86,196,.28); outline-offset: 2px; }
+#employeeTable .row-action.order-arrow:disabled { color: #91a0aa; border-color: #cbd5dc; background: #edf1f3; box-shadow: none; cursor: not-allowed; opacity: .62; }
+#employeeTable.wide-actions-table [data-column-key="Actions"] { width: 310px; min-width: 310px; max-width: 310px; }
+#employeeTable .inline-edit-input,
+#employeeTable .inline-edit-select { font-size: 14px; }
+.table-footer { font-size: 14px; font-weight: 850; }
+.modal-header h2 { font-size: 26px; font-weight: 950; }
+.modal-header p,
+.modal-header p:last-child { font-size: 13.5px; font-weight: 850; }
+.filter-view-note strong { font-size: 13.5px; }
+.filter-view-note span,
+.filter-section-heading small,
+.any-column-filter-heading small { font-size: 12px; }
+.filter-section-heading strong,
+.any-column-filter-heading strong { font-size: 14px; }
+.filter-view-grid label,
+.filter-sort-grid label { font-size: 13.5px; }
+.filter-view-grid input,
+.filter-view-grid select,
+.filter-sort-grid select { font-size: 14.5px; }
+.column-filter-rule label { font-size: 12px; }
+.column-filter-rule select,
+.column-filter-rule input { font-size: 13.5px; }
+.filter-view-modal .modal-footer button { font-size: 13.5px; }
+.details-modal .profile-heading h2 { font-size: 25px; }
+.details-modal .profile-subtitle { font-size: 14.5px; }
+.details-modal .detail-section h3 { font-size: 14px; }
+.details-modal .detail-row dt { font-size: 13px; }
+.details-modal .detail-row dd { font-size: 16px; line-height: 1.35; }
+.employee-edit-modal .modal-header h2 { font-size: 24px; }
+.employee-edit-modal .form-grid label,
+.employee-edit-modal .custom-employee-fields label { font-size: 13.5px; }
+.employee-edit-modal .form-grid input,
+.employee-edit-modal .form-grid select,
+.employee-edit-modal .form-grid textarea,
+.employee-edit-modal .custom-employee-fields input { font-size: 15px; }
+.details-modal .modal-footer button,
+.employee-edit-modal .modal-footer button { font-size: 13.5px; }
+
+@media (max-width: 620px) {
+  .dashboard-view { font-size: 16px; }
+  .data-panel .panel-heading h2 { font-size: 23px; }
+  .data-panel .panel-heading p,
+  .result-summary { font-size: 14px; }
+  #employeeTable,
+  #employeeTable tbody td { font-size: 14.5px; }
+  #employeeTable th { font-size: 12.5px; }
+  #employeeTable th.sortable-header .column-sort-arrow { width: 21px; height: 21px; margin-left: 4px; font-size: 14px; }
+  #employeeTable .employee-name-column { font-size: 15.5px; }
+  .modal-header h2,
+  .filter-view-modal .modal-header h2 { font-size: 22px; }
+  .modal-header p,
+  .modal-header p:last-child,
+  .filter-view-modal .modal-header p:last-child { font-size: 12.5px; }
+  .details-modal .profile-heading h2 { font-size: 23px; }
+  .details-modal .detail-row dt { font-size: 12.5px; }
+  .details-modal .detail-row dd { font-size: 15px; }
+  .employee-edit-modal .modal-header h2 { font-size: 22px; }
+  .employee-edit-modal .form-grid label,
+  .employee-edit-modal .custom-employee-fields label { font-size: 13px; }
+  .employee-edit-modal .form-grid input,
+  .employee-edit-modal .form-grid select,
+  .employee-edit-modal .form-grid textarea,
+  .employee-edit-modal .custom-employee-fields input { font-size: 14px; }
+  #employeeTable.wide-actions-table [data-column-key="Actions"] { width: 292px; min-width: 292px; max-width: 292px; }
+  #employeeTable .row-action.order-arrow { width: 32px; min-width: 32px; height: 32px; font-size: 18px; }
 }
 
 @media (max-width: 620px) {
