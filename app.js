@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.43",
+  FRONTEND_VERSION: "1.6.44",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -66,6 +66,8 @@ const state = {
   sortColumn: "Sl No.",
   sortDirection: "asc",
   manualOrderActive: false,
+  savedOrderRestored: false,
+  savedManualOrders: readSavedManualOrders(),
   search: "",
   detailEmployeeCode: "",
   filterDisplayColumns: [],
@@ -99,7 +101,7 @@ function init() {
     "lastUpdated", "displayName", "roleLabel", "userInitial", "statTotal", "statPresent",
     "statSensitive", "statNonSensitive", "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter",
     "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTable", "tableHead", "tableBody", "emptyState",
-    "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "chooseFiltersButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
+    "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "chooseFiltersButton", "saveOrderButton", "resetOrderButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
     "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterPicker", "fieldFilterPickerSummary", "fieldFilterOptions", "applyFieldFilter", "clearFieldFilter",
     "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm",
     "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton",
@@ -140,6 +142,8 @@ function init() {
   refs.printFilteredButton.addEventListener("click", openFilteredReport);
   refs.chooseColumnsButton.addEventListener("click", openDashboardColumnChooser);
   refs.chooseFiltersButton.addEventListener("click", openDashboardFilterChooser);
+  refs.saveOrderButton.addEventListener("click", saveManualFilteredOrder);
+  refs.resetOrderButton.addEventListener("click", resetManualFilteredOrder);
   refs.columnViewList.addEventListener("click", handleDashboardColumnOrder);
   refs.columnViewList.addEventListener("change", updateDashboardColumnCount);
   refs.applyColumnViewButton.addEventListener("click", applyDashboardColumnView);
@@ -393,6 +397,28 @@ function readDashboardColumnPreference() {
 
 function saveDashboardColumnPreference() {
   try { localStorage.setItem("hrDashboardColumns", JSON.stringify(state.dashboardColumns)); } catch { /* Device storage may be unavailable. */ }
+}
+
+function readSavedManualOrders() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem("hrDashboardSavedOrders") || "{}");
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    return Object.fromEntries(Object.entries(parsed).filter(([, entry]) => entry && Array.isArray(entry.codes)).map(([key, entry]) => [key, {
+      codes: entry.codes.map(String).filter(Boolean),
+      savedAt: Number(entry.savedAt) || 0
+    }]));
+  } catch {
+    return {};
+  }
+}
+
+function persistSavedManualOrders() {
+  try {
+    localStorage.setItem("hrDashboardSavedOrders", JSON.stringify(state.savedManualOrders));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function readDashboardFilterPreference() {
@@ -651,6 +677,92 @@ function dashboardFilterCount(values) {
 
 function hasActiveDashboardFilter() {
   return dashboardFilterCount(currentDashboardFilterValues()) > 0;
+}
+
+function currentManualOrderKey() {
+  const selected = currentDashboardFilterValues();
+  return JSON.stringify({
+    search: selected.search.toLocaleLowerCase(),
+    group: selected.group,
+    category: selected.category,
+    status: selected.status,
+    sensitivity: selected.sensitivity,
+    sortColumn: selected.sortColumn,
+    sortDirection: selected.sortDirection,
+    columnRules: selected.columnRules
+  });
+}
+
+function currentSavedManualOrder() {
+  if (!hasActiveDashboardFilter()) return null;
+  const saved = state.savedManualOrders[currentManualOrderKey()];
+  return saved && Array.isArray(saved.codes) ? saved : null;
+}
+
+function applySavedManualOrder() {
+  const saved = currentSavedManualOrder();
+  if (!saved || !saved.codes.length) return false;
+  const rank = new Map(saved.codes.map((code, index) => [String(code), index]));
+  state.filtered.sort((first, second) => {
+    const firstCode = String(first["Employee Code"] || "");
+    const secondCode = String(second["Employee Code"] || "");
+    const firstRank = rank.has(firstCode) ? rank.get(firstCode) : Number.MAX_SAFE_INTEGER;
+    const secondRank = rank.has(secondCode) ? rank.get(secondCode) : Number.MAX_SAFE_INTEGER;
+    return firstRank - secondRank;
+  });
+  state.manualOrderActive = true;
+  state.savedOrderRestored = true;
+  return true;
+}
+
+function saveManualFilteredOrder() {
+  if (state.role !== "admin" || !hasActiveDashboardFilter() || state.filtered.length < 2) {
+    showToast("First apply a filter containing at least two employees, then arrange and save the order.", true);
+    return;
+  }
+  const key = currentManualOrderKey();
+  const previousOrders = state.savedManualOrders;
+  state.savedManualOrders = Object.assign({}, state.savedManualOrders);
+  state.savedManualOrders[key] = {
+    codes: state.filtered.map((employee) => String(employee["Employee Code"] || "")).filter(Boolean),
+    savedAt: Date.now()
+  };
+  state.savedManualOrders = Object.fromEntries(Object.entries(state.savedManualOrders)
+    .sort(([, first], [, second]) => (Number(second.savedAt) || 0) - (Number(first.savedAt) || 0))
+    .slice(0, 25));
+  if (!persistSavedManualOrders()) {
+    state.savedManualOrders = previousOrders;
+    showToast("The order could not be saved in this browser. Check whether browser storage is allowed.", true);
+    return;
+  }
+  state.manualOrderActive = true;
+  state.savedOrderRestored = true;
+  renderTable();
+  showToast("This filter and employee order are saved. They will be restored automatically next time.");
+}
+
+function resetManualFilteredOrder() {
+  if (!hasActiveDashboardFilter()) return;
+  const key = currentManualOrderKey();
+  if (!state.savedManualOrders[key]) return;
+  delete state.savedManualOrders[key];
+  persistSavedManualOrders();
+  state.manualOrderActive = false;
+  state.savedOrderRestored = false;
+  sortEmployees();
+  renderTable();
+  showToast("The saved order for this filter was removed. Automatic column sorting is restored.");
+}
+
+function updateSaveOrderButtons() {
+  if (!refs.saveOrderButton || !refs.resetOrderButton) return;
+  const filteredView = hasActiveDashboardFilter();
+  const saved = Boolean(currentSavedManualOrder());
+  refs.saveOrderButton.hidden = state.role !== "admin" || !filteredView;
+  refs.saveOrderButton.disabled = state.filtered.length < 2;
+  refs.saveOrderButton.textContent = saved && state.savedOrderRestored ? "Order saved ✓" : "Save order";
+  refs.saveOrderButton.classList.toggle("active", saved && state.savedOrderRestored);
+  refs.resetOrderButton.hidden = state.role !== "admin" || !saved;
 }
 
 function updateChooseFiltersButton() {
@@ -1090,6 +1202,7 @@ function applyFilters() {
   // remain in the same scrollable directory, so the sequence is continuous.
   state.page = 1;
   state.manualOrderActive = false;
+  state.savedOrderRestored = false;
   const query = refs.globalSearch.value.trim().toLocaleLowerCase();
   const group = refs.groupFilter.value;
   const category = refs.categoryFilter.value;
@@ -1113,6 +1226,7 @@ function applyFilters() {
     return matchesOrdinaryFilters;
   });
   sortEmployees();
+  applySavedManualOrder();
   updateStats();
   updateFieldFilterSummary();
   updateChooseFiltersButton();
@@ -1152,6 +1266,7 @@ function sortBy(column) {
   if (state.sortColumn === column) state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
   else { state.sortColumn = column; state.sortDirection = "asc"; }
   state.manualOrderActive = false;
+  state.savedOrderRestored = false;
   saveDashboardFilterPreference();
   sortEmployees();
   renderTable();
@@ -1183,6 +1298,7 @@ function moveFilteredEmployee(code, direction) {
   if (currentIndex < 0 || targetIndex < 0 || targetIndex >= state.filtered.length) return;
   [state.filtered[currentIndex], state.filtered[targetIndex]] = [state.filtered[targetIndex], state.filtered[currentIndex]];
   state.manualOrderActive = true;
+  state.savedOrderRestored = false;
   state.inlineEditCode = "";
   renderTable();
   showToast(`Employee moved ${direction < 0 ? "up" : "down"}. Serial numbers have been updated for this filtered view.`);
@@ -1262,7 +1378,7 @@ function renderTable() {
   const instruction = state.headerEditEnabled
     ? " · Header editing is on — rename headings, then choose Save headers"
     : hasActiveDashboardFilter()
-    ? ` · Filtered view — click a header arrow to sort or use row ↑ ↓ to arrange manually; choose Edit filtered row, then Save${state.manualOrderActive ? " · Manual row order active" : ""}`
+    ? ` · Filtered view — click a header arrow to sort or use row ↑ ↓ to arrange manually; choose Edit filtered row, then Save${state.savedOrderRestored ? " · Saved order restored" : state.manualOrderActive ? " · Unsaved manual order" : ""}`
     : isDashboardColumnCustomized()
     ? ` · Custom view: ${tableColumns.length} selected columns`
     : state.directEditEnabled
@@ -1272,6 +1388,7 @@ function renderTable() {
   refs.pageInfo.textContent = total
     ? `Showing all ${total} employee${total === 1 ? "" : "s"} · Scroll inside the directory to view every row`
     : "Showing 0 employees";
+  updateSaveOrderButtons();
 }
 
 function toggleDirectEdit() {

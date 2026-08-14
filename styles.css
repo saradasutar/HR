@@ -1887,6 +1887,29 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   background: linear-gradient(135deg, #8d4e0b, #d17b1f) !important;
   box-shadow: 0 7px 18px rgba(141,78,11,.22);
 }
+.save-order-btn {
+  color: #164b35 !important;
+  border-color: #82c9a6 !important;
+  background: linear-gradient(135deg, #e8fff3, #ccefdc) !important;
+}
+.save-order-btn:not(:disabled):hover,
+.save-order-btn.active {
+  color: #ffffff !important;
+  border-color: #16704d !important;
+  background: linear-gradient(135deg, #187754, #2aa474) !important;
+  box-shadow: 0 7px 18px rgba(24,119,84,.22);
+}
+.save-order-btn:disabled { opacity: .58; cursor: not-allowed; }
+.reset-order-btn {
+  color: #7f2d25 !important;
+  border-color: #e6aaa3 !important;
+  background: linear-gradient(135deg, #fff5f2, #ffe5df) !important;
+}
+.reset-order-btn:hover {
+  color: #ffffff !important;
+  border-color: #9d352c !important;
+  background: linear-gradient(135deg, #a73b31, #cf5b4d) !important;
+}
 .filter-view-modal { width: min(880px, calc(100% - 28px)); max-height: min(92vh, 760px); overflow: hidden; }
 .filter-view-sheet { display: grid; grid-template-rows: auto minmax(0,1fr) auto; max-height: min(92vh, 860px); background: linear-gradient(145deg, #fffaf0, #eef8f7 58%, #eef3ff); }
 .filter-view-modal .modal-header { position: static; align-items: flex-start; padding: 17px 20px; background: linear-gradient(110deg, #fff0c9, #dcf5ef 54%, #e4edff); }
