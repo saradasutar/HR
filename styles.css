@@ -2490,6 +2490,56 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   }
 }
 
+/* Smaller two-line Employee directory cards v1.6.55 */
+#employeeTable tbody td {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.24;
+}
+
+#employeeTable .employee-name-column {
+  font-size: 15.5px;
+  line-height: 1.22;
+}
+
+#employeeTable .badge {
+  font-size: 11.5px;
+}
+
+#employeeTable td:not([data-column-key="Sl No."]):not([data-column-key="Mob"]):not([data-column-key="DoB"]):not([data-column-key="DoR"]):not([data-column-key="DoJ Govt"]):not([data-column-key="DoJ in Current Office"]):not([data-column-key="Relieving Date"]) .cell-text,
+#employeeTable td.long-text-dashboard-column .cell-text,
+#employeeTable td.long-text-dashboard-column .value-highlight {
+  display: -webkit-box;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+#employeeTable td.long-text-dashboard-column .value-highlight {
+  padding: 4px 7px;
+  line-height: 1.24;
+}
+
+#employeeTable tr:has(td.long-text-dashboard-column) td {
+  height: auto;
+  max-height: calc(2 * 1.24em + 10px);
+}
+
+@media (max-width: 620px) {
+  #employeeTable,
+  #employeeTable tbody td { font-size: 13.5px; }
+  #employeeTable .employee-name-column { font-size: 14.5px; }
+  #employeeTable .badge { font-size: 11px; }
+}
+
 /* Permanently visible filtered-directory scrolling v1.6.53 */
 .directory-scroll-shell {
   display: grid;
