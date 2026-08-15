@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260815-completed-work-archive-1650">
+  <link rel="stylesheet" href="styles.css?v=20260815-visible-saved-work-tools-1651">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.50 · Completed work archive</p>
+          <p class="build-version">Dashboard v1.6.51 · Visible saved views &amp; work tools</p>
         </form>
       </main>
     </div>
@@ -95,13 +95,14 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.50 · Completed work archive</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.51 · Visible saved views &amp; work tools</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
             <button id="printFilteredButton" class="soft-btn print-filter-btn" type="button">Print filtered list</button>
             <button id="chooseColumnsButton" class="soft-btn column-view-btn" type="button" title="Choose and arrange dashboard columns. Your selection is saved automatically on this device.">Choose columns</button>
             <button id="chooseFiltersButton" class="soft-btn filter-view-btn" type="button" title="Filter employees, select visible columns and save the view on this device.">Filter dashboard</button>
+            <button id="savedViewsButton" class="soft-btn saved-views-btn" type="button" title="Open, print or delete named filter views saved on this device.">Saved views · 0</button>
             <button id="saveOrderButton" class="soft-btn save-order-btn admin-only" type="button" title="Save the current filter and employee order on this device" hidden>Save order</button>
             <button id="resetOrderButton" class="soft-btn reset-order-btn admin-only" type="button" title="Remove the saved order for this filter" hidden>Reset order</button>
             <button id="manageColumnsButton" class="soft-btn column-manager-btn admin-only" type="button" title="Add or delete administrator-created employee columns">Manage columns</button>
@@ -261,10 +262,10 @@
       <div class="filter-view-body">
         <div class="filter-view-note"><strong id="filterViewSummary">No filters selected</strong><span>Leave any box unchanged when you do not want to filter by it.</span></div>
         <details id="savedFilterViewsPanel" class="saved-filter-views-panel">
-          <summary><span><strong>Saved filter views</strong><small>Click to show or hide your named views</small></span><b id="savedFilterViewCount">None saved</b></summary>
+          <summary><span><strong>Saved filter views</strong><small>Saved on this browser only · Incognito deletes them when closed</small></span><b id="savedFilterViewCount">None saved</b></summary>
           <div class="saved-filter-views-body">
             <div class="saved-filter-create"><label><span>Name this view</span><input id="savedFilterViewName" type="text" maxlength="60" placeholder="Example: Present Group B staff"></label><button id="saveNamedFilterViewButton" class="primary-btn" type="button">Save current choices</button></div>
-            <p id="savedFilterViewEmpty" class="saved-filter-view-empty">No named filter view saved yet. Choose filters and columns, enter a name, then save.</p>
+            <p id="savedFilterViewEmpty" class="saved-filter-view-empty">No named filter view exists in this browser. Choose filters and columns, enter a name, then save. Do not use Incognito if you want it available tomorrow.</p>
             <div id="savedFilterViewList" class="saved-filter-view-list" aria-label="Saved filter views"></div>
           </div>
         </details>
@@ -295,6 +296,10 @@
     <form id="employeeForm" method="dialog">
       <header class="modal-header"><div><p class="eyebrow accent">Employee record</p><h2 id="employeeDialogTitle">Add employee</h2></div><button class="modal-close" type="button" data-close-dialog="employeeDialog" aria-label="Close">×</button></header>
       <input id="originalEmployeeCode" type="hidden">
+      <div id="pendingWorkArchiveToolbar" class="pending-work-archive-toolbar">
+        <div><strong>Pending work</strong><small id="pendingWorkArchiveToolbarNote">Open the finished-work tool without searching below.</small></div>
+        <button id="pendingWorkArchiveButton" class="soft-btn pending-work-archive-btn" type="button">Move finished pending work</button>
+      </div>
       <div class="form-grid">
         <label><span>Employee name *</span><input id="fieldEmployeeName" required maxlength="100"></label>
         <label><span>Employee code *</span><input id="fieldEmployeeCode" required maxlength="30"></label>
@@ -365,6 +370,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260815-completed-work-archive-1650"></script>
+  <script src="app.js?v=20260815-visible-saved-work-tools-1651"></script>
 </body>
 </html>

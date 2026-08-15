@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.50",
+  FRONTEND_VERSION: "1.6.51",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -104,14 +104,14 @@ function init() {
     "lastUpdated", "displayName", "roleLabel", "userInitial", "statTotal", "statPresent",
     "statSensitive", "statNonSensitive", "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter",
     "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTable", "tableHead", "tableBody", "emptyState",
-    "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "chooseFiltersButton", "saveOrderButton", "resetOrderButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
+    "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "chooseFiltersButton", "savedViewsButton", "saveOrderButton", "resetOrderButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
     "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterPicker", "fieldFilterPickerSummary", "fieldFilterOptions", "applyFieldFilter", "clearFieldFilter",
     "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm",
     "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton",
     "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks",
     "fieldDoB", "fieldDoR", "fieldCategory", "fieldDoJGovt", "fieldDoJOffice", "fieldAddress",
     "fieldPostSensitivity", "fieldStrengthStatus", "fieldRelievingDate", "relievingDateHint",
-    "fieldMobile", "fieldEmail", "fieldAge", "customEmployeeFields", "pendingWorkArchiveSection", "pendingWorkArchiveSummary", "pendingWorkArchiveNote", "pendingWorkItemList", "moveCompletedWorkButton", "completedWorkHistoryDetails", "completedWorkHistoryCount", "completedWorkHistoryList", "loadingOverlay", "loadingText", "toastRegion",
+    "fieldMobile", "fieldEmail", "fieldAge", "customEmployeeFields", "pendingWorkArchiveToolbar", "pendingWorkArchiveToolbarNote", "pendingWorkArchiveButton", "pendingWorkArchiveSection", "pendingWorkArchiveSummary", "pendingWorkArchiveNote", "pendingWorkItemList", "moveCompletedWorkButton", "completedWorkHistoryDetails", "completedWorkHistoryCount", "completedWorkHistoryList", "loadingOverlay", "loadingText", "toastRegion",
     "employeeDetailsDialog", "detailsAvatar", "detailsEmployeeName", "detailsEmployeeSubtitle",
     "detailsStrengthStatus", "detailsPostSensitivity", "employeeDetailsContent", "detailsEditButton",
     "reportsButton", "reportDialog", "reportForm", "reportType", "reportReferenceField",
@@ -145,6 +145,7 @@ function init() {
   refs.printFilteredButton.addEventListener("click", openFilteredReport);
   refs.chooseColumnsButton.addEventListener("click", openDashboardColumnChooser);
   refs.chooseFiltersButton.addEventListener("click", openDashboardFilterChooser);
+  refs.savedViewsButton.addEventListener("click", openSavedFilterViews);
   refs.saveOrderButton.addEventListener("click", saveManualFilteredOrder);
   refs.resetOrderButton.addEventListener("click", resetManualFilteredOrder);
   refs.columnViewList.addEventListener("click", handleDashboardColumnOrder);
@@ -196,6 +197,7 @@ function init() {
   refs.fieldStrengthStatus.addEventListener("change", updateStrengthDateState);
   refs.customEmployeeFields.addEventListener("input", handleCustomEmployeeFieldInput);
   refs.pendingWorkItemList.addEventListener("change", updateMoveCompletedWorkButton);
+  refs.pendingWorkArchiveButton.addEventListener("click", openPendingWorkArchive);
   refs.moveCompletedWorkButton.addEventListener("click", moveSelectedWorkToCompleted);
   refs.changePasswordButton.addEventListener("click", () => refs.passwordDialog.showModal());
   refs.detailsEditButton.addEventListener("click", editSelectedEmployee);
@@ -214,6 +216,7 @@ function init() {
   refs.tableHead.addEventListener("input", handleHeaderLabelInput);
 
   buildTableHeader();
+  updateSavedViewsButton();
   if (state.token) restoreSession();
 }
 
@@ -842,7 +845,8 @@ function copySelectOptions(source, target, selectedValue) {
   setSavedSelectValue(target, selectedValue);
 }
 
-function openDashboardFilterChooser() {
+function openDashboardFilterChooser(options = {}) {
+  const showSavedViews = Boolean(options && options.showSavedViews);
   const current = currentDashboardFilterValues();
   showFilterViewError("");
   refs.filterViewSearch.value = current.search;
@@ -855,16 +859,37 @@ function openDashboardFilterChooser() {
   refs.filterViewSortDirection.value = current.sortDirection;
   renderColumnFilterRules(current.columnRules);
   refs.savedFilterViewName.value = "";
-  refs.savedFilterViewsPanel.open = false;
+  refs.savedFilterViewsPanel.open = showSavedViews;
   renderNamedFilterViews();
   updateFilterViewSummary();
   refs.filterViewDialog.showModal();
   refs.filterViewDialog.scrollTop = 0;
-  setTimeout(updateFilterScrollButtons, 0);
+  setTimeout(() => {
+    updateFilterScrollButtons();
+    if (showSavedViews) {
+      const firstSavedAction = refs.savedFilterViewList.querySelector('[data-saved-filter-action="open"]');
+      (firstSavedAction || refs.savedFilterViewName).focus({ preventScroll: true });
+    }
+  }, 0);
+}
+
+function openSavedFilterViews() {
+  openDashboardFilterChooser({ showSavedViews: true });
+}
+
+function updateSavedViewsButton() {
+  if (!refs.savedViewsButton) return;
+  const count = state.namedFilterViews.length;
+  refs.savedViewsButton.textContent = `Saved views · ${count}`;
+  refs.savedViewsButton.classList.toggle("has-saved-views", count > 0);
+  refs.savedViewsButton.setAttribute("aria-label", count
+    ? `Open ${count} saved filter view${count === 1 ? "" : "s"}`
+    : "Open saved filter views");
 }
 
 function renderNamedFilterViews() {
   const views = state.namedFilterViews.slice().sort((first, second) => (Number(second.savedAt) || 0) - (Number(first.savedAt) || 0));
+  updateSavedViewsButton();
   refs.savedFilterViewCount.textContent = views.length ? `${views.length} saved` : "None saved";
   refs.savedFilterViewEmpty.hidden = views.length > 0;
   refs.savedFilterViewList.innerHTML = views.map((view) => {
@@ -2222,6 +2247,12 @@ function renderPendingWorkArchiveTools(preserveOpen) {
   const pendingKey = pendingWorkColumnKey();
   const pendingField = customEmployeeField(pendingKey);
   const wasOpen = preserveOpen && refs.pendingWorkArchiveSection.open;
+  const available = Boolean(pendingKey && pendingField);
+  refs.pendingWorkArchiveButton.disabled = !available;
+  refs.pendingWorkArchiveButton.textContent = available ? "Move finished pending work" : "Pending Work column needed";
+  refs.pendingWorkArchiveToolbarNote.textContent = available
+    ? "Select finished items and move them into the dated completed history."
+    : "Use Manage columns once to add a column named Pending Work or Pending Works.";
   refs.pendingWorkArchiveSection.hidden = !pendingKey || !pendingField;
   if (!pendingKey || !pendingField) return;
   refs.pendingWorkArchiveSection.open = Boolean(wasOpen);
@@ -2238,6 +2269,19 @@ function renderPendingWorkArchiveTools(preserveOpen) {
   `).join("") : '<p class="pending-work-archive-empty">No unfinished work is recorded.</p>';
   renderCompletedWorkHistoryEditor();
   updateMoveCompletedWorkButton();
+  refs.pendingWorkArchiveButton.textContent = items.length
+    ? `Move finished work · ${items.length}`
+    : "Move finished pending work";
+}
+
+function openPendingWorkArchive() {
+  if (refs.pendingWorkArchiveButton.disabled || refs.pendingWorkArchiveSection.hidden) return;
+  refs.pendingWorkArchiveSection.open = true;
+  requestAnimationFrame(() => {
+    refs.pendingWorkArchiveSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    const firstPendingItem = refs.pendingWorkItemList.querySelector("[data-pending-work-index]");
+    if (firstPendingItem) firstPendingItem.focus({ preventScroll: true });
+  });
 }
 
 function renderCompletedWorkHistoryEditor() {

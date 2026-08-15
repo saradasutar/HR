@@ -2490,6 +2490,78 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   }
 }
 
+/* Permanently visible saved-view and pending-work shortcuts v1.6.51 */
+.saved-views-btn {
+  color: #3b2673 !important;
+  border-color: #a795d6 !important;
+  background: linear-gradient(135deg, #f3efff, #e9e2ff 52%, #e3f7f2) !important;
+  box-shadow: 0 5px 13px rgba(67,43,126,.12);
+}
+.saved-views-btn:hover,
+.saved-views-btn.has-saved-views {
+  color: #ffffff !important;
+  border-color: #5f449f !important;
+  background: linear-gradient(135deg, #51328f, #7658bd 58%, #168778) !important;
+  box-shadow: 0 7px 18px rgba(67,43,126,.24);
+}
+.pending-work-archive-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 12px 0;
+  padding: 8px 10px;
+  border: 1px solid #d5a269;
+  border-left: 5px solid #9c3b2f;
+  border-radius: 10px;
+  background: linear-gradient(105deg, #fff5e8, #f2f0ff 55%, #e8f8f4);
+  box-shadow: 0 5px 13px rgba(83,50,39,.08);
+}
+.pending-work-archive-toolbar > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.pending-work-archive-toolbar strong {
+  color: #7c251e;
+  font-size: 13px;
+  font-weight: 950;
+}
+.pending-work-archive-toolbar small {
+  color: #4e6872;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.3;
+}
+.pending-work-archive-btn {
+  flex: none;
+  min-height: 38px;
+  color: #ffffff !important;
+  border-color: #7a2e70 !important;
+  background: linear-gradient(135deg, #803667, #a64a78 52%, #156f79) !important;
+  box-shadow: 0 5px 13px rgba(94,40,82,.2);
+  font-size: 12px !important;
+  font-weight: 950 !important;
+  white-space: nowrap;
+}
+.pending-work-archive-btn:disabled {
+  color: #6c7478 !important;
+  border-color: #c8d1d3 !important;
+  background: #eef2f3 !important;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+@media (max-width: 620px) {
+  .pending-work-archive-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    margin: 7px 10px 0;
+  }
+  .pending-work-archive-btn { width: 100%; white-space: normal; }
+}
+
 /* Solid high-contrast dashboard headings v1.6.26 */
 .topbar-heading > strong {
   color: #fff8e7 !important;
