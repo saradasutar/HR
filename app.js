@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.60",
+  FRONTEND_VERSION: "1.6.61",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -144,7 +144,7 @@ function init() {
   refs.sensitivityFilter.addEventListener("change", applyFilterAndFocusDirectory);
   refs.clearFilters.addEventListener("click", clearFilters);
   refs.employeeTableWrap.addEventListener("scroll", updateDirectoryScrollButtons, { passive: true });
-  document.addEventListener("keydown", handleDirectoryKeyboardScroll);
+  refs.employeeTableWrap.addEventListener("keydown", handleDirectoryKeyboardScroll);
   refs.tableScrollUp.addEventListener("click", () => scrollEmployeeDirectory(-1));
   refs.tableScrollDown.addEventListener("click", () => scrollEmployeeDirectory(1));
   window.addEventListener("resize", debounce(updateDirectoryScrollButtons, 120));
@@ -1493,6 +1493,10 @@ function handleDirectoryKeyboardScroll(event) {
 
   const scroller = refs.employeeTableWrap;
   const rowStep = Math.max(42, Math.round(refs.tableBody.querySelector("tr.employee-row")?.getBoundingClientRect().height || 56));
+  const atTop = scroller.scrollTop <= 2;
+  const atBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2;
+  const atLeft = scroller.scrollLeft <= 2;
+  const atRight = scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 2;
   let handled = true;
   if (event.key === "ArrowDown" || event.key === "ArrowUp") {
     const rows = [...refs.tableBody.querySelectorAll("tr.employee-row")];
@@ -1501,25 +1505,35 @@ function handleDirectoryKeyboardScroll(event) {
     const activeIndex = rows.indexOf(activeRow);
     const nextRow = activeIndex >= 0 ? rows[activeIndex + direction] : null;
     if (nextRow) {
-      const horizontalPosition = scroller.scrollLeft;
       nextRow.focus({ preventScroll: true });
-      nextRow.scrollIntoView({ block: "nearest", inline: "nearest" });
-      scroller.scrollLeft = horizontalPosition;
+      revealEmployeeRowInsideDirectory(nextRow);
+    } else if ((direction < 0 && atTop) || (direction > 0 && atBottom)) {
+      window.scrollBy({ top: direction * rowStep, behavior: "auto" });
     } else {
       scroller.scrollBy({ top: direction * rowStep, behavior: "auto" });
     }
   } else if (event.key === "PageDown" || event.key === "PageUp") {
     const direction = event.key === "PageDown" ? 1 : -1;
-    scroller.scrollBy({ top: direction * Math.max(180, Math.round(scroller.clientHeight * .86)), behavior: "auto" });
+    const distance = Math.max(180, Math.round(scroller.clientHeight * .86));
+    if ((direction < 0 && atTop) || (direction > 0 && atBottom)) window.scrollBy({ top: direction * distance, behavior: "auto" });
+    else scroller.scrollBy({ top: direction * distance, behavior: "auto" });
   } else if (event.key === "Home") {
-    scroller.scrollTo({ top: 0, behavior: "auto" });
-    refs.tableBody.querySelector("tr.employee-row")?.focus({ preventScroll: true });
+    if (atTop) window.scrollTo({ top: 0, behavior: "auto" });
+    else {
+      scroller.scrollTo({ top: 0, behavior: "auto" });
+      refs.tableBody.querySelector("tr.employee-row")?.focus({ preventScroll: true });
+    }
   } else if (event.key === "End") {
-    scroller.scrollTo({ top: scroller.scrollHeight, behavior: "auto" });
-    const rows = refs.tableBody.querySelectorAll("tr.employee-row");
-    rows[rows.length - 1]?.focus({ preventScroll: true });
+    if (atBottom) window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "auto" });
+    else {
+      scroller.scrollTo({ top: scroller.scrollHeight, behavior: "auto" });
+      const rows = refs.tableBody.querySelectorAll("tr.employee-row");
+      rows[rows.length - 1]?.focus({ preventScroll: true });
+    }
   } else if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-    scroller.scrollBy({ left: event.key === "ArrowRight" ? 170 : -170, behavior: "auto" });
+    const direction = event.key === "ArrowRight" ? 1 : -1;
+    if ((direction < 0 && atLeft) || (direction > 0 && atRight)) handled = false;
+    else scroller.scrollBy({ left: direction * 170, behavior: "auto" });
   } else {
     handled = false;
   }
@@ -1527,6 +1541,18 @@ function handleDirectoryKeyboardScroll(event) {
   if (!handled) return;
   event.preventDefault();
   requestAnimationFrame(updateDirectoryScrollButtons);
+}
+
+function revealEmployeeRowInsideDirectory(row) {
+  if (!row || !refs.employeeTableWrap) return;
+  const scroller = refs.employeeTableWrap;
+  const rowRect = row.getBoundingClientRect();
+  const scrollerRect = scroller.getBoundingClientRect();
+  const headerRect = refs.tableHead?.getBoundingClientRect();
+  const visibleTop = Math.max(scrollerRect.top, Math.min(scrollerRect.bottom, headerRect?.bottom || scrollerRect.top));
+  const visibleBottom = scrollerRect.bottom;
+  if (rowRect.top < visibleTop + 2) scroller.scrollTop -= visibleTop + 2 - rowRect.top;
+  else if (rowRect.bottom > visibleBottom - 2) scroller.scrollTop += rowRect.bottom - visibleBottom + 2;
 }
 
 function focusFilteredDirectory() {
