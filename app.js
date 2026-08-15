@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.59",
+  FRONTEND_VERSION: "1.6.60",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -137,12 +137,14 @@ function init() {
   refs.logoutButton.addEventListener("click", logout);
   refs.refreshButton.addEventListener("click", () => loadEmployees(true));
   refs.globalSearch.addEventListener("input", debounce(applyFilters, 140));
-  refs.groupFilter.addEventListener("change", applyFilters);
-  refs.categoryFilter.addEventListener("change", applyFilters);
-  refs.statusFilter.addEventListener("change", applyFilters);
-  refs.sensitivityFilter.addEventListener("change", applyFilters);
+  refs.globalSearch.addEventListener("keydown", handleSearchKeyboardAccess);
+  refs.groupFilter.addEventListener("change", applyFilterAndFocusDirectory);
+  refs.categoryFilter.addEventListener("change", applyFilterAndFocusDirectory);
+  refs.statusFilter.addEventListener("change", applyFilterAndFocusDirectory);
+  refs.sensitivityFilter.addEventListener("change", applyFilterAndFocusDirectory);
   refs.clearFilters.addEventListener("click", clearFilters);
   refs.employeeTableWrap.addEventListener("scroll", updateDirectoryScrollButtons, { passive: true });
+  document.addEventListener("keydown", handleDirectoryKeyboardScroll);
   refs.tableScrollUp.addEventListener("click", () => scrollEmployeeDirectory(-1));
   refs.tableScrollDown.addEventListener("click", () => scrollEmployeeDirectory(1));
   window.addEventListener("resize", debounce(updateDirectoryScrollButtons, 120));
@@ -983,6 +985,7 @@ function applyNamedFilterView(view, printAfterOpening) {
   state.page = 1;
   refs.filterViewDialog.close();
   applyFilters();
+  focusFilteredDirectory();
   showToast(`Saved filter view “${view.name}” opened.`);
   if (printAfterOpening) setTimeout(openFilteredReport, 80);
 }
@@ -1148,6 +1151,7 @@ function applyDashboardFilterView() {
   state.page = 1;
   refs.filterViewDialog.close();
   applyFilters();
+  focusFilteredDirectory();
   const count = dashboardFilterCount(selected);
   showToast(count ? `${count} dashboard filter${count === 1 ? "" : "s"} saved. Filtered rows are ready for direct editing.` : "Default dashboard filters cleared. All employees are shown.");
 }
@@ -1480,6 +1484,68 @@ function updateDirectoryScrollButtons() {
   refs.tableScrollDown.disabled = !canScroll || scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2;
 }
 
+function handleDirectoryKeyboardScroll(event) {
+  if (!refs.employeeTableWrap || refs.dashboardView.hidden || !hasActiveDashboardFilter()) return;
+  if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+  if (document.querySelector("dialog[open]")) return;
+  const target = event.target instanceof Element ? event.target : null;
+  if (target && target.closest("input, select, textarea, button, [contenteditable='true']")) return;
+
+  const scroller = refs.employeeTableWrap;
+  const rowStep = Math.max(42, Math.round(refs.tableBody.querySelector("tr.employee-row")?.getBoundingClientRect().height || 56));
+  let handled = true;
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    const rows = [...refs.tableBody.querySelectorAll("tr.employee-row")];
+    const activeRow = target && target.closest("tr.employee-row");
+    const direction = event.key === "ArrowDown" ? 1 : -1;
+    const activeIndex = rows.indexOf(activeRow);
+    const nextRow = activeIndex >= 0 ? rows[activeIndex + direction] : null;
+    if (nextRow) {
+      const horizontalPosition = scroller.scrollLeft;
+      nextRow.focus({ preventScroll: true });
+      nextRow.scrollIntoView({ block: "nearest", inline: "nearest" });
+      scroller.scrollLeft = horizontalPosition;
+    } else {
+      scroller.scrollBy({ top: direction * rowStep, behavior: "auto" });
+    }
+  } else if (event.key === "PageDown" || event.key === "PageUp") {
+    const direction = event.key === "PageDown" ? 1 : -1;
+    scroller.scrollBy({ top: direction * Math.max(180, Math.round(scroller.clientHeight * .86)), behavior: "auto" });
+  } else if (event.key === "Home") {
+    scroller.scrollTo({ top: 0, behavior: "auto" });
+    refs.tableBody.querySelector("tr.employee-row")?.focus({ preventScroll: true });
+  } else if (event.key === "End") {
+    scroller.scrollTo({ top: scroller.scrollHeight, behavior: "auto" });
+    const rows = refs.tableBody.querySelectorAll("tr.employee-row");
+    rows[rows.length - 1]?.focus({ preventScroll: true });
+  } else if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+    scroller.scrollBy({ left: event.key === "ArrowRight" ? 170 : -170, behavior: "auto" });
+  } else {
+    handled = false;
+  }
+
+  if (!handled) return;
+  event.preventDefault();
+  requestAnimationFrame(updateDirectoryScrollButtons);
+}
+
+function focusFilteredDirectory() {
+  if (!refs.employeeTableWrap || !hasActiveDashboardFilter()) return;
+  requestAnimationFrame(() => refs.employeeTableWrap.focus({ preventScroll: true }));
+}
+
+function applyFilterAndFocusDirectory() {
+  applyFilters();
+  focusFilteredDirectory();
+}
+
+function handleSearchKeyboardAccess(event) {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  applyFilters();
+  focusFilteredDirectory();
+}
+
 function clearFilters() {
   refs.globalSearch.value = "";
   refs.groupFilter.value = "";
@@ -1638,7 +1704,7 @@ function renderTable() {
     : (total ? " · Click a row for full details" : "");
   refs.resultSummary.textContent = `${total} record${total === 1 ? "" : "s"}${state.search ? " matching search" : ""}${instruction}`;
   refs.pageInfo.textContent = total
-    ? `Showing all ${total} employee${total === 1 ? "" : "s"} · Use the visible ▲ ▼ buttons or scrollbar to view every row`
+    ? `Showing all ${total} employee${total === 1 ? "" : "s"} · After filtering, use keyboard arrows, Page Up/Down, Home or End to reach all rows and columns`
     : "Showing 0 employees";
   updateSaveOrderButtons();
   requestAnimationFrame(updateDirectoryScrollButtons);

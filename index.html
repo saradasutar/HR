@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260815-full-wrapped-table-values-1659">
+  <link rel="stylesheet" href="styles.css?v=20260815-filtered-keyboard-scroll-1660">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.59 · Complete wrapped employee data</p>
+          <p class="build-version">Dashboard v1.6.60 · Filtered keyboard scrolling</p>
         </form>
       </main>
     </div>
@@ -95,7 +95,7 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.59 · Full centred table text</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.60 · Four-way keyboard scrolling</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
@@ -137,7 +137,7 @@
         </div>
 
         <div class="directory-scroll-shell">
-          <div id="employeeTableWrap" class="table-wrap" tabindex="0" aria-label="Filtered employee directory. Scroll vertically to view every matching employee and horizontally to view all selected columns.">
+          <div id="employeeTableWrap" class="table-wrap" tabindex="0" aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight PageUp PageDown Home End" aria-label="Filtered employee directory. Use keyboard arrows, Page Up, Page Down, Home or End to reach every matching employee and selected column.">
             <table id="employeeTable">
               <thead><tr id="tableHead"></tr></thead>
               <tbody id="tableBody"></tbody>
@@ -152,7 +152,7 @@
 
         <footer class="table-footer">
           <span id="pageInfo">Showing 0 employees</span>
-          <span class="scroll-hint">Use the visible ▲ ▼ buttons or scrollbar · Swipe on mobile</span>
+          <span class="scroll-hint">Filtered view: ↑ ↓ rows · ← → columns · Page Up/Down · Home/End · Swipe on mobile</span>
         </footer>
       </section>
     </main>
@@ -393,6 +393,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260815-full-wrapped-table-values-1659"></script>
+  <script src="app.js?v=20260815-filtered-keyboard-scroll-1660"></script>
 </body>
 </html>
