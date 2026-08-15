@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260815-visible-saved-work-tools-1651">
+  <link rel="stylesheet" href="styles.css?v=20260815-filtered-row-work-archive-1652">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.51 · Visible saved views &amp; work tools</p>
+          <p class="build-version">Dashboard v1.6.52 · Finished work in filtered-row edit</p>
         </form>
       </main>
     </div>
@@ -95,7 +95,7 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.51 · Visible saved views &amp; work tools</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.52 · Finished work in filtered-row edit</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
@@ -340,6 +340,23 @@
     </form>
   </dialog>
 
+  <dialog id="inlineWorkDialog" class="modal inline-work-modal">
+    <div class="inline-work-sheet">
+      <header class="modal-header"><div><p class="eyebrow accent">Edit filtered row</p><h2>Move finished pending work</h2><p>Select completed items. The same filtered row will be updated when you choose Move selected.</p></div><button class="modal-close" type="button" data-close-dialog="inlineWorkDialog" aria-label="Close finished-work selection">×</button></header>
+      <div class="inline-work-body">
+        <div class="inline-work-person"><span>Employee</span><strong id="inlineWorkEmployeeName">Employee</strong></div>
+        <p id="inlineWorkNote">Select one or more finished work items.</p>
+        <div id="inlineWorkItemList" class="pending-work-item-list inline-work-item-list" aria-label="Finished work items"></div>
+        <details class="completed-work-history-details inline-work-history">
+          <summary><span>Existing completed history</span><b id="inlineWorkHistoryCount">0 hidden items</b></summary>
+          <div id="inlineWorkHistoryList" class="completed-work-history-list"></div>
+        </details>
+      </div>
+      <p id="inlineWorkError" class="form-error inline-work-error" role="alert"></p>
+      <footer class="modal-footer"><button class="soft-btn" type="button" data-close-dialog="inlineWorkDialog">Cancel</button><button id="inlineMoveWorkButton" class="primary-btn" type="button" disabled>✓ Move selected into completed</button></footer>
+    </div>
+  </dialog>
+
   <dialog id="columnManagerDialog" class="modal column-manager-modal">
     <form id="columnManagerForm" method="dialog">
       <header class="modal-header"><div><p class="eyebrow accent">Administrator control</p><h2>Manage employee columns</h2><p>Essential HR columns are protected. Add or delete your own custom columns here.</p></div><button class="modal-close" type="button" data-close-dialog="columnManagerDialog" aria-label="Close">×</button></header>
@@ -370,6 +387,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260815-visible-saved-work-tools-1651"></script>
+  <script src="app.js?v=20260815-filtered-row-work-archive-1652"></script>
 </body>
 </html>

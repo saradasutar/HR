@@ -2490,6 +2490,78 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   }
 }
 
+/* Finished-work control inside Edit filtered row v1.6.52 */
+#employeeTable .inline-actions {
+  min-width: 300px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  white-space: normal;
+}
+#employeeTable .row-action.inline-finished-work {
+  color: #ffffff;
+  border-color: #74376f;
+  background: linear-gradient(135deg, #8e3f72, #b9547f 55%, #177580);
+  box-shadow: 0 3px 9px rgba(95,42,83,.2);
+  font-weight: 950;
+}
+#employeeTable .row-action.inline-finished-work:hover,
+#employeeTable .row-action.inline-finished-work.has-work-draft {
+  color: #ffffff;
+  border-color: #116e62;
+  background: linear-gradient(135deg, #0e7769, #20a187);
+}
+.inline-work-modal {
+  width: min(720px, calc(100% - 28px));
+  max-height: min(88vh, 720px);
+  max-height: min(88dvh, 720px);
+  overflow: auto;
+  border: 1px solid #9fcfc9;
+  border-radius: 18px;
+  background: #f5fbfa;
+}
+.inline-work-sheet { min-height: 0; background: linear-gradient(145deg, #fbfffe, #f4f6ff); }
+.inline-work-modal .modal-header {
+  align-items: flex-start;
+  padding: 15px 18px;
+  background: linear-gradient(105deg, #e4f7f2, #eeeaff 58%, #fff0d8);
+}
+.inline-work-modal .modal-header h2 { font-size: 22px; font-weight: 950; }
+.inline-work-modal .modal-header p:last-child { max-width: 570px; margin: 3px 0 0; color: #506e79; font-size: 12px; font-weight: 850; line-height: 1.35; }
+.inline-work-body { display: grid; gap: 10px; padding: 13px 16px; }
+.inline-work-person {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 11px;
+  border: 1px solid #93c9c3;
+  border-left: 5px solid #167c73;
+  border-radius: 10px;
+  background: linear-gradient(100deg, #e7f8f4, #edf4ff);
+}
+.inline-work-person span { color: #4e6975; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; }
+.inline-work-person strong { color: #002f66; font-size: 16px; font-weight: 950; text-align: right; }
+.inline-work-body > p { margin: 0; color: #486773; font-size: 13px; font-weight: 850; line-height: 1.4; }
+.inline-work-item-list { max-height: 260px; overflow: auto; padding-right: 3px; scrollbar-color: #238b8e #e3efef; }
+.inline-work-history { margin-top: 2px; }
+.inline-work-error { min-height: 0; margin: 0 16px 6px; color: #a2221c; font-size: 12px; font-weight: 950; }
+.inline-work-modal .modal-footer { padding: 10px 16px; }
+.inline-work-modal .modal-footer button { min-height: 40px; font-size: 13px; font-weight: 950; }
+
+@media (max-width: 620px) {
+  #employeeTable .inline-actions { min-width: 230px; }
+  .inline-work-modal { width: calc(100% - 16px); max-height: 92dvh; border-radius: 14px; }
+  .inline-work-modal .modal-header { padding: 12px; }
+  .inline-work-modal .modal-header h2 { font-size: 19px; }
+  .inline-work-modal .modal-header p:last-child { font-size: 11px; }
+  .inline-work-body { padding: 11px; }
+  .inline-work-person { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .inline-work-person strong { font-size: 15px; text-align: left; }
+  .inline-work-modal .modal-footer { display: grid; grid-template-columns: 1fr; padding: 9px 11px; }
+  .inline-work-modal .modal-footer button { width: 100%; }
+}
+
 /* Permanently visible saved-view and pending-work shortcuts v1.6.51 */
 .saved-views-btn {
   color: #3b2673 !important;

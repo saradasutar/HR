@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.51",
+  FRONTEND_VERSION: "1.6.52",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -89,7 +89,8 @@ const state = {
   columnLabels: Object.assign({}, DEFAULT_COLUMN_LABELS),
   headerLabelsDirty: false,
   backendVersion: "",
-  backendMismatchNotified: false
+  backendMismatchNotified: false,
+  inlineWorkTargetCode: ""
 };
 
 const $ = (id) => document.getElementById(id);
@@ -111,7 +112,7 @@ function init() {
     "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks",
     "fieldDoB", "fieldDoR", "fieldCategory", "fieldDoJGovt", "fieldDoJOffice", "fieldAddress",
     "fieldPostSensitivity", "fieldStrengthStatus", "fieldRelievingDate", "relievingDateHint",
-    "fieldMobile", "fieldEmail", "fieldAge", "customEmployeeFields", "pendingWorkArchiveToolbar", "pendingWorkArchiveToolbarNote", "pendingWorkArchiveButton", "pendingWorkArchiveSection", "pendingWorkArchiveSummary", "pendingWorkArchiveNote", "pendingWorkItemList", "moveCompletedWorkButton", "completedWorkHistoryDetails", "completedWorkHistoryCount", "completedWorkHistoryList", "loadingOverlay", "loadingText", "toastRegion",
+    "fieldMobile", "fieldEmail", "fieldAge", "customEmployeeFields", "pendingWorkArchiveToolbar", "pendingWorkArchiveToolbarNote", "pendingWorkArchiveButton", "pendingWorkArchiveSection", "pendingWorkArchiveSummary", "pendingWorkArchiveNote", "pendingWorkItemList", "moveCompletedWorkButton", "completedWorkHistoryDetails", "completedWorkHistoryCount", "completedWorkHistoryList", "inlineWorkDialog", "inlineWorkEmployeeName", "inlineWorkNote", "inlineWorkItemList", "inlineWorkHistoryCount", "inlineWorkHistoryList", "inlineWorkError", "inlineMoveWorkButton", "loadingOverlay", "loadingText", "toastRegion",
     "employeeDetailsDialog", "detailsAvatar", "detailsEmployeeName", "detailsEmployeeSubtitle",
     "detailsStrengthStatus", "detailsPostSensitivity", "employeeDetailsContent", "detailsEditButton",
     "reportsButton", "reportDialog", "reportForm", "reportType", "reportReferenceField",
@@ -199,6 +200,9 @@ function init() {
   refs.pendingWorkItemList.addEventListener("change", updateMoveCompletedWorkButton);
   refs.pendingWorkArchiveButton.addEventListener("click", openPendingWorkArchive);
   refs.moveCompletedWorkButton.addEventListener("click", moveSelectedWorkToCompleted);
+  refs.inlineWorkItemList.addEventListener("change", updateInlineMoveWorkButton);
+  refs.inlineMoveWorkButton.addEventListener("click", moveInlineSelectedWork);
+  refs.inlineWorkDialog.addEventListener("close", () => { state.inlineWorkTargetCode = ""; });
   refs.changePasswordButton.addEventListener("click", () => refs.passwordDialog.showModal());
   refs.detailsEditButton.addEventListener("click", editSelectedEmployee);
   refs.fieldFilterOptions.addEventListener("change", updateFieldFilterPickerSummary);
@@ -1543,7 +1547,12 @@ function renderTable() {
     let actions = "";
     if (state.role === "admin") {
       if (isInlineEditing) {
-        actions = `<td class="admin-column" data-column-key="Actions"><div class="action-cell inline-actions"><button class="row-action save" data-action="inline-save" data-code="${escapeAttribute(originalCode)}">Save</button><button class="row-action" data-action="inline-cancel" data-code="${escapeAttribute(originalCode)}">Cancel</button></div></td>`;
+        const pendingKey = pendingWorkColumnKey();
+        const pendingCount = pendingKey ? pendingWorkItems(employee[pendingKey]).length : 0;
+        const moveFinishedAction = pendingKey
+          ? `<button class="row-action inline-finished-work" data-action="inline-work" data-code="${escapeAttribute(originalCode)}">Move finished${pendingCount ? ` · ${pendingCount}` : ""}</button>`
+          : "";
+        actions = `<td class="admin-column" data-column-key="Actions"><div class="action-cell inline-actions"><button class="row-action save" data-action="inline-save" data-code="${escapeAttribute(originalCode)}">Save</button>${moveFinishedAction}<button class="row-action" data-action="inline-cancel" data-code="${escapeAttribute(originalCode)}">Cancel</button></div></td>`;
       } else if (state.directEditEnabled || filteredRowEditing) {
         const manualOrderControls = filteredRowEditing
           ? `<span class="manual-order-controls" aria-label="Manually arrange this employee in the filtered list"><button class="row-action order-arrow" data-action="move-up" data-code="${escapeAttribute(originalCode)}" title="Move employee up" aria-label="Move ${employeeName} up"${rowIndex === 0 ? " disabled" : ""}>↑</button><button class="row-action order-arrow" data-action="move-down" data-code="${escapeAttribute(originalCode)}" title="Move employee down" aria-label="Move ${employeeName} down"${rowIndex === total - 1 ? " disabled" : ""}>↓</button></span>`
@@ -1998,6 +2007,7 @@ function handleTableAction(event) {
     if (button.dataset.action === "move-up") moveFilteredEmployee(button.dataset.code, -1);
     if (button.dataset.action === "move-down") moveFilteredEmployee(button.dataset.code, 1);
     if (button.dataset.action === "inline-edit") beginInlineEdit(employee);
+    if (button.dataset.action === "inline-work") openInlinePendingWork(employee, button.closest("tr"));
     if (button.dataset.action === "inline-save") saveInlineEmployee(button.dataset.code, button.closest("tr"), button);
     if (button.dataset.action === "inline-cancel") cancelInlineEdit();
     if (button.dataset.action === "edit") openEmployeeDialog(employee);
@@ -2049,6 +2059,108 @@ function handleInlineFieldChange(event) {
   if (field.dataset.inlineField === "DoB") {
     const age = row.querySelector('[data-inline-calculated="AGE"]');
     if (age) age.textContent = calculateAge(field.value) || "—";
+  }
+}
+
+function inlineEmployeeValue(row, employee, column) {
+  if (!column) return "";
+  const control = row && row.querySelector(`[data-inline-field="${cssEscape(column)}"]`);
+  return control ? String(control.value || "") : String(employee && employee[column] || "");
+}
+
+function setInlineEmployeeValue(row, column, value) {
+  if (!row || !column) return null;
+  let control = row.querySelector(`[data-inline-field="${cssEscape(column)}"]`);
+  if (!control) {
+    control = document.createElement("input");
+    control.type = "hidden";
+    control.dataset.inlineField = column;
+    (row.querySelector(".inline-actions") || row.lastElementChild || row).appendChild(control);
+  }
+  control.value = String(value || "");
+  if (control.classList.contains("inline-long-text")) {
+    control.style.height = "auto";
+    control.style.height = `${control.scrollHeight}px`;
+  }
+  return control;
+}
+
+function openInlinePendingWork(employee, row) {
+  const pendingKey = pendingWorkColumnKey();
+  if (!pendingKey || !row) {
+    showToast("Add a custom column named Pending Work or Pending Works first.", true);
+    return;
+  }
+  const items = pendingWorkItems(inlineEmployeeValue(row, employee, pendingKey));
+  const historyKey = completedWorkHistoryColumnKey();
+  const history = historyKey ? completedWorkHistoryItems(inlineEmployeeValue(row, employee, historyKey)) : [];
+  state.inlineWorkTargetCode = String(employee["Employee Code"] || "");
+  refs.inlineWorkEmployeeName.textContent = employee["Employee Name"] || state.inlineWorkTargetCode || "Employee";
+  refs.inlineWorkNote.textContent = items.length
+    ? "Tick every work item that is finished. It will be removed from Pending Works and added to the dated completed history."
+    : "No pending work item is currently entered in this row. Enter one item per line in Pending Works first.";
+  refs.inlineWorkItemList.innerHTML = items.length ? items.map((item, index) => `
+    <label class="pending-work-check-row">
+      <input type="checkbox" data-inline-pending-work-index="${index}">
+      <span>${escapeHtml(item)}</span>
+    </label>
+  `).join("") : '<p class="pending-work-archive-empty">No unfinished work is recorded in this row.</p>';
+  refs.inlineWorkHistoryCount.textContent = `${history.length} hidden item${history.length === 1 ? "" : "s"}`;
+  refs.inlineWorkHistoryList.innerHTML = history.length
+    ? `<ol>${history.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`
+    : '<p class="pending-work-archive-empty">No completed work has been archived.</p>';
+  refs.inlineWorkError.textContent = "";
+  updateInlineMoveWorkButton();
+  refs.inlineWorkDialog.showModal();
+}
+
+function updateInlineMoveWorkButton() {
+  const checked = refs.inlineWorkItemList.querySelectorAll("[data-inline-pending-work-index]:checked").length;
+  refs.inlineMoveWorkButton.disabled = checked === 0;
+  refs.inlineMoveWorkButton.textContent = checked
+    ? `✓ Move ${checked} selected into completed`
+    : "✓ Move selected into completed";
+}
+
+async function moveInlineSelectedWork() {
+  const code = state.inlineWorkTargetCode;
+  const employee = findEmployee(code);
+  const row = refs.tableBody.querySelector(`[data-employee-code="${cssEscape(code)}"]`);
+  const pendingKey = pendingWorkColumnKey();
+  const selectedIndexes = new Set([...refs.inlineWorkItemList.querySelectorAll("[data-inline-pending-work-index]:checked")].map((input) => Number(input.dataset.inlinePendingWorkIndex)));
+  if (!employee || !row || state.inlineEditCode !== code || !pendingKey || !selectedIndexes.size) {
+    refs.inlineWorkError.textContent = "The filtered row is no longer available. Close this window and choose Edit filtered row again.";
+    return;
+  }
+  setButtonBusy(refs.inlineMoveWorkButton, true, "Moving…");
+  refs.inlineWorkError.textContent = "";
+  try {
+    const historyKey = await ensureCompletedWorkHistoryColumn();
+    const items = pendingWorkItems(inlineEmployeeValue(row, employee, pendingKey));
+    const moved = items.filter((_item, index) => selectedIndexes.has(index));
+    const remaining = items.filter((_item, index) => !selectedIndexes.has(index));
+    if (!moved.length) throw new Error("Choose at least one current Pending Works item.");
+    const completionDate = formatDate(isoToday());
+    const newHistory = moved.map((item) => `Completed on ${completionDate} — ${item}`);
+    const existingHistory = completedWorkHistoryItems(inlineEmployeeValue(row, employee, historyKey));
+    const combinedHistory = newHistory.concat(existingHistory).join("\n");
+    if (combinedHistory.length > CUSTOM_FIELD_MAX_LENGTH) {
+      throw new Error(`Completed Work History can hold ${CUSTOM_FIELD_MAX_LENGTH} characters. Remove or export older history before moving more work.`);
+    }
+    setInlineEmployeeValue(row, pendingKey, remaining.join("\n"));
+    setInlineEmployeeValue(row, historyKey, combinedHistory);
+    const actionButton = row.querySelector('[data-action="inline-work"]');
+    if (actionButton) {
+      actionButton.textContent = `Moved ${moved.length} · Save row`;
+      actionButton.classList.add("has-work-draft");
+    }
+    refs.inlineWorkDialog.close();
+    showToast(`${moved.length} finished work item${moved.length === 1 ? "" : "s"} moved in this filtered row. Choose Save to keep the change.`);
+  } catch (error) {
+    refs.inlineWorkError.textContent = friendlyError(error);
+  } finally {
+    setButtonBusy(refs.inlineMoveWorkButton, false, "✓ Move selected into completed");
+    updateInlineMoveWorkButton();
   }
 }
 
