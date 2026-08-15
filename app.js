@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.53",
+  FRONTEND_VERSION: "1.6.54",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -1183,8 +1183,23 @@ function handleHeaderLabelInput(event) {
 async function saveHeaderLabels() {
   if (state.role !== "admin") return;
   const inputs = [...refs.tableHead.querySelectorAll("[data-header-key]")];
-  const columnLabels = {};
-  const used = new Set();
+  if (!inputs.length) {
+    showToast("No visible dashboard headings are available to edit.", true);
+    return;
+  }
+
+  // The backend stores one complete label map. A personal dashboard may show
+  // only a few columns, so preserve every hidden column label and replace only
+  // the headings that are currently visible in the table.
+  const visibleKeys = new Set(inputs.map((input) => input.dataset.headerKey));
+  const columnLabels = state.columns.reduce((labels, column) => {
+    labels[column] = columnLabel(column).trim() || DEFAULT_COLUMN_LABELS[column] || column;
+    return labels;
+  }, {});
+  const used = new Map();
+  state.columns.forEach((column) => {
+    if (!visibleKeys.has(column)) used.set(columnLabels[column].toLocaleLowerCase(), column);
+  });
   for (const input of inputs) {
     const label = input.value.trim();
     if (!label) {
@@ -1194,11 +1209,11 @@ async function saveHeaderLabels() {
     }
     const duplicateKey = label.toLocaleLowerCase();
     if (used.has(duplicateKey)) {
-      showToast("Each header name must be different.", true);
+      showToast(`Each header name must be different. “${label}” is already used by another column.`, true);
       input.focus();
       return;
     }
-    used.add(duplicateKey);
+    used.set(duplicateKey, input.dataset.headerKey);
     columnLabels[input.dataset.headerKey] = label;
   }
 
@@ -1208,7 +1223,7 @@ async function saveHeaderLabels() {
     applyColumnMetadata(response);
     state.columnLabels = Object.assign({}, DEFAULT_COLUMN_LABELS, response.columnLabels || columnLabels);
     state.headerLabelsDirty = false;
-    showToast("Dashboard header names saved for all users.");
+    showToast("Visible header names saved. Hidden column headings were preserved.");
     state.headerEditEnabled = false;
     buildTableHeader();
     updateHeaderEditButtons();
