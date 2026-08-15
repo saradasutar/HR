@@ -2490,12 +2490,23 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   }
 }
 
-/* v1.6.54 retained; only Employee directory action-card labels change in v1.6.57 */
+/* v1.6.54 retained; only Employee directory action-card labels change in v1.6.58 */
 .data-panel .panel-actions button {
-  font-size: 12.25px;
+  font-size: 12px;
   line-height: 1.14;
   text-align: center;
   white-space: normal;
+}
+
+.data-panel .panel-actions .action-card-label {
+  display: grid;
+  justify-items: center;
+  line-height: 1.14;
+}
+
+.data-panel .panel-actions .action-card-label > span {
+  display: block;
+  white-space: nowrap;
 }
 
 /* Permanently visible filtered-directory scrolling v1.6.53 */

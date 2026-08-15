@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.57",
+  FRONTEND_VERSION: "1.6.58",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -595,7 +595,7 @@ function isDashboardColumnCustomized() {
 function updateChooseColumnsButton() {
   if (!refs.chooseColumnsButton) return;
   const count = state.dashboardColumns.filter((column) => state.columns.includes(column)).length;
-  refs.chooseColumnsButton.textContent = count === state.columns.length ? "Choose columns · All" : `Choose columns · ${count}`;
+  setTwoLineActionLabel(refs.chooseColumnsButton, "Choose", count === state.columns.length ? "columns · All" : `columns · ${count}`);
 }
 
 function openDashboardColumnChooser() {
@@ -834,7 +834,7 @@ function updateSaveOrderButtons() {
   refs.saveOrderButton.classList.toggle("active", saved && state.savedOrderRestored);
   refs.resetOrderButton.hidden = state.role !== "admin" || !saved;
   const printingSavedOrder = saved && state.savedOrderRestored;
-  refs.printFilteredButton.textContent = printingSavedOrder ? "Print saved filter" : "Print filtered list";
+  setTwoLineActionLabel(refs.printFilteredButton, "Print", printingSavedOrder ? "saved filter" : "filtered list");
   refs.printFilteredButton.title = printingSavedOrder
     ? "Print the current saved filter in its restored employee order"
     : "Print the employees currently shown by the dashboard filter";
@@ -844,7 +844,7 @@ function updateSaveOrderButtons() {
 function updateChooseFiltersButton() {
   if (!refs.chooseFiltersButton || !refs.globalSearch) return;
   const count = dashboardFilterCount(currentDashboardFilterValues());
-  refs.chooseFiltersButton.textContent = count ? `Filters active · ${count}` : "Filter dashboard";
+  setTwoLineActionLabel(refs.chooseFiltersButton, count ? "Filters" : "Filter", count ? `active · ${count}` : "dashboard");
   refs.chooseFiltersButton.classList.toggle("active", count > 0);
 }
 
@@ -888,7 +888,7 @@ function openSavedFilterViews() {
 function updateSavedViewsButton() {
   if (!refs.savedViewsButton) return;
   const count = state.namedFilterViews.length;
-  refs.savedViewsButton.textContent = `Saved views · ${count}`;
+  setTwoLineActionLabel(refs.savedViewsButton, "Saved", `views · ${count}`);
   refs.savedViewsButton.classList.toggle("has-saved-views", count > 0);
   refs.savedViewsButton.setAttribute("aria-label", count
     ? `Open ${count} saved filter view${count === 1 ? "" : "s"}`
@@ -908,6 +908,18 @@ function renderNamedFilterViews() {
     return `<article class="saved-filter-view-card" data-saved-filter-view="${escapeAttribute(view.id)}"><button class="saved-filter-main" type="button" data-saved-filter-action="open"><strong>${escapeHtml(view.name)}</strong><small>${escapeHtml(summary)}</small></button><div class="saved-filter-actions"><button type="button" data-saved-filter-action="open">Open</button><button type="button" data-saved-filter-action="print">Print</button><button class="delete" type="button" data-saved-filter-action="delete">Delete</button></div></article>`;
   }).join("");
   setTimeout(updateFilterScrollButtons, 0);
+}
+
+function setTwoLineActionLabel(button, firstLine, secondLine) {
+  if (!button) return;
+  const label = document.createElement("span");
+  label.className = "action-card-label";
+  [firstLine, secondLine].forEach((text) => {
+    const line = document.createElement("span");
+    line.textContent = text;
+    label.appendChild(line);
+  });
+  button.replaceChildren(label);
 }
 
 function saveNamedFilterView() {

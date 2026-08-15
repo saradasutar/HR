@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260815-compact-action-card-labels-1657">
+  <link rel="stylesheet" href="styles.css?v=20260815-two-line-action-labels-1658">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.57 · Compact Employee directory action cards</p>
+          <p class="build-version">Dashboard v1.6.58 · Guaranteed two-line action labels</p>
         </form>
       </main>
     </div>
@@ -95,14 +95,14 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.57 · Compact action-card labels only</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.58 · Two-line action-card labels only</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
-            <button id="printFilteredButton" class="soft-btn print-filter-btn" type="button">Print filtered list</button>
-            <button id="chooseColumnsButton" class="soft-btn column-view-btn" type="button" title="Choose and arrange dashboard columns. Your selection is saved automatically on this device.">Choose columns</button>
-            <button id="chooseFiltersButton" class="soft-btn filter-view-btn" type="button" title="Filter employees, select visible columns and save the view on this device.">Filter dashboard</button>
-            <button id="savedViewsButton" class="soft-btn saved-views-btn" type="button" title="Open, print or delete named filter views saved on this device.">Saved views · 0</button>
+            <button id="printFilteredButton" class="soft-btn print-filter-btn" type="button"><span class="action-card-label"><span>Print</span><span>filtered list</span></span></button>
+            <button id="chooseColumnsButton" class="soft-btn column-view-btn" type="button" title="Choose and arrange dashboard columns. Your selection is saved automatically on this device."><span class="action-card-label"><span>Choose</span><span>columns</span></span></button>
+            <button id="chooseFiltersButton" class="soft-btn filter-view-btn" type="button" title="Filter employees, select visible columns and save the view on this device."><span class="action-card-label"><span>Filter</span><span>dashboard</span></span></button>
+            <button id="savedViewsButton" class="soft-btn saved-views-btn" type="button" title="Open, print or delete named filter views saved on this device."><span class="action-card-label"><span>Saved</span><span>views · 0</span></span></button>
             <button id="saveOrderButton" class="soft-btn save-order-btn admin-only" type="button" title="Save the current filter and employee order on this device" hidden>Save order</button>
             <button id="resetOrderButton" class="soft-btn reset-order-btn admin-only" type="button" title="Remove the saved order for this filter" hidden>Reset order</button>
             <button id="manageColumnsButton" class="soft-btn column-manager-btn admin-only" type="button" title="Add or delete administrator-created employee columns">Manage columns</button>
@@ -393,6 +393,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260815-compact-action-card-labels-1657"></script>
+  <script src="app.js?v=20260815-two-line-action-labels-1658"></script>
 </body>
 </html>
