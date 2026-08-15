@@ -2980,3 +2980,23 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   overflow-wrap: normal;
   word-break: normal;
 }
+
+/* v1.6.59 alignment correction only:
+   centre the headings; left-align and wrap Pending Works and Remark Admn data. */
+#employeeTable thead th.long-text-dashboard-column {
+  text-align: center !important;
+  vertical-align: middle;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+#employeeTable tbody td.long-text-dashboard-column,
+#employeeTable tbody td.long-text-dashboard-column .cell-text,
+#employeeTable tbody td.long-text-dashboard-column .value-highlight,
+#employeeTable tbody td.long-text-dashboard-column .pending-work-red-text {
+  text-align: left !important;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
