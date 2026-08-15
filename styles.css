@@ -2490,6 +2490,141 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   }
 }
 
+/* Permanently visible filtered-directory scrolling v1.6.53 */
+.directory-scroll-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54px;
+  align-items: stretch;
+  min-width: 0;
+  border-top: 1px solid #acd8dd;
+  border-bottom: 1px solid #acd8dd;
+  background: #eef9f8;
+}
+
+.directory-scroll-shell .table-wrap {
+  min-width: 0;
+  max-height: min(64vh, 720px);
+  overflow-x: scroll;
+  overflow-y: scroll !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable both-edges;
+  scrollbar-width: auto;
+  scrollbar-color: #087889 #dceff0;
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.directory-scroll-shell .table-wrap:focus-visible {
+  outline: 4px solid rgba(28, 132, 164, .3);
+  outline-offset: -4px;
+}
+
+.directory-scroll-shell .table-wrap::-webkit-scrollbar {
+  width: 15px;
+  height: 15px;
+}
+
+.directory-scroll-shell .table-wrap::-webkit-scrollbar-track {
+  background: #dceff0;
+  border: 1px solid #c1dfe2;
+}
+
+.directory-scroll-shell .table-wrap::-webkit-scrollbar-thumb {
+  min-height: 44px;
+  border: 3px solid #dceff0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #1497a5, #075b68);
+}
+
+.directory-scroll-shell .table-wrap::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #18aebb, #064b59);
+}
+
+.directory-scroll-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 6px;
+  border-left: 1px solid #acd8dd;
+  background: linear-gradient(180deg, #e9f8f7, #d9eeee);
+  box-shadow: inset 2px 0 rgba(255, 255, 255, .72);
+}
+
+.directory-scroll-controls button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  min-height: 52px;
+  padding: 5px 3px;
+  border: 1px solid #064f61;
+  border-radius: 12px;
+  color: #ffffff;
+  background: linear-gradient(145deg, #1195a4, #064f61);
+  box-shadow: 0 4px 10px rgba(6, 79, 97, .22), inset 0 1px rgba(255, 255, 255, .3);
+  cursor: pointer;
+}
+
+.directory-scroll-controls button span {
+  font-size: 18px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.directory-scroll-controls button small {
+  font-size: 10px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.directory-scroll-controls button:hover:not(:disabled) {
+  background: linear-gradient(145deg, #1cb0bc, #063f55);
+  transform: translateY(-1px);
+}
+
+.directory-scroll-controls button:focus-visible {
+  outline: 3px solid rgba(243, 166, 74, .72);
+  outline-offset: 2px;
+}
+
+.directory-scroll-controls button:disabled {
+  color: #758b94;
+  border-color: #b9ced1;
+  background: #e3eded;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: .72;
+}
+
+@media (max-width: 620px) {
+  .directory-scroll-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .directory-scroll-shell .table-wrap {
+    max-height: 66vh;
+  }
+
+  .directory-scroll-controls {
+    position: sticky;
+    bottom: 0;
+    z-index: 45;
+    flex-direction: row;
+    padding: 6px 8px;
+    border-top: 1px solid #acd8dd;
+    border-left: 0;
+  }
+
+  .directory-scroll-controls button {
+    width: min(132px, 42vw);
+    min-height: 42px;
+    grid-template-columns: auto auto;
+    justify-content: center;
+    gap: 7px;
+  }
+}
+
 /* Finished-work control inside Edit filtered row v1.6.52 */
 #employeeTable .inline-actions {
   min-width: 300px;

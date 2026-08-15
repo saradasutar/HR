@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.52",
+  FRONTEND_VERSION: "1.6.53",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -104,7 +104,7 @@ function init() {
     "rememberUsername", "loginButton", "loginError", "logoutButton", "refreshButton",
     "lastUpdated", "displayName", "roleLabel", "userInitial", "statTotal", "statPresent",
     "statSensitive", "statNonSensitive", "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter",
-    "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTable", "tableHead", "tableBody", "emptyState",
+    "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTableWrap", "employeeTable", "tableHead", "tableBody", "emptyState", "tableScrollUp", "tableScrollDown",
     "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "chooseFiltersButton", "savedViewsButton", "saveOrderButton", "resetOrderButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
     "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterPicker", "fieldFilterPickerSummary", "fieldFilterOptions", "applyFieldFilter", "clearFieldFilter",
     "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm",
@@ -142,6 +142,10 @@ function init() {
   refs.statusFilter.addEventListener("change", applyFilters);
   refs.sensitivityFilter.addEventListener("change", applyFilters);
   refs.clearFilters.addEventListener("click", clearFilters);
+  refs.employeeTableWrap.addEventListener("scroll", updateDirectoryScrollButtons, { passive: true });
+  refs.tableScrollUp.addEventListener("click", () => scrollEmployeeDirectory(-1));
+  refs.tableScrollDown.addEventListener("click", () => scrollEmployeeDirectory(1));
+  window.addEventListener("resize", debounce(updateDirectoryScrollButtons, 120));
   refs.exportButton.addEventListener("click", exportFilteredCsv);
   refs.printFilteredButton.addEventListener("click", openFilteredReport);
   refs.chooseColumnsButton.addEventListener("click", openDashboardColumnChooser);
@@ -1423,7 +1427,30 @@ function applyFilters() {
   updateStats();
   updateFieldFilterSummary();
   updateChooseFiltersButton();
+  resetDirectoryScrollPosition();
   renderTable();
+}
+
+function resetDirectoryScrollPosition() {
+  if (!refs.employeeTableWrap) return;
+  refs.employeeTableWrap.scrollTop = 0;
+  requestAnimationFrame(updateDirectoryScrollButtons);
+}
+
+function scrollEmployeeDirectory(direction) {
+  const scroller = refs.employeeTableWrap;
+  if (!scroller) return;
+  const distance = Math.max(180, Math.round(scroller.clientHeight * 0.72));
+  scroller.scrollBy({ top: direction * distance, behavior: "smooth" });
+  window.setTimeout(updateDirectoryScrollButtons, 280);
+}
+
+function updateDirectoryScrollButtons() {
+  const scroller = refs.employeeTableWrap;
+  if (!scroller || !refs.tableScrollUp || !refs.tableScrollDown) return;
+  const canScroll = scroller.scrollHeight > scroller.clientHeight + 2;
+  refs.tableScrollUp.disabled = !canScroll || scroller.scrollTop <= 2;
+  refs.tableScrollDown.disabled = !canScroll || scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2;
 }
 
 function clearFilters() {
@@ -1584,9 +1611,10 @@ function renderTable() {
     : (total ? " · Click a row for full details" : "");
   refs.resultSummary.textContent = `${total} record${total === 1 ? "" : "s"}${state.search ? " matching search" : ""}${instruction}`;
   refs.pageInfo.textContent = total
-    ? `Showing all ${total} employee${total === 1 ? "" : "s"} · Scroll inside the directory to view every row`
+    ? `Showing all ${total} employee${total === 1 ? "" : "s"} · Use the visible ▲ ▼ buttons or scrollbar to view every row`
     : "Showing 0 employees";
   updateSaveOrderButtons();
+  requestAnimationFrame(updateDirectoryScrollButtons);
 }
 
 function toggleDirectEdit() {

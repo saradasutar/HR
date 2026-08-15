@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260815-filtered-row-work-archive-1652">
+  <link rel="stylesheet" href="styles.css?v=20260815-visible-filtered-scroll-1653">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.52 · Finished work in filtered-row edit</p>
+          <p class="build-version">Dashboard v1.6.53 · Visible filtered-list scrolling</p>
         </form>
       </main>
     </div>
@@ -95,7 +95,7 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.52 · Finished work in filtered-row edit</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.53 · Visible filtered-list scrolling</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
@@ -136,17 +136,23 @@
           <button id="clearFieldFilter" class="soft-btn" type="button" disabled>Clear field filter</button>
         </div>
 
-        <div class="table-wrap">
-          <table id="employeeTable">
-            <thead><tr id="tableHead"></tr></thead>
-            <tbody id="tableBody"></tbody>
-          </table>
-          <div id="emptyState" class="empty-state" hidden><div>⌕</div><h3>No matching employee found</h3><p>Try a different name, code or filter.</p></div>
+        <div class="directory-scroll-shell">
+          <div id="employeeTableWrap" class="table-wrap" tabindex="0" aria-label="Filtered employee directory. Scroll vertically to view every matching employee and horizontally to view all selected columns.">
+            <table id="employeeTable">
+              <thead><tr id="tableHead"></tr></thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+            <div id="emptyState" class="empty-state" hidden><div>⌕</div><h3>No matching employee found</h3><p>Try a different name, code or filter.</p></div>
+          </div>
+          <nav class="directory-scroll-controls" aria-label="Employee directory scrolling controls">
+            <button id="tableScrollUp" type="button" aria-controls="employeeTableWrap" title="Scroll up through filtered employees" disabled><span aria-hidden="true">▲</span><small>Up</small></button>
+            <button id="tableScrollDown" type="button" aria-controls="employeeTableWrap" title="Scroll down through filtered employees" disabled><span aria-hidden="true">▼</span><small>Down</small></button>
+          </nav>
         </div>
 
         <footer class="table-footer">
           <span id="pageInfo">Showing 0 employees</span>
-          <span class="scroll-hint">↕ Scroll inside the directory</span>
+          <span class="scroll-hint">Use the visible ▲ ▼ buttons or scrollbar · Swipe on mobile</span>
         </footer>
       </section>
     </main>
@@ -387,6 +393,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260815-filtered-row-work-archive-1652"></script>
+  <script src="app.js?v=20260815-visible-filtered-scroll-1653"></script>
 </body>
 </html>
