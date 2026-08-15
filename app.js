@@ -4,7 +4,7 @@
 const CONFIG = Object.freeze({
   API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
-  FRONTEND_VERSION: "1.6.49",
+  FRONTEND_VERSION: "1.6.50",
   REQUIRED_BACKEND_VERSION: "1.6.1",
   REQUEST_TIMEOUT_MS: 45000
 });
@@ -26,6 +26,8 @@ const DEFAULT_COLUMN_LABELS = Object.freeze(Object.assign(CORE_COLUMNS.reduce((l
 
 const STRENGTH_STATUSES = Object.freeze(["Present", "Relieved", "Transferred", "Retired"]);
 const SENSITIVITY_VALUES = Object.freeze(["Sensitive", "Non-Sensitive"]);
+const COMPLETED_WORK_HISTORY_LABEL = "Completed Work History";
+const CUSTOM_FIELD_MAX_LENGTH = 500;
 const COLUMN_FILTER_OPERATORS = Object.freeze([
   { value: "contains", label: "Contains" },
   { value: "equals", label: "Is exactly" },
@@ -109,7 +111,7 @@ function init() {
     "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks",
     "fieldDoB", "fieldDoR", "fieldCategory", "fieldDoJGovt", "fieldDoJOffice", "fieldAddress",
     "fieldPostSensitivity", "fieldStrengthStatus", "fieldRelievingDate", "relievingDateHint",
-    "fieldMobile", "fieldEmail", "fieldAge", "customEmployeeFields", "loadingOverlay", "loadingText", "toastRegion",
+    "fieldMobile", "fieldEmail", "fieldAge", "customEmployeeFields", "pendingWorkArchiveSection", "pendingWorkArchiveSummary", "pendingWorkArchiveNote", "pendingWorkItemList", "moveCompletedWorkButton", "completedWorkHistoryDetails", "completedWorkHistoryCount", "completedWorkHistoryList", "loadingOverlay", "loadingText", "toastRegion",
     "employeeDetailsDialog", "detailsAvatar", "detailsEmployeeName", "detailsEmployeeSubtitle",
     "detailsStrengthStatus", "detailsPostSensitivity", "employeeDetailsContent", "detailsEditButton",
     "reportsButton", "reportDialog", "reportForm", "reportType", "reportReferenceField",
@@ -192,6 +194,9 @@ function init() {
   refs.employeeForm.addEventListener("submit", saveEmployee);
   refs.fieldDoB.addEventListener("change", updateCalculatedFields);
   refs.fieldStrengthStatus.addEventListener("change", updateStrengthDateState);
+  refs.customEmployeeFields.addEventListener("input", handleCustomEmployeeFieldInput);
+  refs.pendingWorkItemList.addEventListener("change", updateMoveCompletedWorkButton);
+  refs.moveCompletedWorkButton.addEventListener("click", moveSelectedWorkToCompleted);
   refs.changePasswordButton.addEventListener("click", () => refs.passwordDialog.showModal());
   refs.detailsEditButton.addEventListener("click", editSelectedEmployee);
   refs.fieldFilterOptions.addEventListener("change", updateFieldFilterPickerSummary);
@@ -391,7 +396,8 @@ function isLongDashboardTextColumn(column) {
 
 function visibleTableColumns() {
   const selected = state.dashboardColumns.filter((column) => state.columns.includes(column));
-  return frozenColumnsFirst(selected.length ? selected : state.columns);
+  const safeDefault = state.columns.filter((column) => !isCompletedWorkHistoryColumn(column));
+  return frozenColumnsFirst(selected.length ? selected : safeDefault);
 }
 
 function frozenColumnsFirst(columns) {
@@ -544,6 +550,20 @@ function isPendingWorkColumn(column) {
   return normalizedKey.includes("pending work") || normalizedLabel.includes("pending work");
 }
 
+function isCompletedWorkHistoryColumn(column) {
+  const normalizedKey = String(column || "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const normalizedLabel = String(columnLabel(column) || "").toLocaleLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return normalizedKey === "completed work history" || normalizedLabel === "completed work history";
+}
+
+function pendingWorkColumnKey() {
+  return state.columns.find((column) => isPendingWorkColumn(column)) || "";
+}
+
+function completedWorkHistoryColumnKey() {
+  return state.columns.find((column) => isCompletedWorkHistoryColumn(column)) || "";
+}
+
 function setSavedSelectValue(select, value) {
   const selected = String(value || "");
   select.value = [...select.options].some((option) => option.value === selected) ? selected : "";
@@ -551,7 +571,8 @@ function setSavedSelectValue(select, value) {
 
 function syncDashboardColumnPreference() {
   const valid = state.dashboardColumns.filter((column, index, values) => state.columns.includes(column) && values.indexOf(column) === index);
-  state.dashboardColumns = valid.length ? valid : state.columns.slice();
+  const defaultVisibleColumns = state.columns.filter((column) => !isCompletedWorkHistoryColumn(column));
+  state.dashboardColumns = valid.length ? valid : defaultVisibleColumns;
   updateChooseColumnsButton();
 }
 
@@ -2071,16 +2092,27 @@ function openEmployeeDetails(employee) {
   refs.detailsStrengthStatus.textContent = status;
   refs.detailsPostSensitivity.className = `badge sensitivity ${sensitivityClass(postSensitivity)}`;
   refs.detailsPostSensitivity.textContent = `Post: ${postSensitivity}`;
+  const completedHistoryKey = completedWorkHistoryColumnKey();
   const sections = DETAIL_SECTIONS.map((section) => ({ title: section.title, fields: section.fields.slice() }));
-  if (state.customColumns.length) sections.push({ title: "Additional information", fields: state.customColumns.map((column) => column.key) });
+  const ordinaryCustomFields = state.customColumns.map((column) => column.key).filter((column) => column !== completedHistoryKey);
+  if (ordinaryCustomFields.length) sections.push({ title: "Additional information", fields: ordinaryCustomFields });
+  const completedHistoryMarkup = completedHistoryKey ? completedWorkHistoryDetailsMarkup(employee[completedHistoryKey]) : "";
   refs.employeeDetailsContent.innerHTML = sections.map((section) => `
     <section class="detail-section">
       <h3>${escapeHtml(section.title)}</h3>
       <dl>${section.fields.map((field) => detailRow(field, employee[field])).join("")}</dl>
     </section>
-  `).join("");
+  `).join("") + completedHistoryMarkup;
   refs.detailsEditButton.hidden = state.role !== "admin";
   if (!refs.employeeDetailsDialog.open) refs.employeeDetailsDialog.showModal();
+}
+
+function completedWorkHistoryDetailsMarkup(value) {
+  const items = completedWorkHistoryItems(value);
+  const content = items.length
+    ? `<ol>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`
+    : '<p class="detail-empty">No completed work has been archived.</p>';
+  return `<details class="completed-work-profile"><summary><span>Completed work history</span><b>${items.length} hidden item${items.length === 1 ? "" : "s"}</b></summary><div>${content}</div></details>`;
 }
 
 function detailRow(field, rawValue) {
@@ -2144,16 +2176,131 @@ function openEmployeeDialog(employee) {
   refs.fieldEmail.value = item.Email || "";
   refs.fieldAge.value = item.AGE || "";
   renderCustomEmployeeFields(item);
+  renderPendingWorkArchiveTools();
   updateStrengthDateState();
   refs.employeeDialog.showModal();
   setTimeout(() => refs.fieldEmployeeName.focus(), 30);
 }
 
 function renderCustomEmployeeFields(employee) {
-  refs.customEmployeeFields.innerHTML = state.customColumns.map((column) => `
-    <label><span>${escapeHtml(columnLabel(column.key))}</span><input type="text" maxlength="500" data-custom-employee-field="${escapeAttribute(column.key)}" value="${escapeAttribute(employee[column.key] || "")}"></label>
-  `).join("");
-  refs.customEmployeeFields.closest(".custom-fields-section").hidden = state.customColumns.length === 0;
+  const visibleCustomColumns = state.customColumns.filter((column) => !isCompletedWorkHistoryColumn(column.key));
+  const visibleFields = visibleCustomColumns.map((column) => {
+    const value = employee[column.key] || "";
+    if (isPendingWorkColumn(column.key)) {
+      return `<label class="span-two pending-work-edit-field"><span>${escapeHtml(columnLabel(column.key))}</span><textarea rows="3" maxlength="${CUSTOM_FIELD_MAX_LENGTH}" data-custom-employee-field="${escapeAttribute(column.key)}" placeholder="Enter one pending work item per line">${escapeHtml(value)}</textarea><small>Keep each work item on a separate line so completed items can be moved individually.</small></label>`;
+    }
+    return `<label><span>${escapeHtml(columnLabel(column.key))}</span><input type="text" maxlength="${CUSTOM_FIELD_MAX_LENGTH}" data-custom-employee-field="${escapeAttribute(column.key)}" value="${escapeAttribute(value)}"></label>`;
+  }).join("");
+  const completedHistoryKey = completedWorkHistoryColumnKey();
+  const completedHistoryInput = completedHistoryKey
+    ? `<input type="hidden" maxlength="${CUSTOM_FIELD_MAX_LENGTH}" data-custom-employee-field="${escapeAttribute(completedHistoryKey)}" value="${escapeAttribute(employee[completedHistoryKey] || "")}">`
+    : "";
+  refs.customEmployeeFields.innerHTML = visibleFields + completedHistoryInput;
+  refs.customEmployeeFields.closest(".custom-fields-section").hidden = visibleCustomColumns.length === 0;
+}
+
+function pendingWorkItems(value) {
+  return String(value || "").split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
+}
+
+function completedWorkHistoryItems(value) {
+  return String(value || "").split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
+}
+
+function customEmployeeField(column) {
+  if (!column) return null;
+  return refs.customEmployeeFields.querySelector(`[data-custom-employee-field="${cssEscape(column)}"]`);
+}
+
+function handleCustomEmployeeFieldInput(event) {
+  const field = event.target.closest("[data-custom-employee-field]");
+  if (!field || !isPendingWorkColumn(field.dataset.customEmployeeField)) return;
+  renderPendingWorkArchiveTools(true);
+}
+
+function renderPendingWorkArchiveTools(preserveOpen) {
+  const pendingKey = pendingWorkColumnKey();
+  const pendingField = customEmployeeField(pendingKey);
+  const wasOpen = preserveOpen && refs.pendingWorkArchiveSection.open;
+  refs.pendingWorkArchiveSection.hidden = !pendingKey || !pendingField;
+  if (!pendingKey || !pendingField) return;
+  refs.pendingWorkArchiveSection.open = Boolean(wasOpen);
+  const items = pendingWorkItems(pendingField.value);
+  refs.pendingWorkArchiveSummary.textContent = items.length ? `${items.length} pending work item${items.length === 1 ? "" : "s"}` : "No pending work";
+  refs.pendingWorkArchiveNote.textContent = items.length
+    ? "Select finished items below. They will leave Pending Works and move into the dated hidden history when you save the employee."
+    : "Enter pending work above, keeping one item on each line.";
+  refs.pendingWorkItemList.innerHTML = items.length ? items.map((item, index) => `
+    <label class="pending-work-check-row">
+      <input type="checkbox" data-pending-work-index="${index}">
+      <span>${escapeHtml(item)}</span>
+    </label>
+  `).join("") : '<p class="pending-work-archive-empty">No unfinished work is recorded.</p>';
+  renderCompletedWorkHistoryEditor();
+  updateMoveCompletedWorkButton();
+}
+
+function renderCompletedWorkHistoryEditor() {
+  const historyKey = completedWorkHistoryColumnKey();
+  const historyField = customEmployeeField(historyKey);
+  const items = completedWorkHistoryItems(historyField ? historyField.value : "");
+  refs.completedWorkHistoryCount.textContent = `${items.length} hidden item${items.length === 1 ? "" : "s"}`;
+  refs.completedWorkHistoryList.innerHTML = items.length
+    ? `<ol>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`
+    : '<p class="pending-work-archive-empty">No completed work has been archived.</p>';
+}
+
+function updateMoveCompletedWorkButton() {
+  const checked = refs.pendingWorkItemList.querySelectorAll("[data-pending-work-index]:checked").length;
+  refs.moveCompletedWorkButton.disabled = checked === 0;
+  refs.moveCompletedWorkButton.textContent = checked ? `✓ Move ${checked} selected to completed` : "✓ Move selected to completed";
+}
+
+async function ensureCompletedWorkHistoryColumn() {
+  let key = completedWorkHistoryColumnKey();
+  if (key) return key;
+  const response = await apiRequest("addCustomColumn", { label: COMPLETED_WORK_HISTORY_LABEL });
+  applyColumnMetadata(response);
+  key = String(response.key || completedWorkHistoryColumnKey());
+  if (!key) throw new Error("Completed Work History could not be created.");
+  refs.customEmployeeFields.insertAdjacentHTML("beforeend", `<input type="hidden" maxlength="${CUSTOM_FIELD_MAX_LENGTH}" data-custom-employee-field="${escapeAttribute(key)}" value="">`);
+  state.dashboardColumns = state.dashboardColumns.filter((column) => state.columns.includes(column));
+  saveDashboardColumnPreference();
+  updateChooseColumnsButton();
+  return key;
+}
+
+async function moveSelectedWorkToCompleted() {
+  const pendingKey = pendingWorkColumnKey();
+  const pendingField = customEmployeeField(pendingKey);
+  const selectedIndexes = new Set([...refs.pendingWorkItemList.querySelectorAll("[data-pending-work-index]:checked")].map((input) => Number(input.dataset.pendingWorkIndex)));
+  if (!pendingField || !selectedIndexes.size) return;
+  setButtonBusy(refs.moveCompletedWorkButton, true, "Moving…");
+  refs.employeeFormError.textContent = "";
+  try {
+    const historyKey = await ensureCompletedWorkHistoryColumn();
+    const historyField = customEmployeeField(historyKey);
+    const items = pendingWorkItems(pendingField.value);
+    const moved = items.filter((_item, index) => selectedIndexes.has(index));
+    const remaining = items.filter((_item, index) => !selectedIndexes.has(index));
+    const completionDate = formatDate(isoToday());
+    const newHistory = moved.map((item) => `Completed on ${completionDate} — ${item}`);
+    const existingHistory = completedWorkHistoryItems(historyField ? historyField.value : "");
+    const combinedHistory = newHistory.concat(existingHistory).join("\n");
+    if (combinedHistory.length > CUSTOM_FIELD_MAX_LENGTH) {
+      throw new Error(`Completed Work History can hold ${CUSTOM_FIELD_MAX_LENGTH} characters. Remove or export older history before moving more work.`);
+    }
+    pendingField.value = remaining.join("\n");
+    historyField.value = combinedHistory;
+    renderPendingWorkArchiveTools(true);
+    refs.completedWorkHistoryDetails.open = false;
+    showToast(`${moved.length} work item${moved.length === 1 ? "" : "s"} moved to completed history. Choose Save employee to keep the change.`);
+  } catch (error) {
+    refs.employeeFormError.textContent = friendlyError(error);
+  } finally {
+    setButtonBusy(refs.moveCompletedWorkButton, false, "✓ Move selected to completed");
+    updateMoveCompletedWorkButton();
+  }
 }
 
 function setSelectValue(select, value) {

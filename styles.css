@@ -2257,6 +2257,114 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   #employeeTable td.long-text-dashboard-column { width: 150px; min-width: 150px; max-width: 180px; }
 }
 
+/* Completed pending-work archive v1.6.50 */
+.pending-work-edit-field textarea {
+  min-height: 76px;
+  color: #8f1717;
+  background: linear-gradient(135deg, #fffdf8, #fff7f3);
+  font-weight: 900;
+  line-height: 1.4;
+  resize: vertical;
+}
+.pending-work-edit-field small { color: #785f58; font-weight: 800; }
+.pending-work-archive-section {
+  margin: 8px 18px 10px;
+  overflow: hidden;
+  border: 2px solid #88c6c0;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #fbfffe, #f0f8ff);
+  box-shadow: 0 7px 18px rgba(23,93,101,.09);
+}
+.pending-work-archive-section[hidden] { display: none; }
+.pending-work-archive-section > summary {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 13px;
+  color: #073f55;
+  background: linear-gradient(105deg, #dff6f0, #e4f1ff 60%, #fff0d5);
+  cursor: pointer;
+  list-style: none;
+}
+.pending-work-archive-section > summary::-webkit-details-marker { display: none; }
+.pending-work-archive-section > summary::after {
+  content: "Open ▼";
+  flex: none;
+  padding: 5px 9px;
+  border: 1px solid #72b5af;
+  border-radius: 999px;
+  color: #075d68;
+  background: rgba(255,255,255,.8);
+  font-size: 11px;
+  font-weight: 950;
+}
+.pending-work-archive-section[open] > summary::after { content: "Close ▲"; }
+.pending-work-archive-section > summary span { min-width: 0; display: grid; gap: 2px; }
+.pending-work-archive-section > summary strong { color: #073e57; font-size: 14px; font-weight: 950; }
+.pending-work-archive-section > summary small { color: #526d78; font-size: 11.5px; font-weight: 800; }
+.pending-work-archive-section > summary > b {
+  margin-left: auto;
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: #8b241d;
+  background: #fff0e8;
+  font-size: 11.5px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+.pending-work-archive-body { display: grid; gap: 9px; padding: 11px; border-top: 1px solid #b9dcd7; }
+.pending-work-archive-body > p { margin: 0; color: #476875; font-size: 12px; font-weight: 850; line-height: 1.4; }
+.pending-work-item-list { display: grid; gap: 6px; }
+.pending-work-check-row {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 8px 10px;
+  border: 1px solid #e6b2a9;
+  border-left: 5px solid #c14a3d;
+  border-radius: 9px;
+  color: #851d18;
+  background: linear-gradient(100deg, #fff7f5, #fffdf9);
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 900;
+  line-height: 1.4;
+}
+.pending-work-check-row:has(input:checked) { color: #07584d; border-color: #75bcae; border-left-color: #13836f; background: #eaf8f4; }
+.pending-work-check-row input { width: 19px; height: 19px; flex: none; margin-top: 1px; accent-color: #11806f; }
+.pending-work-check-row span { min-width: 0; overflow-wrap: anywhere; }
+.pending-work-archive-empty { margin: 0; padding: 10px; border: 1px dashed #b8ced2; border-radius: 8px; color: #667b82; background: #fbfefe; font-size: 12px; font-weight: 800; text-align: center; }
+.move-completed-work-btn { justify-self: start; min-height: 42px; font-size: 13px; font-weight: 950; }
+.move-completed-work-btn:disabled { opacity: .58; cursor: not-allowed; }
+.completed-work-history-details { overflow: hidden; border: 1px solid #a99bd4; border-radius: 10px; background: #fbf9ff; }
+.completed-work-history-details > summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; color: #49347d; background: #efeaff; cursor: pointer; font-size: 12.5px; font-weight: 950; list-style: none; }
+.completed-work-history-details > summary::-webkit-details-marker { display: none; }
+.completed-work-history-details > summary::after { content: "Show ▼"; font-size: 10.5px; }
+.completed-work-history-details[open] > summary::after { content: "Hide ▲"; }
+.completed-work-history-details > summary b { margin-left: auto; padding: 4px 8px; border-radius: 999px; color: #315760; background: #ffffff; font-size: 10.5px; font-weight: 950; white-space: nowrap; }
+.completed-work-history-list { padding: 9px 11px; border-top: 1px solid #d8d0ec; }
+.completed-work-history-list ol { display: grid; gap: 6px; margin: 0; padding-left: 24px; color: #344f5d; font-size: 12.5px; font-weight: 850; line-height: 1.4; }
+.completed-work-profile { grid-column: 1 / -1; overflow: hidden; border: 1px solid #a99bd4; border-radius: 12px; background: #fbf9ff; }
+.completed-work-profile > summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; color: #3f2b76; background: linear-gradient(100deg, #eee8ff, #e8f7f3); cursor: pointer; font-size: 13px; font-weight: 950; list-style: none; }
+.completed-work-profile > summary::-webkit-details-marker { display: none; }
+.completed-work-profile > summary::after { content: "Show ▼"; font-size: 10.5px; }
+.completed-work-profile[open] > summary::after { content: "Hide ▲"; }
+.completed-work-profile > summary b { margin-left: auto; padding: 4px 8px; border-radius: 999px; color: #3f2b76; background: #fff; font-size: 10.5px; font-weight: 950; white-space: nowrap; }
+.completed-work-profile > div { padding: 10px 13px; border-top: 1px solid #d7cfea; }
+.completed-work-profile ol { display: grid; gap: 7px; margin: 0; padding-left: 24px; color: #294754; font-size: 13px; font-weight: 850; line-height: 1.45; }
+
+@media (max-width: 620px) {
+  .pending-work-archive-section { margin: 7px 10px 9px; }
+  .pending-work-archive-section > summary { align-items: flex-start; flex-wrap: wrap; padding: 9px 10px; }
+  .pending-work-archive-section > summary > b { margin-left: 0; }
+  .pending-work-archive-section > summary::after { margin-left: auto; }
+  .pending-work-check-row { font-size: 13px; }
+  .move-completed-work-btn { width: 100%; }
+}
+
 /* Frozen directory headings, serial number and employee name v1.6.30 */
 .table-wrap {
   position: relative;

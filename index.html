@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260814-named-filter-views-1649">
+  <link rel="stylesheet" href="styles.css?v=20260815-completed-work-archive-1650">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,7 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.49 · Named filter views</p>
+          <p class="build-version">Dashboard v1.6.50 · Completed work archive</p>
         </form>
       </main>
     </div>
@@ -95,7 +95,7 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.49 · Named filter views</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.50 · Completed work archive</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
@@ -318,6 +318,18 @@
         <div class="custom-fields-heading"><div><span>Additional information</span><small>Administrator-created employee columns</small></div></div>
         <div id="customEmployeeFields" class="form-grid custom-employee-fields"></div>
       </section>
+      <details id="pendingWorkArchiveSection" class="pending-work-archive-section" hidden>
+        <summary><span><strong>Move finished pending work</strong><small>Keep completed work safely hidden instead of deleting it</small></span><b id="pendingWorkArchiveSummary">No pending work</b></summary>
+        <div class="pending-work-archive-body">
+          <p id="pendingWorkArchiveNote">Select finished work items below.</p>
+          <div id="pendingWorkItemList" class="pending-work-item-list" aria-label="Pending work items"></div>
+          <button id="moveCompletedWorkButton" class="primary-btn move-completed-work-btn" type="button" disabled>✓ Move selected to completed</button>
+          <details id="completedWorkHistoryDetails" class="completed-work-history-details">
+            <summary><span>Completed work history</span><b id="completedWorkHistoryCount">0 hidden items</b></summary>
+            <div id="completedWorkHistoryList" class="completed-work-history-list"></div>
+          </details>
+        </div>
+      </details>
       <p id="employeeFormError" class="form-error" role="alert"></p>
       <footer class="modal-footer"><button class="soft-btn" type="button" data-close-dialog="employeeDialog">Cancel</button><button id="saveEmployeeButton" class="primary-btn" type="submit">Save employee</button></footer>
     </form>
@@ -353,6 +365,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260814-named-filter-views-1649"></script>
+  <script src="app.js?v=20260815-completed-work-archive-1650"></script>
 </body>
 </html>
