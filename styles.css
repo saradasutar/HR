@@ -2936,3 +2936,47 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
     filter: none;
   }
 }
+
+/* Full centred Employee directory values v1.6.59.
+   The two-line limit remains exclusive to the action cards above the table. */
+#employeeTable tbody td[data-column-key]:not([data-column-key="Actions"]) {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#employeeTable tbody td[data-column-key]:not([data-column-key="Actions"]) .cell-text,
+#employeeTable tbody td[data-column-key]:not([data-column-key="Actions"]) .value-highlight {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin-inline: auto;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  -webkit-box-orient: initial;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  text-align: center;
+}
+
+/* Keep serial, mobile and date values on one line as requested earlier. */
+#employeeTable tbody td[data-column-key="Sl No."] .cell-text,
+#employeeTable tbody td[data-column-key="Mob"] .cell-text,
+#employeeTable tbody td[data-column-key="DoB"] .cell-text,
+#employeeTable tbody td[data-column-key="DoR"] .cell-text,
+#employeeTable tbody td[data-column-key="DoJ Govt"] .cell-text,
+#employeeTable tbody td[data-column-key="DoJ in Current Office"] .cell-text,
+#employeeTable tbody td[data-column-key="Relieving Date"] .cell-text {
+  display: inline-block;
+  width: auto;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
