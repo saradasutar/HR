@@ -3000,3 +3000,64 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #d2efea; }
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+
+/* Device-saved drag-to-resize dashboard columns; v1.6.59 features remain intact. */
+#employeeTable thead th.resizable-column-header {
+  position: sticky;
+  padding-right: 16px;
+}
+
+#employeeTable .column-resize-handle {
+  position: absolute;
+  z-index: 60;
+  top: 5px;
+  right: -2px;
+  bottom: 5px;
+  width: 10px;
+  border-radius: 5px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+#employeeTable .column-resize-handle::after {
+  position: absolute;
+  top: 15%;
+  right: 4px;
+  bottom: 15%;
+  width: 2px;
+  border-radius: 2px;
+  background: rgba(255,255,255,.42);
+  content: "";
+  transition: background .15s ease, box-shadow .15s ease;
+}
+
+#employeeTable .column-resize-handle:hover::after,
+#employeeTable .column-resize-handle:focus-visible::after {
+  background: #ffd166;
+  box-shadow: 0 0 0 2px rgba(255,209,102,.28);
+}
+
+body.resizing-column,
+body.resizing-column * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+.column-width-reset-btn {
+  color: #194d64 !important;
+  border-color: #a8ced5 !important;
+  background: linear-gradient(145deg, #f1fcff, #daf2f5) !important;
+}
+
+.column-width-reset-btn:disabled {
+  color: #71848d !important;
+  border-color: #cbd7da !important;
+  background: #edf2f3 !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+  opacity: .72;
+}
+
+@media (max-width: 620px) {
+  #employeeTable .column-resize-handle { width: 14px; right: -4px; }
+}

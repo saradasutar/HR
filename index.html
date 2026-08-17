@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260815-long-text-alignment-1659">
+  <link rel="stylesheet" href="styles.css?v=20260817-resizable-columns-1659">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -95,12 +95,13 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.59 · Full centred table text</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+          <div><h2>Employee directory <span class="feature-version">v1.6.59 · Resizable wrapped columns</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
             <button id="printFilteredButton" class="soft-btn print-filter-btn" type="button"><span class="action-card-label"><span>Print</span><span>filtered list</span></span></button>
             <button id="chooseColumnsButton" class="soft-btn column-view-btn" type="button" title="Choose and arrange dashboard columns. Your selection is saved automatically on this device."><span class="action-card-label"><span>Choose</span><span>columns</span></span></button>
+            <button id="resetColumnWidthsButton" class="soft-btn column-width-reset-btn" type="button" title="Restore the original dashboard column widths" disabled><span class="action-card-label"><span>Reset</span><span>widths</span></span></button>
             <button id="chooseFiltersButton" class="soft-btn filter-view-btn" type="button" title="Filter employees, select visible columns and save the view on this device."><span class="action-card-label"><span>Filter</span><span>dashboard</span></span></button>
             <button id="savedViewsButton" class="soft-btn saved-views-btn" type="button" title="Open, print or delete named filter views saved on this device."><span class="action-card-label"><span>Saved</span><span>views · 0</span></span></button>
             <button id="saveOrderButton" class="soft-btn save-order-btn admin-only" type="button" title="Save the current filter and employee order on this device" hidden>Save order</button>
@@ -393,6 +394,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260815-full-wrapped-table-values-1659"></script>
+  <script src="app.js?v=20260817-resizable-columns-1659"></script>
 </body>
 </html>

@@ -28,6 +28,9 @@ const STRENGTH_STATUSES = Object.freeze(["Present", "Relieved", "Transferred", "
 const SENSITIVITY_VALUES = Object.freeze(["Sensitive", "Non-Sensitive"]);
 const COMPLETED_WORK_HISTORY_LABEL = "Completed Work History";
 const CUSTOM_FIELD_MAX_LENGTH = 500;
+const COLUMN_WIDTH_STORAGE_KEY = "hrDashboardColumnWidthsV159";
+const COLUMN_WIDTH_MIN = 48;
+const COLUMN_WIDTH_MAX = 480;
 const COLUMN_FILTER_OPERATORS = Object.freeze([
   { value: "contains", label: "Contains" },
   { value: "equals", label: "Is exactly" },
@@ -105,7 +108,7 @@ function init() {
     "lastUpdated", "displayName", "roleLabel", "userInitial", "statTotal", "statPresent",
     "statSensitive", "statNonSensitive", "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter",
     "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTableWrap", "employeeTable", "tableHead", "tableBody", "emptyState", "tableScrollUp", "tableScrollDown",
-    "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "chooseFiltersButton", "savedViewsButton", "saveOrderButton", "resetOrderButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
+    "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "resetColumnWidthsButton", "chooseFiltersButton", "savedViewsButton", "saveOrderButton", "resetOrderButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
     "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterPicker", "fieldFilterPickerSummary", "fieldFilterOptions", "applyFieldFilter", "clearFieldFilter",
     "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm",
     "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton",
@@ -149,6 +152,7 @@ function init() {
   refs.exportButton.addEventListener("click", exportFilteredCsv);
   refs.printFilteredButton.addEventListener("click", openFilteredReport);
   refs.chooseColumnsButton.addEventListener("click", openDashboardColumnChooser);
+  refs.resetColumnWidthsButton.addEventListener("click", resetAllColumnWidths);
   refs.chooseFiltersButton.addEventListener("click", openDashboardFilterChooser);
   refs.savedViewsButton.addEventListener("click", openSavedFilterViews);
   refs.saveOrderButton.addEventListener("click", saveManualFilteredOrder);
@@ -388,8 +392,130 @@ function buildTableHeader() {
     const visualClass = columnVisualClass(column);
     if (visualClass) th.classList.add(visualClass);
     if (isLongDashboardTextColumn(column)) th.classList.add("long-text-dashboard-column");
+    if (column !== "Actions") addColumnResizeHandle(th, column);
     refs.tableHead.appendChild(th);
   });
+  updateResetColumnWidthsButton();
+}
+
+function readSavedColumnWidths() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(COLUMN_WIDTH_STORAGE_KEY) || "{}");
+    if (!saved || typeof saved !== "object" || Array.isArray(saved)) return {};
+    return Object.fromEntries(Object.entries(saved).filter(([, width]) => Number.isFinite(Number(width))));
+  } catch {
+    return {};
+  }
+}
+
+function saveColumnWidth(column, width) {
+  const saved = readSavedColumnWidths();
+  saved[column] = Math.round(width);
+  localStorage.setItem(COLUMN_WIDTH_STORAGE_KEY, JSON.stringify(saved));
+  updateResetColumnWidthsButton();
+}
+
+function setColumnWidth(column, width) {
+  const safeWidth = Math.max(column === "Sl No." ? 48 : COLUMN_WIDTH_MIN, Math.min(COLUMN_WIDTH_MAX, Math.round(Number(width) || COLUMN_WIDTH_MIN)));
+  refs.employeeTable.querySelectorAll("[data-column-key]").forEach((cell) => {
+    if (cell.dataset.columnKey !== column) return;
+    cell.style.width = `${safeWidth}px`;
+    cell.style.minWidth = `${safeWidth}px`;
+    cell.style.maxWidth = `${safeWidth}px`;
+  });
+  if (column === "Sl No." && refs.employeeTable.classList.contains("has-frozen-serial")) {
+    refs.employeeTable.style.setProperty("--frozen-name-left", `${safeWidth}px`);
+  }
+  return safeWidth;
+}
+
+function applySavedColumnWidths() {
+  refs.employeeTable.style.removeProperty("--frozen-name-left");
+  const saved = readSavedColumnWidths();
+  Object.entries(saved).forEach(([column, width]) => setColumnWidth(column, width));
+  updateResetColumnWidthsButton();
+}
+
+function addColumnResizeHandle(th, column) {
+  th.classList.add("resizable-column-header");
+  const handle = document.createElement("span");
+  handle.className = "column-resize-handle";
+  handle.dataset.resizeColumn = column;
+  handle.tabIndex = 0;
+  handle.setAttribute("role", "separator");
+  handle.setAttribute("aria-orientation", "vertical");
+  handle.setAttribute("aria-label", `Resize ${columnLabel(column)} column`);
+  handle.title = "Drag to resize. Use Left/Right arrow for fine adjustment. Double-click to reset this column.";
+  handle.addEventListener("pointerdown", startColumnResize);
+  handle.addEventListener("keydown", resizeColumnWithKeyboard);
+  handle.addEventListener("click", (event) => event.stopPropagation());
+  handle.addEventListener("dblclick", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    resetOneColumnWidth(column);
+  });
+  th.appendChild(handle);
+}
+
+function startColumnResize(event) {
+  if (event.button !== 0 && event.pointerType !== "touch") return;
+  event.preventDefault();
+  event.stopPropagation();
+  const handle = event.currentTarget;
+  const th = handle.closest("th");
+  const column = handle.dataset.resizeColumn;
+  const startX = event.clientX;
+  const startWidth = th.getBoundingClientRect().width;
+  let currentWidth = startWidth;
+  document.body.classList.add("resizing-column");
+
+  const move = (moveEvent) => {
+    moveEvent.preventDefault();
+    currentWidth = setColumnWidth(column, startWidth + moveEvent.clientX - startX);
+  };
+  const finish = () => {
+    document.removeEventListener("pointermove", move);
+    document.removeEventListener("pointerup", finish);
+    document.removeEventListener("pointercancel", finish);
+    document.body.classList.remove("resizing-column");
+    saveColumnWidth(column, currentWidth);
+    showToast(`${columnLabel(column)} width saved.`);
+  };
+  document.addEventListener("pointermove", move, { passive: false });
+  document.addEventListener("pointerup", finish, { once: true });
+  document.addEventListener("pointercancel", finish, { once: true });
+}
+
+function resizeColumnWithKeyboard(event) {
+  if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+  event.preventDefault();
+  event.stopPropagation();
+  const column = event.currentTarget.dataset.resizeColumn;
+  const th = event.currentTarget.closest("th");
+  const step = event.shiftKey ? 25 : 10;
+  const direction = event.key === "ArrowRight" ? 1 : -1;
+  const width = setColumnWidth(column, th.getBoundingClientRect().width + direction * step);
+  saveColumnWidth(column, width);
+}
+
+function resetOneColumnWidth(column) {
+  const saved = readSavedColumnWidths();
+  delete saved[column];
+  localStorage.setItem(COLUMN_WIDTH_STORAGE_KEY, JSON.stringify(saved));
+  renderTable();
+  showToast(`${columnLabel(column)} width reset.`);
+}
+
+function resetAllColumnWidths() {
+  localStorage.removeItem(COLUMN_WIDTH_STORAGE_KEY);
+  refs.employeeTable.style.removeProperty("--frozen-name-left");
+  renderTable();
+  showToast("Original dashboard column widths restored.");
+}
+
+function updateResetColumnWidthsButton() {
+  if (!refs.resetColumnWidthsButton) return;
+  refs.resetColumnWidthsButton.disabled = Object.keys(readSavedColumnWidths()).length === 0;
 }
 
 function columnVisualClass(column) {
@@ -1624,6 +1750,7 @@ function renderTable() {
     field.style.height = "auto";
     field.style.height = `${field.scrollHeight}px`;
   });
+  applySavedColumnWidths();
 
   refs.emptyState.hidden = total !== 0;
   refs.employeeTable.hidden = total === 0;
