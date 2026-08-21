@@ -51,7 +51,10 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="build-version">Dashboard v1.6.59 · Complete wrapped employee data</p>
+          <div class="version-pair login-version-pair" aria-label="Application versions">
+            <span>Frontend <strong id="loginFrontendVersion">v1.6.59</strong></span>
+            <span>Backend <strong id="loginBackendVersion">Checking…</strong></span>
+          </div>
         </form>
       </main>
     </div>
@@ -74,6 +77,10 @@
             <button id="addEmployeeButton" class="primary-btn admin-only" type="button"><span aria-hidden="true">＋</span> Add employee</button>
           </div>
           <span id="lastUpdated" class="last-updated">Not yet refreshed</span>
+          <div class="version-pair dashboard-version-pair" aria-label="Application versions">
+            <span>FE <strong id="dashboardFrontendVersion">v1.6.59</strong></span>
+            <span>BE <strong id="dashboardBackendVersion">Checking…</strong></span>
+          </div>
           <button id="refreshButton" class="soft-btn" type="button" title="Refresh employee data">↻ <span>Refresh</span></button>
           <div class="user-chip">
             <span id="userInitial" class="avatar">A</span>

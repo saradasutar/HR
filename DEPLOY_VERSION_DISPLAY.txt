@@ -1,0 +1,24 @@
+HR Dashboard v1.6.59 — frontend and backend version display
+============================================================
+
+After this update, both the login page and the signed-in dashboard show:
+- Frontend version: v1.6.59
+- Backend version: read live from the deployed Apps Script
+
+BACKEND
+1. Replace the existing Apps Script Code.gs with apps-script/Code.gs.
+2. Save it.
+3. Choose Deploy > Manage deployments.
+4. Edit the existing deployment with the pencil icon.
+5. Choose New version and click Deploy.
+6. Keep Execute as Me and access set to Anyone.
+
+FRONTEND
+1. Upload and replace github-pages/index.html in the GitHub HR repository.
+2. Upload and replace github-pages/styles.css.
+3. Upload and replace github-pages/app.js.
+4. Wait about two minutes, then press Ctrl+Shift+R on the dashboard.
+
+The login page will show "Backend Not connected" until the corrected Code.gs
+is deployed. It will then show the actual backend version automatically.
+

@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", init);
 function init() {
   [
     "loginView", "dashboardView", "loginForm", "username", "password", "togglePassword",
-    "rememberUsername", "loginButton", "loginError", "logoutButton", "refreshButton",
+    "rememberUsername", "loginButton", "loginError", "loginFrontendVersion", "loginBackendVersion", "dashboardFrontendVersion", "dashboardBackendVersion", "logoutButton", "refreshButton",
     "lastUpdated", "displayName", "roleLabel", "userInitial", "statTotal", "statPresent",
     "statSensitive", "statNonSensitive", "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter",
     "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTableWrap", "employeeTable", "tableHead", "tableBody", "emptyState", "tableScrollUp", "tableScrollDown",
@@ -230,7 +230,32 @@ function init() {
 
   buildTableHeader();
   updateSavedViewsButton();
+  renderVersionLabels();
+  probeBackendVersion();
   if (state.token) restoreSession();
+}
+
+function renderVersionLabels() {
+  const frontend = `v${CONFIG.FRONTEND_VERSION}`;
+  const backend = state.backendVersion ? `v${state.backendVersion}` : "Not connected";
+  if (refs.loginFrontendVersion) refs.loginFrontendVersion.textContent = frontend;
+  if (refs.dashboardFrontendVersion) refs.dashboardFrontendVersion.textContent = frontend;
+  if (refs.loginBackendVersion) refs.loginBackendVersion.textContent = backend;
+  if (refs.dashboardBackendVersion) refs.dashboardBackendVersion.textContent = backend;
+}
+
+async function probeBackendVersion() {
+  if (!isApiConfigured()) {
+    renderVersionLabels();
+    return;
+  }
+  try {
+    const response = await apiRequest("getVersion", {}, false);
+    state.backendVersion = String(response.version || "").trim();
+  } catch {
+    state.backendVersion = "";
+  }
+  renderVersionLabels();
 }
 
 function togglePasswordVisibility() {
@@ -258,6 +283,8 @@ async function handleLogin(event) {
     state.role = response.role;
     state.displayName = response.displayName;
     state.username = response.username;
+    state.backendVersion = String(response.version || state.backendVersion || "").trim();
+    renderVersionLabels();
     sessionStorage.setItem("hrSessionToken", state.token);
     sessionStorage.setItem("hrRole", state.role);
     sessionStorage.setItem("hrDisplayName", state.displayName);
@@ -294,6 +321,7 @@ function showDashboard() {
   refs.displayName.textContent = state.displayName || state.username || "User";
   refs.roleLabel.textContent = state.role === "admin" ? "Administrator access" : "View-only access";
   refs.userInitial.textContent = (state.displayName || state.username || "U").charAt(0).toUpperCase();
+  renderVersionLabels();
   document.querySelectorAll(".admin-only").forEach((node) => { node.hidden = state.role !== "admin"; });
   if (state.role !== "admin") {
     state.directEditEnabled = false;
@@ -338,6 +366,7 @@ async function loadEmployees(isRefresh, allowAutomaticRetry = true) {
     state.columns = Array.isArray(response.columns) && response.columns.length ? response.columns.map(String) : CORE_COLUMNS.slice();
     state.customColumns = Array.isArray(response.customColumns) ? response.customColumns.filter((column) => column && column.key).map((column) => ({ key: String(column.key), label: String(column.label || column.key) })) : [];
     state.backendVersion = String(response.version || "").trim();
+    renderVersionLabels();
     state.columnLabels = Object.assign({}, DEFAULT_COLUMN_LABELS, response.columnLabels || {});
     state.headerLabelsDirty = false;
     state.page = 1;

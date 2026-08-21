@@ -1,0 +1,34 @@
+HR Dashboard v1.6.59 — SESSION_EXPIRED repair
+================================================
+
+What this repairs
+-----------------
+The old backend stored login sessions only in Apps Script CacheService. Google
+may remove those cache entries before their stated expiry time. Login could
+therefore succeed, but the next request for employee data returned
+SESSION_EXPIRED.
+
+The corrected Code.gs stores the session in Script Properties and uses cache
+only for speed. Dashboard v1.6.59 layout and employee data are unchanged.
+
+Deployment steps
+----------------
+1. Open the existing HR Dashboard Apps Script project.
+2. Open Code.gs, select all existing code, and paste the complete corrected
+   apps-script/Code.gs from this package.
+3. Click Save.
+4. Click Deploy > Manage deployments.
+5. Open the existing web-app deployment with the pencil (Edit) icon.
+6. Under Version, choose New version, then click Deploy.
+7. Keep "Execute as: Me" and access set to "Anyone".
+8. Return to https://saradasutar.github.io/HR/ and hard-refresh the page
+   (Ctrl+Shift+R on Windows/Chrome or Cmd+Shift+R on Mac).
+9. Sign in again.
+
+Important
+---------
+- Do NOT run setupHRDashboard().
+- Do NOT use Replace all data or Import CSV.
+- Do NOT delete or rename the Employees sheet.
+- Editing the existing deployment keeps the same /exec URL.
+
