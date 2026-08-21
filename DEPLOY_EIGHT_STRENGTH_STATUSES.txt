@@ -1,0 +1,24 @@
+HR Dashboard v1.6.59 — Eight Strength Status choices
+====================================================
+
+Available choices:
+- Present
+- Relieved
+- Transferred
+- Retired
+- Present Oth Off
+- Relieved Oth Off
+- Transferred Oth Off
+- Retired Oth Off
+
+Present and Present Oth Off are treated as active/present statuses. A relieving
+date is required for the other six statuses.
+
+Update both parts:
+1. Replace Apps Script Code.gs, save it, then edit the existing deployment and
+   deploy it as a New version.
+2. Replace index.html, styles.css and app.js in the GitHub HR repository.
+3. Wait about two minutes, then press Ctrl+Shift+R and sign in again.
+
+Do not run setupHRDashboard and do not replace employee data.
+

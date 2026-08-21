@@ -24,7 +24,10 @@ const DEFAULT_COLUMN_LABELS = Object.freeze(Object.assign(CORE_COLUMNS.reduce((l
   "Present/Permanent Address": "Present/Permanent"
 }));
 
-const STRENGTH_STATUSES = Object.freeze(["Present", "Relieved", "Transferred", "Retired"]);
+const STRENGTH_STATUSES = Object.freeze([
+  "Present", "Relieved", "Transferred", "Retired",
+  "Present Oth Off", "Relieved Oth Off", "Transferred Oth Off", "Retired Oth Off"
+]);
 const SENSITIVITY_VALUES = Object.freeze(["Sensitive", "Non-Sensitive"]);
 const COMPLETED_WORK_HISTORY_LABEL = "Completed Work History";
 const CUSTOM_FIELD_MAX_LENGTH = 500;
@@ -1907,7 +1910,7 @@ function renderInlineCell(employee, column, displaySequence) {
   const type = dateColumns.includes(column) ? "date" : column === "Email" ? "email" : column === "Mob" ? "tel" : "text";
   const value = type === "date" ? toIsoDate(raw) : raw;
   const required = ["Employee Name", "Employee Code"].includes(column) ? " required" : "";
-  const disabled = column === "Relieving Date" && strengthStatus(employee) === "Present" ? " disabled" : "";
+  const disabled = column === "Relieving Date" && isPresentStrengthStatus(strengthStatus(employee)) ? " disabled" : "";
   const maxLength = inlineMaxLength(column);
   const cellClasses = [];
   if (["REMARK ADMN", "Present/Permanent Address"].includes(column)) cellClasses.push("remarks-cell");
@@ -1941,9 +1944,9 @@ function inlineMaxLength(column) {
 
 function updateStats() {
   refs.statTotal.textContent = state.employees.length.toLocaleString("en-IN");
-  refs.statPresent.textContent = state.employees.filter((employee) => strengthStatus(employee) === "Present").length.toLocaleString("en-IN");
-  refs.statSensitive.textContent = state.employees.filter((employee) => strengthStatus(employee) === "Present" && sensitivityStatus(employee) === "Sensitive").length.toLocaleString("en-IN");
-  refs.statNonSensitive.textContent = state.employees.filter((employee) => strengthStatus(employee) === "Present" && sensitivityStatus(employee) === "Non-Sensitive").length.toLocaleString("en-IN");
+  refs.statPresent.textContent = state.employees.filter((employee) => isPresentStrengthStatus(strengthStatus(employee))).length.toLocaleString("en-IN");
+  refs.statSensitive.textContent = state.employees.filter((employee) => isPresentStrengthStatus(strengthStatus(employee)) && sensitivityStatus(employee) === "Sensitive").length.toLocaleString("en-IN");
+  refs.statNonSensitive.textContent = state.employees.filter((employee) => isPresentStrengthStatus(strengthStatus(employee)) && sensitivityStatus(employee) === "Non-Sensitive").length.toLocaleString("en-IN");
   refs.statGroupB.textContent = state.employees.filter((employee) => /(^|\s)b($|\s)/i.test(employee.Grp || "")).length.toLocaleString("en-IN");
   const now = new Date();
   const limit = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
@@ -2082,8 +2085,8 @@ function generateReport(event) {
       return Boolean(employeeDate && (!fromDate || employeeDate >= fromDate) && (!toDate || employeeDate <= toDate));
     }
     if (type === "strength") return !selectedValue || strengthStatus(employee) === selectedValue;
-    if (type === "sensitivity") return strengthStatus(employee) === "Present" && (!selectedValue || sensitivityStatus(employee) === selectedValue);
-    if (type === "not-present") return ["Relieved", "Transferred", "Retired"].includes(strengthStatus(employee));
+    if (type === "sensitivity") return isPresentStrengthStatus(strengthStatus(employee)) && (!selectedValue || sensitivityStatus(employee) === selectedValue);
+    if (type === "not-present") return !isPresentStrengthStatus(strengthStatus(employee)) && strengthStatus(employee) !== "Not set";
     if (type === "group") return !selectedValue || String(employee.Grp || "") === selectedValue;
     if (type === "category") return !selectedValue || String(employee.Cat || "") === selectedValue;
     if (type === "designation") return !textValue || String(employee.Designation || "").toLocaleLowerCase().includes(textValue);
@@ -2304,7 +2307,7 @@ function handleInlineFieldChange(event) {
   if (field.dataset.inlineField === "Strength Status") {
     const relievingDate = row.querySelector('[data-inline-field="Relieving Date"]');
     if (relievingDate) {
-      const needsDate = field.value !== "Present";
+      const needsDate = !isPresentStrengthStatus(field.value);
       relievingDate.disabled = !needsDate;
       relievingDate.required = needsDate;
       if (!needsDate) relievingDate.value = "";
@@ -2438,9 +2441,9 @@ async function saveInlineEmployee(originalEmployeeCode, row, button) {
     showToast("Employee name and employee code are required.", true);
     return;
   }
-  if (employee["Strength Status"] === "Present") employee["Relieving Date"] = "";
-  if (employee["Strength Status"] !== "Present" && !employee["Relieving Date"]) {
-    showToast("Relieving date is required for relieved, transferred or retired employees.", true);
+  if (isPresentStrengthStatus(employee["Strength Status"])) employee["Relieving Date"] = "";
+  if (!isPresentStrengthStatus(employee["Strength Status"]) && !employee["Relieving Date"]) {
+    showToast("Relieving date is required for relieved, transferred or retired employees, including Other Office statuses.", true);
     const relievingDate = row.querySelector('[data-inline-field="Relieving Date"]');
     if (relievingDate) relievingDate.focus();
     return;
@@ -2729,11 +2732,11 @@ function updateCalculatedFields() {
 
 function updateStrengthDateState() {
   const status = refs.fieldStrengthStatus.value;
-  const needsDate = Boolean(status && status !== "Present");
+  const needsDate = Boolean(status && !isPresentStrengthStatus(status));
   refs.fieldRelievingDate.disabled = !needsDate;
   refs.fieldRelievingDate.required = needsDate;
   if (!needsDate) refs.fieldRelievingDate.value = "";
-  refs.relievingDateHint.textContent = needsDate ? "Required for relieved, transferred or retired staff" : "Enabled when the employee is no longer in present strength";
+  refs.relievingDateHint.textContent = needsDate ? "Required for relieved, transferred or retired staff, including Other Office statuses" : "Not required for Present or Present Oth Off";
 }
 
 async function saveEmployee(event) {
@@ -2994,6 +2997,7 @@ function versionAtLeast(actual, required) {
 function calculateAge(value) { const age = ageOnDate(value, new Date()); return age == null ? "" : String(age); }
 function calculateGovernmentRetirement(value) { const dob = parseDate(value); if (!dob) return ""; const year = dob.getFullYear() + 60; const month = dob.getMonth(); const date = dob.getDate() === 1 ? new Date(year, month, 0) : new Date(year, month + 1, 0); return toIsoLocal(date); }
 function strengthStatus(employee) { return String(employee && employee["Strength Status"] || "").trim() || "Not set"; }
+function isPresentStrengthStatus(value) { return ["Present", "Present Oth Off"].includes(String(value || "").trim()); }
 function strengthClass(value) { return String(value || "").toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "") || "not-set"; }
 function sensitivityStatus(employee) { return String(employee && employee["Post Sensitivity"] || "").trim() || "Not set"; }
 function sensitivityClass(value) { return String(value || "").toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "") || "not-set"; }

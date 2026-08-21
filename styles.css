@@ -418,6 +418,10 @@ tbody tr:nth-child(even):hover td:nth-child(2) { background: #e9f8f5; }
 .badge.strength.relieved { color: #a2403a; border-color: #f0bbb5; background: #fff0ee; }
 .badge.strength.transferred { color: #9a5a16; border-color: #f2cc98; background: #fff5df; }
 .badge.strength.retired { color: #6545a1; border-color: #cfc1ed; background: #f2edfc; }
+.badge.strength.present-oth-off { color: #075985; border-color: #9dd2ed; background: #e3f5ff; }
+.badge.strength.relieved-oth-off { color: #9f1239; border-color: #f3b4c5; background: #fff0f4; }
+.badge.strength.transferred-oth-off { color: #854d0e; border-color: #e9c878; background: #fff8d8; }
+.badge.strength.retired-oth-off { color: #5b21b6; border-color: #cbb8ef; background: #f4efff; }
 .badge.strength.not-set { color: #5f6f78; border-color: #d4dfe3; background: #f2f6f7; }
 .badge.sensitivity { border: 1px solid transparent; white-space: nowrap; }
 .badge.sensitivity.sensitive { color: #9f2f38; border-color: #efadb4; background: #fff0f1; }
