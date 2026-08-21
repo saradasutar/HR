@@ -2455,9 +2455,18 @@ function openEmployeeDetails(employee) {
   refs.detailsPostSensitivity.className = `badge sensitivity ${sensitivityClass(postSensitivity)}`;
   refs.detailsPostSensitivity.textContent = `Post: ${postSensitivity}`;
   const completedHistoryKey = completedWorkHistoryColumnKey();
-  const sections = DETAIL_SECTIONS.map((section) => ({ title: section.title, fields: section.fields.slice() }));
-  const ordinaryCustomFields = state.customColumns.map((column) => column.key).filter((column) => column !== completedHistoryKey);
-  if (ordinaryCustomFields.length) sections.push({ title: "Additional information", fields: ordinaryCustomFields });
+  // The dashboard grid may intentionally show only a selected subset, but the
+  // employee profile must always show every backend column. Build the profile
+  // from state.columns rather than state.dashboardColumns so blank and newly
+  // added fields are not hidden by the Personal dashboard view.
+  const profileColumns = state.columns.filter((column, index, columns) => column !== completedHistoryKey && columns.indexOf(column) === index);
+  const sections = DETAIL_SECTIONS.map((section) => ({
+    title: section.title,
+    fields: section.fields.filter((field) => profileColumns.includes(field))
+  })).filter((section) => section.fields.length);
+  const groupedFields = new Set(sections.flatMap((section) => section.fields));
+  const additionalFields = profileColumns.filter((column) => !groupedFields.has(column));
+  if (additionalFields.length) sections.push({ title: "Additional information", fields: additionalFields });
   const completedHistoryMarkup = completedHistoryKey ? completedWorkHistoryDetailsMarkup(employee[completedHistoryKey]) : "";
   refs.employeeDetailsContent.innerHTML = sections.map((section) => `
     <section class="detail-section">
@@ -2498,13 +2507,8 @@ function detailRow(field, rawValue) {
 }
 
 function detailLabel(field) {
-  const labels = {
-    "Sl No.": "Serial number", "Grp": "Group", "Cat": "Category", "REMARK ADMN": "Administration remarks",
-    "DoB": "Date of birth", "DoR": "Date of retirement", "DoJ Govt": "Date of joining Government",
-    "DoJ in Current Office": "Date of joining current office", "Present/Permanent Address": "Present / permanent address",
-    "Mob": "Mobile", "AGE": "Age", "Relieving Date": "Relieving / exit date"
-  };
-  return labels[field] || columnLabel(field) || field;
+  // Use the same saved/custom header text as the dashboard table.
+  return columnLabel(field) || field;
 }
 
 function editSelectedEmployee() {
