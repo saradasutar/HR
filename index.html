@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260817-resizable-columns-1659">
+  <link rel="stylesheet" href="styles.css?v=20260821-data-recovery-1659">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -135,6 +135,11 @@
           <div class="field-filter-control"><span>Fields / subjects</span><details id="fieldFilterPicker" class="field-filter-picker"><summary id="fieldFilterPickerSummary">Choose columns…</summary><div id="fieldFilterOptions" class="field-filter-options" aria-label="Select one or more filled employee fields"></div></details></div>
           <button id="applyFieldFilter" class="primary-btn" type="button">Apply &amp; edit</button>
           <button id="clearFieldFilter" class="soft-btn" type="button" disabled>Clear field filter</button>
+        </div>
+
+        <div id="dataLoadStatus" class="data-load-status" role="status" aria-live="polite" hidden>
+          <div><strong id="dataLoadStatusTitle">Employee data status</strong><span id="dataLoadStatusMessage"></span></div>
+          <button id="retryEmployeeLoadButton" type="button">Retry loading data</button>
         </div>
 
         <div class="directory-scroll-shell">
@@ -394,6 +399,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260817-resizable-columns-1659"></script>
+  <script src="app.js?v=20260821-data-recovery-1659"></script>
 </body>
 </html>

@@ -3061,3 +3061,41 @@ body.resizing-column * {
 @media (max-width: 620px) {
   #employeeTable .column-resize-handle { width: 14px; right: -4px; }
 }
+
+/* Visible employee-data recovery message; retains the v1.6.59 layout. */
+.data-load-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 10px 18px;
+  padding: 11px 13px;
+  border: 2px solid #d69a35;
+  border-radius: 12px;
+  color: #593400;
+  background: linear-gradient(100deg, #fff6d8, #fffaf0);
+  box-shadow: 0 5px 14px rgba(120,76,10,.1);
+}
+
+.data-load-status[hidden] { display: none !important; }
+.data-load-status > div { min-width: 0; display: grid; gap: 3px; }
+.data-load-status strong { font-size: 14px; font-weight: 950; }
+.data-load-status span { font-size: 12.5px; font-weight: 800; line-height: 1.35; }
+.data-load-status.error { color: #7b1e18; border-color: #d7584e; background: linear-gradient(100deg, #fff0ed, #fff8f6); }
+.data-load-status button {
+  flex: none;
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1px solid #087a87;
+  border-radius: 9px;
+  color: #fff;
+  background: linear-gradient(135deg, #087f91, #0b988d);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+@media (max-width: 620px) {
+  .data-load-status { align-items: stretch; flex-direction: column; margin: 8px 10px; }
+  .data-load-status button { width: 100%; }
+}

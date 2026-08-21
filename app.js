@@ -109,7 +109,7 @@ function init() {
     "statSensitive", "statNonSensitive", "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter",
     "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTableWrap", "employeeTable", "tableHead", "tableBody", "emptyState", "tableScrollUp", "tableScrollDown",
     "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "resetColumnWidthsButton", "chooseFiltersButton", "savedViewsButton", "saveOrderButton", "resetOrderButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton",
-    "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterPicker", "fieldFilterPickerSummary", "fieldFilterOptions", "applyFieldFilter", "clearFieldFilter",
+    "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterPicker", "fieldFilterPickerSummary", "fieldFilterOptions", "applyFieldFilter", "clearFieldFilter", "dataLoadStatus", "dataLoadStatusTitle", "dataLoadStatusMessage", "retryEmployeeLoadButton",
     "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm",
     "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton",
     "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks",
@@ -138,13 +138,14 @@ function init() {
   refs.loginForm.addEventListener("submit", handleLogin);
   refs.togglePassword.addEventListener("click", togglePasswordVisibility);
   refs.logoutButton.addEventListener("click", logout);
-  refs.refreshButton.addEventListener("click", () => loadEmployees(true));
+  refs.refreshButton.addEventListener("click", () => loadEmployees(true).catch(() => {}));
   refs.globalSearch.addEventListener("input", debounce(applyFilters, 140));
   refs.groupFilter.addEventListener("change", applyFilters);
   refs.categoryFilter.addEventListener("change", applyFilters);
   refs.statusFilter.addEventListener("change", applyFilters);
   refs.sensitivityFilter.addEventListener("change", applyFilters);
   refs.clearFilters.addEventListener("click", clearFilters);
+  refs.retryEmployeeLoadButton.addEventListener("click", () => loadEmployees(true).catch(() => {}));
   refs.employeeTableWrap.addEventListener("scroll", updateDirectoryScrollButtons, { passive: true });
   refs.tableScrollUp.addEventListener("click", () => scrollEmployeeDirectory(-1));
   refs.tableScrollDown.addEventListener("click", () => scrollEmployeeDirectory(1));
@@ -267,7 +268,7 @@ async function handleLogin(event) {
     showDashboard();
     await loadEmployees();
   } catch (error) {
-    refs.loginError.textContent = friendlyError(error);
+    if (refs.dashboardView.hidden) refs.loginError.textContent = friendlyError(error);
   } finally {
     setButtonBusy(refs.loginButton, false, "Sign in securely");
   }
@@ -278,9 +279,11 @@ async function restoreSession() {
   try {
     await loadEmployees();
   } catch (error) {
-    clearSession();
-    showLogin();
-    refs.loginError.textContent = error.code === "SESSION_EXPIRED" ? "Your session expired. Please sign in again." : friendlyError(error);
+    if (error.code === "SESSION_EXPIRED") {
+      clearSession();
+      showLogin();
+      refs.loginError.textContent = "Your session expired. Please sign in again.";
+    }
   }
 }
 
@@ -324,11 +327,14 @@ function clearSession() {
   state.directEditEnabled = false; state.headerEditEnabled = false; state.inlineEditCode = ""; state.headerLabelsDirty = false;
 }
 
-async function loadEmployees(isRefresh) {
+async function loadEmployees(isRefresh, allowAutomaticRetry = true) {
   showLoading(isRefresh ? "Refreshing employee records…" : "Loading employee records…");
   try {
     const response = await apiRequest("getEmployees", { force: Boolean(isRefresh) });
-    state.employees = Array.isArray(response.employees) ? response.employees : [];
+    if (!Array.isArray(response.employees)) {
+      throw Object.assign(new Error("The backend response did not contain an employee list."), { code: "INVALID_RESPONSE" });
+    }
+    state.employees = response.employees;
     state.columns = Array.isArray(response.columns) && response.columns.length ? response.columns.map(String) : CORE_COLUMNS.slice();
     state.customColumns = Array.isArray(response.customColumns) ? response.customColumns.filter((column) => column && column.key).map((column) => ({ key: String(column.key), label: String(column.label || column.key) })) : [];
     state.backendVersion = String(response.version || "").trim();
@@ -341,12 +347,49 @@ async function loadEmployees(isRefresh) {
     populateFieldFilterColumns();
     applyFilters();
     refs.lastUpdated.textContent = "Updated " + new Intl.DateTimeFormat("en-IN", { hour: "2-digit", minute: "2-digit" }).format(new Date());
+    if (state.employees.length) {
+      hideEmployeeLoadStatus();
+    } else {
+      showEmployeeLoadStatus(
+        "No employee records returned",
+        "The backend connected successfully but returned 0 rows. Check that the Employees sheet still contains data below its heading row, then choose Retry loading data.",
+        false
+      );
+    }
     if (!versionAtLeast(state.backendVersion, CONFIG.REQUIRED_BACKEND_VERSION) && !state.backendMismatchNotified) {
       state.backendMismatchNotified = true;
       showToast(`Backend update incomplete${state.backendVersion ? ` (currently v${state.backendVersion})` : ""}. Deploy Code.gs v${CONFIG.REQUIRED_BACKEND_VERSION} as a new version.`, true);
     }
-    if (isRefresh) showToast("Employee data refreshed.");
+    if (isRefresh && state.employees.length) showToast("Employee data refreshed.");
+  } catch (error) {
+    if (allowAutomaticRetry && error.code !== "SESSION_EXPIRED") {
+      refs.lastUpdated.textContent = "Retrying data…";
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      return loadEmployees(true, false);
+    }
+    refs.lastUpdated.textContent = "Data load failed";
+    showEmployeeLoadStatus(
+      "Employee data could not be loaded",
+      `${friendlyError(error)}${error.code ? ` (Error: ${error.code})` : ""}`,
+      true
+    );
+    showToast(friendlyError(error), true);
+    throw error;
   } finally { hideLoading(); }
+}
+
+function showEmployeeLoadStatus(title, message, isError) {
+  refs.dataLoadStatus.hidden = false;
+  refs.dataLoadStatus.classList.toggle("error", Boolean(isError));
+  refs.dataLoadStatusTitle.textContent = title;
+  refs.dataLoadStatusMessage.textContent = message;
+}
+
+function hideEmployeeLoadStatus() {
+  refs.dataLoadStatus.hidden = true;
+  refs.dataLoadStatus.classList.remove("error");
+  refs.dataLoadStatusTitle.textContent = "Employee data status";
+  refs.dataLoadStatusMessage.textContent = "";
 }
 
 function buildTableHeader() {
@@ -2895,6 +2938,10 @@ function friendlyError(error) {
     CUSTOM_COLUMN_LIMIT: "A maximum of 12 custom columns can be added.",
     PROTECTED_COLUMN: "The 18 essential HR columns are protected and cannot be deleted.",
     ORIGIN_BLOCKED: "This GitHub address is not allowed by the backend.",
+    NOT_SETUP: "The backend is not linked to the employee spreadsheet. Run setupHRDashboard() once in Apps Script.",
+    SHEET_UNAVAILABLE: "The backend cannot open the Employees sheet. Check the spreadsheet and the Apps Script account permission.",
+    INVALID_RESPONSE: "The backend replied without employee data. Confirm that the current Apps Script deployment contains the getEmployees action.",
+    SERVER_ERROR: "The backend encountered an error while reading the employee sheet. Check the latest Apps Script execution log.",
     UNKNOWN_ACTION: `Backend update incomplete. Deploy Code.gs v${CONFIG.REQUIRED_BACKEND_VERSION} as a new version, sign in again, and retry.`,
     SHEET_SCHEMA_MISMATCH: "The Sheet columns cannot be safely matched. Use Replace all data with the corrected CSV.",
     TIMEOUT: "The backend did not respond. Check the Apps Script deployment and internet connection.",
