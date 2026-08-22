@@ -2,7 +2,7 @@
 
 /* Replace only this URL after deploying Code.gs as a Google Apps Script web app. */
 const CONFIG = Object.freeze({
-  API_URL: "https://script.google.com/macros/s/AKfycbyc13F44x6wvxRVxO3zWo6JVaom2kS-AzrGZopnF7fXb1-l55hZuPyXbY7hA-sum25G/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
   FRONTEND_VERSION: "1.6.59",
   REQUIRED_BACKEND_VERSION: "1.6.1",
@@ -32,6 +32,8 @@ const SENSITIVITY_VALUES = Object.freeze(["Sensitive", "Non-Sensitive"]);
 const COMPLETED_WORK_HISTORY_LABEL = "Completed Work History";
 const CUSTOM_FIELD_MAX_LENGTH = 500;
 const COLUMN_WIDTH_STORAGE_KEY = "hrDashboardColumnWidthsV159";
+const STICKY_FOCUS_ID_STORAGE_KEY = "hrDashboardStickyFocusIdV159";
+const STICKY_FOCUS_COLLAPSED_STORAGE_KEY = "hrDashboardStickyFocusCollapsedV159";
 const COLUMN_WIDTH_MIN = 48;
 const COLUMN_WIDTH_MAX = 480;
 const COLUMN_FILTER_OPERATORS = Object.freeze([
@@ -97,7 +99,10 @@ const state = {
   backendVersion: "",
   backendMismatchNotified: false,
   inlineWorkTargetCode: "",
-  stickyNotes: []
+  stickyNotes: [],
+  stickyEditId: "",
+  stickyFocusId: readStickyFocusId(),
+  stickyFocusCollapsed: readStickyFocusCollapsed()
 };
 
 const $ = (id) => document.getElementById(id);
@@ -133,7 +138,7 @@ function init() {
     "confirmPassword", "passwordFormError", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton",
     "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewSortColumn", "filterViewSortDirection", "filterScrollUp", "filterScrollDown", "savedFilterViewsPanel", "savedFilterViewCount", "savedFilterViewList", "savedFilterViewEmpty", "savedFilterViewName", "saveNamedFilterViewButton", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
     "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError",
-    "stickyNotesButton", "stickyActiveCount", "stickyNotesDialog", "stickyNoteForm", "stickyNoteType", "stickyNoteTitle", "stickyNoteDueDate", "stickyNoteDetails", "saveStickyNoteButton", "stickyNoteError", "stickyActiveSummary", "stickyActiveList", "stickyActiveEmpty", "stickyCompletedCount", "stickyCompletedList", "stickyCompletedEmpty"
+    "stickyNotesButton", "stickyActiveCount", "stickyNotesDialog", "stickyNoteForm", "stickyNoteType", "stickyNoteTitle", "stickyNoteDueDate", "stickyNoteDetails", "saveStickyNoteButton", "cancelStickyEditButton", "stickyNoteError", "stickyActiveSummary", "stickyActiveList", "stickyActiveEmpty", "stickyCompletedCount", "stickyCompletedList", "stickyCompletedEmpty", "stickyFocusNote", "stickyFocusToggle", "stickyFocusType", "stickyFocusTitle", "stickyFocusChevron", "stickyFocusBody", "stickyFocusDetails", "stickyFocusDue", "stickyFocusManage", "stickyFocusUnpin"
   ].forEach((id) => { refs[id] = $(id); });
 
   const remembered = localStorage.getItem("hrRememberedUsername") || "";
@@ -198,7 +203,12 @@ function init() {
   refs.addEmployeeButton.addEventListener("click", () => openEmployeeDialog());
   refs.stickyNotesButton.addEventListener("click", openStickyNotes);
   refs.stickyNoteForm.addEventListener("submit", saveStickyNote);
-  refs.stickyActiveList.addEventListener("click", completeStickyNote);
+  refs.stickyActiveList.addEventListener("click", handleStickyNoteAction);
+  refs.stickyCompletedList.addEventListener("click", handleStickyNoteAction);
+  refs.cancelStickyEditButton.addEventListener("click", cancelStickyEdit);
+  refs.stickyFocusToggle.addEventListener("click", toggleStickyFocus);
+  refs.stickyFocusManage.addEventListener("click", openStickyNotes);
+  refs.stickyFocusUnpin.addEventListener("click", unpinStickyFocus);
   refs.manageColumnsButton.addEventListener("click", openColumnManager);
   refs.columnManagerForm.addEventListener("submit", addCustomColumn);
   refs.customColumnList.addEventListener("click", handleColumnManagerAction);
@@ -345,6 +355,7 @@ function showLogin() {
   refs.loginView.hidden = false;
   refs.dashboardView.hidden = true;
   refs.changePasswordButton.hidden = true;
+  refs.stickyFocusNote.hidden = true;
   setTimeout(() => refs.username.focus(), 20);
 }
 
@@ -2504,14 +2515,17 @@ function renderStickyNotes() {
   refs.stickyCompletedEmpty.hidden = completed.length > 0;
   refs.stickyActiveList.innerHTML = active.map((note) => stickyNoteMarkup(note, false)).join("");
   refs.stickyCompletedList.innerHTML = completed.map((note) => stickyNoteMarkup(note, true)).join("");
+  renderStickyFocusNote();
 }
 
 function stickyNoteMarkup(note, completed) {
   const colour = ["yellow", "pink", "blue", "green", "purple", "orange"].includes(note.colour) ? note.colour : "yellow";
   const due = note.dueDate ? `<span class="sticky-due">Due ${escapeHtml(formatDate(note.dueDate))}</span>` : '<span class="sticky-due no-date">No due date</span>';
   const completedMeta = completed ? `<small>Completed ${escapeHtml(note.completedAt || "")} ${note.completedBy ? `by ${escapeHtml(note.completedBy)}` : ""}</small>` : "";
-  const action = !completed && state.role === "admin" ? `<button class="sticky-complete-btn" type="button" data-complete-sticky-note="${escapeAttribute(note.id)}">✓ Completed</button>` : "";
-  return `<article class="sticky-note-card ${colour}${completed ? " is-completed" : ""}"><header><span>${escapeHtml(note.type || "Reminder")}</span>${due}</header><h4>${escapeHtml(note.title || "Untitled note")}</h4>${note.details ? `<p>${escapeHtml(note.details)}</p>` : ""}<footer>${completedMeta}${action}</footer></article>`;
+  const pinAction = completed ? "" : `<button class="sticky-mini-btn pin${state.stickyFocusId === note.id ? " is-pinned" : ""}" type="button" data-pin-sticky-note="${escapeAttribute(note.id)}" aria-pressed="${state.stickyFocusId === note.id}">📌 ${state.stickyFocusId === note.id ? "Pinned" : "Keep open"}</button>`;
+  const adminActions = state.role === "admin" ? `${completed ? "" : `<button class="sticky-mini-btn edit" type="button" data-edit-sticky-note="${escapeAttribute(note.id)}">Edit</button><button class="sticky-complete-btn" type="button" data-complete-sticky-note="${escapeAttribute(note.id)}">✓ Completed</button>`}<button class="sticky-mini-btn delete" type="button" data-delete-sticky-note="${escapeAttribute(note.id)}">Delete</button>` : "";
+  const actions = pinAction || adminActions ? `<div class="sticky-card-actions">${pinAction}${adminActions}</div>` : "";
+  return `<article class="sticky-note-card ${colour}${completed ? " is-completed" : ""}"><header><span>${escapeHtml(note.type || "Reminder")}</span>${due}</header><h4>${escapeHtml(note.title || "Untitled note")}</h4>${note.details ? `<p>${escapeHtml(note.details)}</p>` : ""}<footer>${completedMeta}${actions}</footer></article>`;
 }
 
 async function saveStickyNote(event) {
@@ -2519,6 +2533,7 @@ async function saveStickyNote(event) {
   refs.stickyNoteError.textContent = "";
   const colourInput = refs.stickyNoteForm.querySelector('input[name="stickyColour"]:checked');
   const note = {
+    id: state.stickyEditId,
     type: refs.stickyNoteType.value,
     title: refs.stickyNoteTitle.value.trim(),
     details: refs.stickyNoteDetails.value.trim(),
@@ -2530,23 +2545,121 @@ async function saveStickyNote(event) {
     refs.stickyNoteTitle.focus();
     return;
   }
-  setButtonBusy(refs.saveStickyNoteButton, true, "Saving…");
+  const wasEditing = Boolean(state.stickyEditId);
+  setButtonBusy(refs.saveStickyNoteButton, true, wasEditing ? "Updating…" : "Saving…");
   try {
     const response = await apiRequest("saveStickyNote", note);
     state.stickyNotes = Array.isArray(response.notes) ? response.notes : state.stickyNotes;
-    refs.stickyNoteForm.reset();
+    cancelStickyEdit();
     renderStickyNotes();
-    showToast("Target / reminder saved.");
+    showToast(wasEditing ? "Target / reminder updated." : "Target / reminder saved.");
   } catch (error) {
     refs.stickyNoteError.textContent = friendlyError(error);
   } finally {
-    setButtonBusy(refs.saveStickyNoteButton, false, "Save note");
+    setButtonBusy(refs.saveStickyNoteButton, false, state.stickyEditId ? "Update note" : "Save note");
   }
 }
 
-async function completeStickyNote(event) {
-  const button = event.target.closest("[data-complete-sticky-note]");
-  if (!button) return;
+function handleStickyNoteAction(event) {
+  const pinButton = event.target.closest("[data-pin-sticky-note]");
+  if (pinButton) return pinStickyFocus(pinButton.dataset.pinStickyNote);
+  const editButton = event.target.closest("[data-edit-sticky-note]");
+  if (editButton) return editStickyNote(editButton.dataset.editStickyNote);
+  const completeButton = event.target.closest("[data-complete-sticky-note]");
+  if (completeButton) return completeStickyNote(completeButton);
+  const deleteButton = event.target.closest("[data-delete-sticky-note]");
+  if (deleteButton) return deleteStickyNote(deleteButton);
+}
+
+function readStickyFocusId() {
+  try { return localStorage.getItem(STICKY_FOCUS_ID_STORAGE_KEY) || ""; } catch { return ""; }
+}
+
+function readStickyFocusCollapsed() {
+  try { return localStorage.getItem(STICKY_FOCUS_COLLAPSED_STORAGE_KEY) === "1"; } catch { return false; }
+}
+
+function saveStickyFocusPreference() {
+  try {
+    if (state.stickyFocusId) localStorage.setItem(STICKY_FOCUS_ID_STORAGE_KEY, state.stickyFocusId);
+    else localStorage.removeItem(STICKY_FOCUS_ID_STORAGE_KEY);
+    localStorage.setItem(STICKY_FOCUS_COLLAPSED_STORAGE_KEY, state.stickyFocusCollapsed ? "1" : "0");
+  } catch { /* Device storage may be unavailable. */ }
+}
+
+function pinStickyFocus(id) {
+  const note = state.stickyNotes.find((item) => item.id === id && item.status !== "Completed");
+  if (!note) return;
+  state.stickyFocusId = id;
+  state.stickyFocusCollapsed = false;
+  saveStickyFocusPreference();
+  renderStickyNotes();
+  showToast(`“${note.title || "Reminder"}” will remain open over the dashboard.`);
+}
+
+function unpinStickyFocus() {
+  state.stickyFocusId = "";
+  state.stickyFocusCollapsed = false;
+  saveStickyFocusPreference();
+  renderStickyNotes();
+  showToast("The floating sticky note was closed.");
+}
+
+function toggleStickyFocus() {
+  if (!state.stickyFocusId) return;
+  state.stickyFocusCollapsed = !state.stickyFocusCollapsed;
+  saveStickyFocusPreference();
+  renderStickyFocusNote();
+}
+
+function renderStickyFocusNote() {
+  const note = state.stickyNotes.find((item) => item.id === state.stickyFocusId && item.status !== "Completed");
+  if (!note || refs.dashboardView.hidden) {
+    if (state.stickyFocusId && !note) {
+      state.stickyFocusId = "";
+      state.stickyFocusCollapsed = false;
+      saveStickyFocusPreference();
+    }
+    refs.stickyFocusNote.hidden = true;
+    return;
+  }
+  const colour = ["yellow", "pink", "blue", "green", "purple", "orange"].includes(note.colour) ? note.colour : "yellow";
+  refs.stickyFocusNote.className = `sticky-focus-note ${colour}${state.stickyFocusCollapsed ? " is-collapsed" : ""}`;
+  refs.stickyFocusType.textContent = note.type || "Reminder";
+  refs.stickyFocusTitle.textContent = note.title || "Untitled note";
+  refs.stickyFocusDetails.textContent = note.details || "No additional details.";
+  refs.stickyFocusDue.textContent = note.dueDate ? `Due ${formatDate(note.dueDate)}` : "No due date";
+  refs.stickyFocusToggle.setAttribute("aria-expanded", String(!state.stickyFocusCollapsed));
+  refs.stickyFocusChevron.textContent = state.stickyFocusCollapsed ? "+" : "−";
+  refs.stickyFocusNote.hidden = false;
+}
+
+function editStickyNote(id) {
+  const note = state.stickyNotes.find((item) => item.id === id && item.status !== "Completed");
+  if (!note) return;
+  state.stickyEditId = id;
+  refs.stickyNoteType.value = note.type || "Reminder";
+  refs.stickyNoteTitle.value = note.title || "";
+  refs.stickyNoteDetails.value = note.details || "";
+  refs.stickyNoteDueDate.value = toIsoDate(note.dueDate || "");
+  const colour = refs.stickyNoteForm.querySelector(`input[name="stickyColour"][value="${CSS.escape(note.colour || "yellow")}"]`);
+  if (colour) colour.checked = true;
+  refs.saveStickyNoteButton.textContent = "Update note";
+  refs.cancelStickyEditButton.hidden = false;
+  refs.stickyNoteError.textContent = "";
+  refs.stickyNoteTitle.focus();
+  refs.stickyNoteForm.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function cancelStickyEdit() {
+  state.stickyEditId = "";
+  refs.stickyNoteForm.reset();
+  refs.saveStickyNoteButton.textContent = "Save note";
+  refs.cancelStickyEditButton.hidden = true;
+  refs.stickyNoteError.textContent = "";
+}
+
+async function completeStickyNote(button) {
   setButtonBusy(button, true, "Moving…");
   try {
     const response = await apiRequest("completeStickyNote", { id: button.dataset.completeStickyNote });
@@ -2556,6 +2669,23 @@ async function completeStickyNote(event) {
   } catch (error) {
     showToast(friendlyError(error), true);
     if (button.isConnected) setButtonBusy(button, false, "✓ Completed");
+  }
+}
+
+async function deleteStickyNote(button) {
+  const id = button.dataset.deleteStickyNote;
+  const note = state.stickyNotes.find((item) => item.id === id);
+  if (!note || !window.confirm(`Delete “${note.title || "this note"}” permanently?`)) return;
+  setButtonBusy(button, true, "Deleting…");
+  try {
+    const response = await apiRequest("deleteStickyNote", { id });
+    state.stickyNotes = Array.isArray(response.notes) ? response.notes : state.stickyNotes;
+    if (state.stickyEditId === id) cancelStickyEdit();
+    renderStickyNotes();
+    showToast("Target / reminder deleted.");
+  } catch (error) {
+    showToast(friendlyError(error), true);
+    if (button.isConnected) setButtonBusy(button, false, "Delete");
   }
 }
 

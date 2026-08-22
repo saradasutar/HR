@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260822-sticky-notes-1659-2">
+  <link rel="stylesheet" href="styles.css?v=20260822-floating-sticky-1659-4">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -172,6 +172,21 @@
     </main>
   </div>
 
+  <aside id="stickyFocusNote" class="sticky-focus-note yellow" aria-label="Pinned target or reminder" hidden>
+    <button id="stickyFocusToggle" class="sticky-focus-toggle" type="button" aria-expanded="true" title="Collapse or open this sticky note">
+      <span class="sticky-focus-kicker">📌 <span id="stickyFocusType">Reminder</span></span>
+      <strong id="stickyFocusTitle">Target or reminder</strong>
+      <span id="stickyFocusChevron" class="sticky-focus-chevron" aria-hidden="true">−</span>
+    </button>
+    <div id="stickyFocusBody" class="sticky-focus-body">
+      <p id="stickyFocusDetails"></p>
+      <div class="sticky-focus-footer">
+        <span id="stickyFocusDue">No due date</span>
+        <div><button id="stickyFocusManage" type="button">Open all</button><button id="stickyFocusUnpin" type="button">Unpin</button></div>
+      </div>
+    </div>
+  </aside>
+
   <dialog id="employeeDetailsDialog" class="modal details-modal">
     <div class="profile-sheet">
       <header class="modal-header profile-header">
@@ -219,6 +234,7 @@
             <label class="orange"><input type="radio" name="stickyColour" value="orange"><span>Orange</span></label>
           </div></fieldset>
           <button id="saveStickyNoteButton" class="primary-btn" type="submit">Save note</button>
+          <button id="cancelStickyEditButton" class="soft-btn sticky-cancel-edit" type="button" hidden>Cancel edit</button>
           <p id="stickyNoteError" class="form-error" role="alert"></p>
         </form>
         <section class="sticky-active-section">
@@ -446,6 +462,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260822-sticky-notes-1659-2"></script>
+  <script src="app.js?v=20260822-floating-sticky-1659-4"></script>
 </body>
 </html>
