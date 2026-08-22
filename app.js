@@ -96,7 +96,8 @@ const state = {
   headerLabelsDirty: false,
   backendVersion: "",
   backendMismatchNotified: false,
-  inlineWorkTargetCode: ""
+  inlineWorkTargetCode: "",
+  stickyNotes: []
 };
 
 const $ = (id) => document.getElementById(id);
@@ -131,7 +132,8 @@ function init() {
     "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword",
     "confirmPassword", "passwordFormError", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton",
     "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewSortColumn", "filterViewSortDirection", "filterScrollUp", "filterScrollDown", "savedFilterViewsPanel", "savedFilterViewCount", "savedFilterViewList", "savedFilterViewEmpty", "savedFilterViewName", "saveNamedFilterViewButton", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
-    "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError"
+    "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError",
+    "stickyNotesButton", "stickyActiveCount", "stickyNotesDialog", "stickyNoteForm", "stickyNoteType", "stickyNoteTitle", "stickyNoteDueDate", "stickyNoteDetails", "saveStickyNoteButton", "stickyNoteError", "stickyActiveSummary", "stickyActiveList", "stickyActiveEmpty", "stickyCompletedCount", "stickyCompletedList", "stickyCompletedEmpty"
   ].forEach((id) => { refs[id] = $(id); });
 
   const remembered = localStorage.getItem("hrRememberedUsername") || "";
@@ -194,6 +196,9 @@ function init() {
   refs.replaceCsvFileInput.addEventListener("change", replaceAllCsv);
   refs.backupButton.addEventListener("click", createBackup);
   refs.addEmployeeButton.addEventListener("click", () => openEmployeeDialog());
+  refs.stickyNotesButton.addEventListener("click", openStickyNotes);
+  refs.stickyNoteForm.addEventListener("submit", saveStickyNote);
+  refs.stickyActiveList.addEventListener("click", completeStickyNote);
   refs.manageColumnsButton.addEventListener("click", openColumnManager);
   refs.columnManagerForm.addEventListener("submit", addCustomColumn);
   refs.customColumnList.addEventListener("click", handleColumnManagerAction);
@@ -393,6 +398,7 @@ async function loadEmployees(isRefresh, allowAutomaticRetry = true) {
       showToast(`Backend update incomplete${state.backendVersion ? ` (currently v${state.backendVersion})` : ""}. Deploy Code.gs v${CONFIG.REQUIRED_BACKEND_VERSION} as a new version.`, true);
     }
     if (isRefresh && state.employees.length) showToast("Employee data refreshed.");
+    loadStickyNotes().catch(() => {});
   } catch (error) {
     if (allowAutomaticRetry && error.code !== "SESSION_EXPIRED") {
       refs.lastUpdated.textContent = "Retrying data…";
@@ -2471,6 +2477,88 @@ function findEmployee(employeeCode) {
   return state.employees.find((item) => item["Employee Code"] === employeeCode);
 }
 
+async function openStickyNotes() {
+  refs.stickyNoteError.textContent = "";
+  if (!refs.stickyNotesDialog.open) refs.stickyNotesDialog.showModal();
+  try {
+    await loadStickyNotes();
+  } catch (error) {
+    refs.stickyNoteError.textContent = friendlyError(error);
+  }
+}
+
+async function loadStickyNotes() {
+  if (!state.token) return;
+  const response = await apiRequest("getStickyNotes", {});
+  state.stickyNotes = Array.isArray(response.notes) ? response.notes : [];
+  renderStickyNotes();
+}
+
+function renderStickyNotes() {
+  const active = state.stickyNotes.filter((note) => note.status !== "Completed");
+  const completed = state.stickyNotes.filter((note) => note.status === "Completed");
+  refs.stickyActiveCount.textContent = String(active.length);
+  refs.stickyActiveSummary.textContent = `${active.length} active note${active.length === 1 ? "" : "s"}`;
+  refs.stickyCompletedCount.textContent = String(completed.length);
+  refs.stickyActiveEmpty.hidden = active.length > 0;
+  refs.stickyCompletedEmpty.hidden = completed.length > 0;
+  refs.stickyActiveList.innerHTML = active.map((note) => stickyNoteMarkup(note, false)).join("");
+  refs.stickyCompletedList.innerHTML = completed.map((note) => stickyNoteMarkup(note, true)).join("");
+}
+
+function stickyNoteMarkup(note, completed) {
+  const colour = ["yellow", "pink", "blue", "green", "purple", "orange"].includes(note.colour) ? note.colour : "yellow";
+  const due = note.dueDate ? `<span class="sticky-due">Due ${escapeHtml(formatDate(note.dueDate))}</span>` : '<span class="sticky-due no-date">No due date</span>';
+  const completedMeta = completed ? `<small>Completed ${escapeHtml(note.completedAt || "")} ${note.completedBy ? `by ${escapeHtml(note.completedBy)}` : ""}</small>` : "";
+  const action = !completed && state.role === "admin" ? `<button class="sticky-complete-btn" type="button" data-complete-sticky-note="${escapeAttribute(note.id)}">✓ Completed</button>` : "";
+  return `<article class="sticky-note-card ${colour}${completed ? " is-completed" : ""}"><header><span>${escapeHtml(note.type || "Reminder")}</span>${due}</header><h4>${escapeHtml(note.title || "Untitled note")}</h4>${note.details ? `<p>${escapeHtml(note.details)}</p>` : ""}<footer>${completedMeta}${action}</footer></article>`;
+}
+
+async function saveStickyNote(event) {
+  event.preventDefault();
+  refs.stickyNoteError.textContent = "";
+  const colourInput = refs.stickyNoteForm.querySelector('input[name="stickyColour"]:checked');
+  const note = {
+    type: refs.stickyNoteType.value,
+    title: refs.stickyNoteTitle.value.trim(),
+    details: refs.stickyNoteDetails.value.trim(),
+    dueDate: refs.stickyNoteDueDate.value,
+    colour: colourInput ? colourInput.value : "yellow"
+  };
+  if (!note.title) {
+    refs.stickyNoteError.textContent = "Enter a title for the target or reminder.";
+    refs.stickyNoteTitle.focus();
+    return;
+  }
+  setButtonBusy(refs.saveStickyNoteButton, true, "Saving…");
+  try {
+    const response = await apiRequest("saveStickyNote", note);
+    state.stickyNotes = Array.isArray(response.notes) ? response.notes : state.stickyNotes;
+    refs.stickyNoteForm.reset();
+    renderStickyNotes();
+    showToast("Target / reminder saved.");
+  } catch (error) {
+    refs.stickyNoteError.textContent = friendlyError(error);
+  } finally {
+    setButtonBusy(refs.saveStickyNoteButton, false, "Save note");
+  }
+}
+
+async function completeStickyNote(event) {
+  const button = event.target.closest("[data-complete-sticky-note]");
+  if (!button) return;
+  setButtonBusy(button, true, "Moving…");
+  try {
+    const response = await apiRequest("completeStickyNote", { id: button.dataset.completeStickyNote });
+    state.stickyNotes = Array.isArray(response.notes) ? response.notes : state.stickyNotes;
+    renderStickyNotes();
+    showToast("Completed note moved to saved history.");
+  } catch (error) {
+    showToast(friendlyError(error), true);
+    if (button.isConnected) setButtonBusy(button, false, "✓ Completed");
+  }
+}
+
 function openEmployeeDetails(employee) {
   if (!employee) return;
   state.detailEmployeeCode = employee["Employee Code"] || "";
@@ -2970,6 +3058,8 @@ function friendlyError(error) {
     INVALID_IMPORT_ROW: error.message,
     INVALID_SENSITIVITY: "Select Sensitive or Non-Sensitive for Post Sensitivity.",
     INVALID_COLUMN_NAME: "Enter a clear name for the new column.",
+    INVALID_STICKY_NOTE: "Enter a title for the target or reminder.",
+    STICKY_NOTE_NOT_FOUND: "That target or reminder is no longer available. Refresh and try again.",
     DUPLICATE_COLUMN_LABEL: "Every column name must be different.",
     CUSTOM_COLUMN_LIMIT: "A maximum of 12 custom columns can be added.",
     PROTECTED_COLUMN: "The 18 essential HR columns are protected and cannot be deleted.",

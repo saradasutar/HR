@@ -1,0 +1,25 @@
+HR Dashboard v1.6.59 — Target / Reminder sticky notes
+======================================================
+
+Features
+--------
+- Collapsed Target / Reminder button in the dashboard header.
+- Reminder or Target type, optional due date and details.
+- Yellow, pink, blue, green, purple and orange sticky-note colours.
+- Administrators can add and complete notes.
+- Completed notes move to a collapsible saved history.
+- Notes are stored in a separate "Targets & Reminders" tab in the existing HR
+  spreadsheet. Employee data is not changed.
+
+Deployment
+----------
+1. Replace the Apps Script Code.gs with apps-script/Code.gs and save.
+2. Deploy > Manage deployments > pencil icon > New version > Deploy.
+3. Replace index.html, styles.css and app.js in the GitHub HR repository with
+   the files from github-pages.
+4. Wait about two minutes, press Ctrl+Shift+R, and sign in again.
+5. Click Target / Reminder in the dashboard header. The new spreadsheet tab is
+   created automatically the first time the panel loads.
+
+Do not run setupHRDashboard and do not replace employee data.
+

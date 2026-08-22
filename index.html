@@ -75,6 +75,7 @@
             <button id="reportsButton" class="soft-btn report-launch-btn" type="button"><span aria-hidden="true">▤</span> Reports &amp; Print</button>
             <button id="backupButton" class="soft-btn admin-only" type="button">Create backup</button>
             <button id="addEmployeeButton" class="primary-btn admin-only" type="button"><span aria-hidden="true">＋</span> Add employee</button>
+            <button id="stickyNotesButton" class="soft-btn sticky-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📌</span> Target / Reminder <b id="stickyActiveCount">0</b></button>
           </div>
           <span id="lastUpdated" class="last-updated">Not yet refreshed</span>
           <div class="version-pair dashboard-version-pair" aria-label="Application versions">
@@ -193,6 +194,45 @@
         <button class="soft-btn" type="button" data-close-dialog="employeeDetailsDialog">Close</button>
         <button id="detailsEditButton" class="primary-btn admin-only" type="button">Edit employee</button>
       </footer>
+    </div>
+  </dialog>
+
+  <dialog id="stickyNotesDialog" class="modal sticky-notes-modal">
+    <div class="sticky-notes-sheet">
+      <header class="modal-header sticky-notes-header">
+        <div><p class="eyebrow accent">Work organiser</p><h2>Targets &amp; Reminders</h2><p>Active notes stay visible here; completed notes move safely into history.</p></div>
+        <button class="modal-close" type="button" data-close-dialog="stickyNotesDialog" aria-label="Close targets and reminders">×</button>
+      </header>
+      <div class="sticky-notes-body">
+        <form id="stickyNoteForm" class="sticky-note-form admin-only">
+          <div class="sticky-form-heading"><strong>Add a sticky note</strong><span>Saved in the HR spreadsheet</span></div>
+          <label><span>Type</span><select id="stickyNoteType"><option>Reminder</option><option>Target</option></select></label>
+          <label class="sticky-title-field"><span>Title *</span><input id="stickyNoteTitle" maxlength="100" required placeholder="Enter target or reminder"></label>
+          <label><span>Due date</span><input id="stickyNoteDueDate" type="date"></label>
+          <label class="sticky-details-field"><span>Details</span><textarea id="stickyNoteDetails" maxlength="500" rows="2" placeholder="Optional details"></textarea></label>
+          <fieldset class="sticky-colour-field"><legend>Colour</legend><div class="sticky-colour-options">
+            <label class="yellow"><input type="radio" name="stickyColour" value="yellow" checked><span>Yellow</span></label>
+            <label class="pink"><input type="radio" name="stickyColour" value="pink"><span>Pink</span></label>
+            <label class="blue"><input type="radio" name="stickyColour" value="blue"><span>Blue</span></label>
+            <label class="green"><input type="radio" name="stickyColour" value="green"><span>Green</span></label>
+            <label class="purple"><input type="radio" name="stickyColour" value="purple"><span>Purple</span></label>
+            <label class="orange"><input type="radio" name="stickyColour" value="orange"><span>Orange</span></label>
+          </div></fieldset>
+          <button id="saveStickyNoteButton" class="primary-btn" type="submit">Save note</button>
+          <p id="stickyNoteError" class="form-error" role="alert"></p>
+        </form>
+        <section class="sticky-active-section">
+          <div class="sticky-section-heading"><h3>Active</h3><span id="stickyActiveSummary">0 notes</span></div>
+          <div id="stickyActiveList" class="sticky-note-grid"></div>
+          <p id="stickyActiveEmpty" class="sticky-empty">No active targets or reminders.</p>
+        </section>
+        <details class="sticky-completed-section">
+          <summary><span>Completed history</span><b id="stickyCompletedCount">0</b></summary>
+          <div id="stickyCompletedList" class="sticky-note-grid completed"></div>
+          <p id="stickyCompletedEmpty" class="sticky-empty">No completed notes yet.</p>
+        </details>
+      </div>
+      <footer class="modal-footer"><button class="soft-btn" type="button" data-close-dialog="stickyNotesDialog">Close</button></footer>
     </div>
   </dialog>
 
