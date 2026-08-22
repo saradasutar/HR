@@ -2,7 +2,7 @@
 
 /* Replace only this URL after deploying Code.gs as a Google Apps Script web app. */
 const CONFIG = Object.freeze({
-  API_URL: "https://script.google.com/macros/s/AKfycbyc13F44x6wvxRVxO3zWo6JVaom2kS-AzrGZopnF7fXb1-l55hZuPyXbY7hA-sum25G/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
   FRONTEND_VERSION: "1.6.59",
   REQUIRED_BACKEND_VERSION: "1.6.1",
@@ -34,6 +34,13 @@ const CUSTOM_FIELD_MAX_LENGTH = 500;
 const COLUMN_WIDTH_STORAGE_KEY = "hrDashboardColumnWidthsV159";
 const STICKY_FOCUS_ID_STORAGE_KEY = "hrDashboardStickyFocusIdV159";
 const STICKY_FOCUS_COLLAPSED_STORAGE_KEY = "hrDashboardStickyFocusCollapsedV159";
+const STICKY_FOCUS_LAYOUT_STORAGE_KEY = "hrDashboardStickyFocusLayoutV159";
+const STICKY_FOCUS_SIZES = Object.freeze([
+  { className: "size-small", label: "Small" },
+  { className: "size-medium", label: "Medium" },
+  { className: "size-large", label: "Large" },
+  { className: "size-xlarge", label: "X-Large" }
+]);
 const COLUMN_WIDTH_MIN = 48;
 const COLUMN_WIDTH_MAX = 480;
 const COLUMN_FILTER_OPERATORS = Object.freeze([
@@ -102,7 +109,9 @@ const state = {
   stickyNotes: [],
   stickyEditId: "",
   stickyFocusId: readStickyFocusId(),
-  stickyFocusCollapsed: readStickyFocusCollapsed()
+  stickyFocusCollapsed: readStickyFocusCollapsed(),
+  stickyFocusLayout: readStickyFocusLayout(),
+  stickyFocusDrag: null
 };
 
 const $ = (id) => document.getElementById(id);
@@ -138,7 +147,7 @@ function init() {
     "confirmPassword", "passwordFormError", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton",
     "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewSortColumn", "filterViewSortDirection", "filterScrollUp", "filterScrollDown", "savedFilterViewsPanel", "savedFilterViewCount", "savedFilterViewList", "savedFilterViewEmpty", "savedFilterViewName", "saveNamedFilterViewButton", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
     "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError",
-    "stickyNotesButton", "stickyActiveCount", "stickyNotesDialog", "stickyNoteForm", "stickyNoteType", "stickyNoteTitle", "stickyNoteDueDate", "stickyNoteDetails", "saveStickyNoteButton", "cancelStickyEditButton", "stickyNoteError", "stickyActiveSummary", "stickyActiveList", "stickyActiveEmpty", "stickyCompletedCount", "stickyCompletedList", "stickyCompletedEmpty", "stickyFocusNote", "stickyFocusToggle", "stickyFocusType", "stickyFocusTitle", "stickyFocusChevron", "stickyFocusBody", "stickyFocusDetails", "stickyFocusDue", "stickyFocusManage", "stickyFocusUnpin"
+    "stickyNotesButton", "stickyActiveCount", "stickyNotesDialog", "stickyNoteForm", "stickyNoteType", "stickyNoteTitle", "stickyNoteDueDate", "stickyNoteDetails", "saveStickyNoteButton", "cancelStickyEditButton", "stickyNoteError", "stickyActiveSummary", "stickyActiveList", "stickyActiveEmpty", "stickyCompletedCount", "stickyCompletedList", "stickyCompletedEmpty", "stickyFocusNote", "stickyFocusDragHandle", "stickyFocusToggle", "stickyFocusType", "stickyFocusTitle", "stickyFocusChevron", "stickyFocusBody", "stickyFocusDetails", "stickyFocusDue", "stickyFocusSizeDown", "stickyFocusSizeLabel", "stickyFocusSizeUp", "stickyFocusResetLayout", "stickyFocusManage", "stickyFocusUnpin"
   ].forEach((id) => { refs[id] = $(id); });
 
   const remembered = localStorage.getItem("hrRememberedUsername") || "";
@@ -207,8 +216,17 @@ function init() {
   refs.stickyCompletedList.addEventListener("click", handleStickyNoteAction);
   refs.cancelStickyEditButton.addEventListener("click", cancelStickyEdit);
   refs.stickyFocusToggle.addEventListener("click", toggleStickyFocus);
+  refs.stickyFocusDragHandle.addEventListener("pointerdown", startStickyFocusDrag);
+  refs.stickyFocusDragHandle.addEventListener("keydown", moveStickyFocusWithKeyboard);
+  window.addEventListener("pointermove", moveStickyFocusDrag);
+  window.addEventListener("pointerup", endStickyFocusDrag);
+  window.addEventListener("pointercancel", endStickyFocusDrag);
+  refs.stickyFocusSizeDown.addEventListener("click", () => changeStickyFocusSize(-1));
+  refs.stickyFocusSizeUp.addEventListener("click", () => changeStickyFocusSize(1));
+  refs.stickyFocusResetLayout.addEventListener("click", resetStickyFocusLayout);
   refs.stickyFocusManage.addEventListener("click", openStickyNotes);
   refs.stickyFocusUnpin.addEventListener("click", unpinStickyFocus);
+  window.addEventListener("resize", debounce(applyStickyFocusLayout, 120));
   refs.manageColumnsButton.addEventListener("click", openColumnManager);
   refs.columnManagerForm.addEventListener("submit", addCustomColumn);
   refs.customColumnList.addEventListener("click", handleColumnManagerAction);
@@ -2579,11 +2597,26 @@ function readStickyFocusCollapsed() {
   try { return localStorage.getItem(STICKY_FOCUS_COLLAPSED_STORAGE_KEY) === "1"; } catch { return false; }
 }
 
+function readStickyFocusLayout() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STICKY_FOCUS_LAYOUT_STORAGE_KEY) || "{}");
+    const size = Number.isInteger(saved.size) ? Math.max(0, Math.min(STICKY_FOCUS_SIZES.length - 1, saved.size)) : 1;
+    return {
+      size,
+      x: Number.isFinite(saved.x) ? saved.x : null,
+      y: Number.isFinite(saved.y) ? saved.y : null
+    };
+  } catch {
+    return { size: 1, x: null, y: null };
+  }
+}
+
 function saveStickyFocusPreference() {
   try {
     if (state.stickyFocusId) localStorage.setItem(STICKY_FOCUS_ID_STORAGE_KEY, state.stickyFocusId);
     else localStorage.removeItem(STICKY_FOCUS_ID_STORAGE_KEY);
     localStorage.setItem(STICKY_FOCUS_COLLAPSED_STORAGE_KEY, state.stickyFocusCollapsed ? "1" : "0");
+    localStorage.setItem(STICKY_FOCUS_LAYOUT_STORAGE_KEY, JSON.stringify(state.stickyFocusLayout));
   } catch { /* Device storage may be unavailable. */ }
 }
 
@@ -2612,6 +2645,102 @@ function toggleStickyFocus() {
   renderStickyFocusNote();
 }
 
+function changeStickyFocusSize(direction) {
+  const nextSize = Math.max(0, Math.min(STICKY_FOCUS_SIZES.length - 1, state.stickyFocusLayout.size + direction));
+  if (nextSize === state.stickyFocusLayout.size) return;
+  state.stickyFocusLayout.size = nextSize;
+  saveStickyFocusPreference();
+  renderStickyFocusNote();
+}
+
+function resetStickyFocusLayout() {
+  state.stickyFocusLayout = { size: 1, x: null, y: null };
+  saveStickyFocusPreference();
+  renderStickyFocusNote();
+  showToast("Sticky note size and position restored.");
+}
+
+function startStickyFocusDrag(event) {
+  if (event.pointerType === "mouse" && event.button !== 0) return;
+  const rect = refs.stickyFocusNote.getBoundingClientRect();
+  state.stickyFocusDrag = {
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startY: event.clientY,
+    originX: rect.left,
+    originY: rect.top
+  };
+  state.stickyFocusLayout.x = rect.left;
+  state.stickyFocusLayout.y = rect.top;
+  try { refs.stickyFocusDragHandle.setPointerCapture(event.pointerId); } catch { /* Pointer capture is optional. */ }
+  document.body.classList.add("sticky-focus-dragging");
+  event.preventDefault();
+}
+
+function moveStickyFocusDrag(event) {
+  const drag = state.stickyFocusDrag;
+  if (!drag || drag.pointerId !== event.pointerId) return;
+  const rect = refs.stickyFocusNote.getBoundingClientRect();
+  const maxX = Math.max(8, window.innerWidth - rect.width - 8);
+  const maxY = Math.max(8, window.innerHeight - rect.height - 8);
+  const x = Math.max(8, Math.min(maxX, drag.originX + event.clientX - drag.startX));
+  const y = Math.max(8, Math.min(maxY, drag.originY + event.clientY - drag.startY));
+  state.stickyFocusLayout.x = x;
+  state.stickyFocusLayout.y = y;
+  refs.stickyFocusNote.style.left = `${x}px`;
+  refs.stickyFocusNote.style.top = `${y}px`;
+  refs.stickyFocusNote.style.right = "auto";
+  refs.stickyFocusNote.style.bottom = "auto";
+  event.preventDefault();
+}
+
+function endStickyFocusDrag(event) {
+  const drag = state.stickyFocusDrag;
+  if (!drag || drag.pointerId !== event.pointerId) return;
+  state.stickyFocusDrag = null;
+  try { refs.stickyFocusDragHandle.releasePointerCapture(event.pointerId); } catch { /* Pointer capture may already be released. */ }
+  document.body.classList.remove("sticky-focus-dragging");
+  saveStickyFocusPreference();
+}
+
+function moveStickyFocusWithKeyboard(event) {
+  const movement = { ArrowLeft: [-20, 0], ArrowRight: [20, 0], ArrowUp: [0, -20], ArrowDown: [0, 20] }[event.key];
+  if (!movement) return;
+  const rect = refs.stickyFocusNote.getBoundingClientRect();
+  state.stickyFocusLayout.x = (Number.isFinite(state.stickyFocusLayout.x) ? state.stickyFocusLayout.x : rect.left) + movement[0];
+  state.stickyFocusLayout.y = (Number.isFinite(state.stickyFocusLayout.y) ? state.stickyFocusLayout.y : rect.top) + movement[1];
+  applyStickyFocusLayout();
+  saveStickyFocusPreference();
+  event.preventDefault();
+}
+
+function applyStickyFocusLayout() {
+  if (!refs.stickyFocusNote || refs.stickyFocusNote.hidden) return;
+  const size = Math.max(0, Math.min(STICKY_FOCUS_SIZES.length - 1, state.stickyFocusLayout.size));
+  state.stickyFocusLayout.size = size;
+  refs.stickyFocusSizeLabel.textContent = STICKY_FOCUS_SIZES[size].label;
+  refs.stickyFocusSizeDown.disabled = size === 0;
+  refs.stickyFocusSizeUp.disabled = size === STICKY_FOCUS_SIZES.length - 1;
+  if (!Number.isFinite(state.stickyFocusLayout.x) || !Number.isFinite(state.stickyFocusLayout.y)) {
+    refs.stickyFocusNote.style.removeProperty("left");
+    refs.stickyFocusNote.style.removeProperty("top");
+    refs.stickyFocusNote.style.removeProperty("right");
+    refs.stickyFocusNote.style.removeProperty("bottom");
+    return;
+  }
+  const rect = refs.stickyFocusNote.getBoundingClientRect();
+  const maxX = Math.max(8, window.innerWidth - rect.width - 8);
+  const maxY = Math.max(8, window.innerHeight - rect.height - 8);
+  const x = Math.max(8, Math.min(maxX, state.stickyFocusLayout.x));
+  const y = Math.max(8, Math.min(maxY, state.stickyFocusLayout.y));
+  state.stickyFocusLayout.x = x;
+  state.stickyFocusLayout.y = y;
+  refs.stickyFocusNote.style.left = `${x}px`;
+  refs.stickyFocusNote.style.top = `${y}px`;
+  refs.stickyFocusNote.style.right = "auto";
+  refs.stickyFocusNote.style.bottom = "auto";
+}
+
 function renderStickyFocusNote() {
   const note = state.stickyNotes.find((item) => item.id === state.stickyFocusId && item.status !== "Completed");
   if (!note || refs.dashboardView.hidden) {
@@ -2624,7 +2753,8 @@ function renderStickyFocusNote() {
     return;
   }
   const colour = ["yellow", "pink", "blue", "green", "purple", "orange"].includes(note.colour) ? note.colour : "yellow";
-  refs.stickyFocusNote.className = `sticky-focus-note ${colour}${state.stickyFocusCollapsed ? " is-collapsed" : ""}`;
+  const size = Math.max(0, Math.min(STICKY_FOCUS_SIZES.length - 1, state.stickyFocusLayout.size));
+  refs.stickyFocusNote.className = `sticky-focus-note ${colour} ${STICKY_FOCUS_SIZES[size].className}${state.stickyFocusCollapsed ? " is-collapsed" : ""}`;
   refs.stickyFocusType.textContent = note.type || "Reminder";
   refs.stickyFocusTitle.textContent = note.title || "Untitled note";
   refs.stickyFocusDetails.textContent = note.details || "No additional details.";
@@ -2632,6 +2762,7 @@ function renderStickyFocusNote() {
   refs.stickyFocusToggle.setAttribute("aria-expanded", String(!state.stickyFocusCollapsed));
   refs.stickyFocusChevron.textContent = state.stickyFocusCollapsed ? "+" : "−";
   refs.stickyFocusNote.hidden = false;
+  applyStickyFocusLayout();
 }
 
 function editStickyNote(id) {

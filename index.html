@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260822-floating-sticky-1659-4">
+  <link rel="stylesheet" href="styles.css?v=20260822-movable-resizable-sticky-1659-5">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -173,6 +173,7 @@
   </div>
 
   <aside id="stickyFocusNote" class="sticky-focus-note yellow" aria-label="Pinned target or reminder" hidden>
+    <button id="stickyFocusDragHandle" class="sticky-focus-drag-handle" type="button" title="Drag to move, or use keyboard arrow keys">⠿ Move note</button>
     <button id="stickyFocusToggle" class="sticky-focus-toggle" type="button" aria-expanded="true" title="Collapse or open this sticky note">
       <span class="sticky-focus-kicker">📌 <span id="stickyFocusType">Reminder</span></span>
       <strong id="stickyFocusTitle">Target or reminder</strong>
@@ -182,7 +183,10 @@
       <p id="stickyFocusDetails"></p>
       <div class="sticky-focus-footer">
         <span id="stickyFocusDue">No due date</span>
-        <div><button id="stickyFocusManage" type="button">Open all</button><button id="stickyFocusUnpin" type="button">Unpin</button></div>
+        <div class="sticky-focus-tools">
+          <div class="sticky-focus-size-controls" aria-label="Sticky note size"><button id="stickyFocusSizeDown" type="button" title="Decrease sticky note size">A−</button><span id="stickyFocusSizeLabel">Medium</span><button id="stickyFocusSizeUp" type="button" title="Increase sticky note size">A+</button></div>
+          <div class="sticky-focus-actions"><button id="stickyFocusResetLayout" type="button" title="Restore original size and position">Reset</button><button id="stickyFocusManage" type="button">Open all</button><button id="stickyFocusUnpin" type="button">Unpin</button></div>
+        </div>
       </div>
     </div>
   </aside>
@@ -462,6 +466,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260822-floating-sticky-1659-4"></script>
+  <script src="app.js?v=20260822-movable-resizable-sticky-1659-5"></script>
 </body>
 </html>
