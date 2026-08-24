@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260822-movable-resizable-sticky-1659-5">
+  <link rel="stylesheet" href="styles.css?v=20260824-consistent-doj-label-1659-6">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -388,7 +388,7 @@
         <label><span>Date of retirement</span><input id="fieldDoR" type="date"><small>Auto-calculated if left blank</small></label>
         <label><span>Category</span><select id="fieldCategory"><option value="">Select</option><option>UR</option><option>OBC</option><option>SC</option><option>ST</option><option>EWS</option></select></label>
         <label><span>Date of joining Govt.</span><input id="fieldDoJGovt" type="date"></label>
-        <label><span>Date of joining Current Office</span><input id="fieldDoJOffice" type="date"></label>
+        <label><span id="fieldDoJOfficeLabel">DoJ in ADG</span><input id="fieldDoJOffice" type="date"></label>
         <label class="span-two"><span>Present / Permanent Address</span><textarea id="fieldAddress" rows="2" maxlength="500" placeholder="Enter the employee's present or permanent residential address"></textarea></label>
         <label><span>Post sensitivity *</span><select id="fieldPostSensitivity" required><option value="">Select</option><option>Sensitive</option><option>Non-Sensitive</option></select><small>Classifies the post as sensitive or non-sensitive</small></label>
         <label><span>Strength status *</span><select id="fieldStrengthStatus" required><option value="">Select</option><option>Present</option><option>Relieved</option><option>Transferred</option><option>Retired</option><option>Present Oth Off</option><option>Relieved Oth Off</option><option>Transferred Oth Off</option><option>Retired Oth Off</option></select><small>Shows whether the employee is present here or associated with another office</small></label>
@@ -466,6 +466,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260822-movable-resizable-sticky-1659-5"></script>
+  <script src="app.js?v=20260824-consistent-doj-label-1659-6"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 
 /* Replace only this URL after deploying Code.gs as a Google Apps Script web app. */
 const CONFIG = Object.freeze({
-  API_URL: "https://script.google.com/macros/s/AKfycbyc13F44x6wvxRVxO3zWo6JVaom2kS-AzrGZopnF7fXb1-l55hZuPyXbY7hA-sum25G/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
   FRONTEND_VERSION: "1.6.59",
   REQUIRED_BACKEND_VERSION: "1.6.1",
@@ -131,7 +131,7 @@ function init() {
     "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm",
     "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton",
     "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks",
-    "fieldDoB", "fieldDoR", "fieldCategory", "fieldDoJGovt", "fieldDoJOffice", "fieldAddress",
+    "fieldDoB", "fieldDoR", "fieldCategory", "fieldDoJGovt", "fieldDoJOfficeLabel", "fieldDoJOffice", "fieldAddress",
     "fieldPostSensitivity", "fieldStrengthStatus", "fieldRelievingDate", "relievingDateHint",
     "fieldMobile", "fieldEmail", "fieldAge", "customEmployeeFields", "pendingWorkArchiveToolbar", "pendingWorkArchiveToolbarNote", "pendingWorkArchiveButton", "pendingWorkArchiveSection", "pendingWorkArchiveSummary", "pendingWorkArchiveNote", "pendingWorkItemList", "moveCompletedWorkButton", "completedWorkHistoryDetails", "completedWorkHistoryCount", "completedWorkHistoryList", "inlineWorkDialog", "inlineWorkEmployeeName", "inlineWorkNote", "inlineWorkItemList", "inlineWorkHistoryCount", "inlineWorkHistoryList", "inlineWorkError", "inlineMoveWorkButton", "loadingOverlay", "loadingText", "toastRegion",
     "employeeDetailsDialog", "detailsAvatar", "detailsEmployeeName", "detailsEmployeeSubtitle",
@@ -2904,6 +2904,7 @@ function openEmployeeDialog(employee) {
   refs.employeeForm.reset();
   refs.employeeFormError.textContent = "";
   refs.employeeDialogTitle.textContent = employee ? "Edit employee" : "Add employee";
+  refs.fieldDoJOfficeLabel.textContent = columnLabel("DoJ in Current Office") || "DoJ in ADG";
   refs.originalEmployeeCode.value = item["Employee Code"] || "";
   refs.fieldEmployeeName.value = item["Employee Name"] || "";
   refs.fieldEmployeeCode.value = item["Employee Code"] || "";
