@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#075985">
   <meta name="description" content="O/o ADG(B), CPWD Bengaluru HR Dashboard">
   <title>ADG(B) HR Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=20260824-consistent-doj-label-1659-6">
+  <link rel="stylesheet" href="styles.css?v=20260826-secure-movable-sticky-1659-7">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -51,6 +51,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
+          <p class="session-security-note">🔐 Automatic sign-out after 5 minutes of inactivity or after leaving/closing the dashboard.</p>
           <div class="version-pair login-version-pair" aria-label="Application versions">
             <span>Frontend <strong id="loginFrontendVersion">v1.6.59</strong></span>
             <span>Backend <strong id="loginBackendVersion">Checking…</strong></span>
@@ -172,6 +173,8 @@
     </main>
   </div>
 
+  <button id="stickySideTab" class="sticky-side-tab" type="button" aria-label="Open collapsed targets and reminders" hidden><span aria-hidden="true">📌</span><strong>Targets / Reminders</strong><b id="stickySideCount">0</b></button>
+
   <aside id="stickyFocusNote" class="sticky-focus-note yellow" aria-label="Pinned target or reminder" hidden>
     <button id="stickyFocusDragHandle" class="sticky-focus-drag-handle" type="button" title="Drag to move, or use keyboard arrow keys">⠿ Move note</button>
     <button id="stickyFocusToggle" class="sticky-focus-toggle" type="button" aria-expanded="true" title="Collapse or open this sticky note">
@@ -185,10 +188,11 @@
         <span id="stickyFocusDue">No due date</span>
         <div class="sticky-focus-tools">
           <div class="sticky-focus-size-controls" aria-label="Sticky note size"><button id="stickyFocusSizeDown" type="button" title="Decrease sticky note size">A−</button><span id="stickyFocusSizeLabel">Medium</span><button id="stickyFocusSizeUp" type="button" title="Increase sticky note size">A+</button></div>
-          <div class="sticky-focus-actions"><button id="stickyFocusResetLayout" type="button" title="Restore original size and position">Reset</button><button id="stickyFocusManage" type="button">Open all</button><button id="stickyFocusUnpin" type="button">Unpin</button></div>
+          <div class="sticky-focus-actions"><button id="stickyFocusEdit" type="button">Edit</button><button id="stickyFocusComplete" type="button">✓ Complete</button><button id="stickyFocusResetLayout" type="button" title="Restore automatic size and original position">Auto-fit</button><button id="stickyFocusManage" type="button">Open all</button><button id="stickyFocusUnpin" type="button">Unpin to side</button></div>
         </div>
       </div>
     </div>
+    <span id="stickyFocusResizeGrip" class="sticky-focus-resize-grip" role="separator" tabindex="0" aria-label="Drag to resize sticky note" title="Drag this corner to resize"></span>
   </aside>
 
   <dialog id="employeeDetailsDialog" class="modal details-modal">
@@ -219,7 +223,7 @@
   <dialog id="stickyNotesDialog" class="modal sticky-notes-modal">
     <div class="sticky-notes-sheet">
       <header class="modal-header sticky-notes-header">
-        <div><p class="eyebrow accent">Work organiser</p><h2>Targets &amp; Reminders</h2><p>Active notes stay visible here; completed notes move safely into history.</p></div>
+        <div><p class="eyebrow accent">Work organiser</p><h2>Targets &amp; Reminders</h2><p>Active notes stay here; completed notes move safely into the Sticky Note Diary.</p></div>
         <button class="modal-close" type="button" data-close-dialog="stickyNotesDialog" aria-label="Close targets and reminders">×</button>
       </header>
       <div class="sticky-notes-body">
@@ -228,7 +232,7 @@
           <label><span>Type</span><select id="stickyNoteType"><option>Reminder</option><option>Target</option></select></label>
           <label class="sticky-title-field"><span>Title *</span><input id="stickyNoteTitle" maxlength="100" required placeholder="Enter target or reminder"></label>
           <label><span>Due date</span><input id="stickyNoteDueDate" type="date"></label>
-          <label class="sticky-details-field"><span>Details</span><textarea id="stickyNoteDetails" maxlength="500" rows="2" placeholder="Optional details"></textarea></label>
+          <label class="sticky-details-field"><span>Details — use one or any number of lines</span><textarea id="stickyNoteDetails" maxlength="4000" rows="4" placeholder="Write each target or reminder line here"></textarea></label>
           <fieldset class="sticky-colour-field"><legend>Colour</legend><div class="sticky-colour-options">
             <label class="yellow"><input type="radio" name="stickyColour" value="yellow" checked><span>Yellow</span></label>
             <label class="pink"><input type="radio" name="stickyColour" value="pink"><span>Pink</span></label>
@@ -247,7 +251,7 @@
           <p id="stickyActiveEmpty" class="sticky-empty">No active targets or reminders.</p>
         </section>
         <details class="sticky-completed-section">
-          <summary><span>Completed history</span><b id="stickyCompletedCount">0</b></summary>
+          <summary><span>Completed diary</span><b id="stickyCompletedCount">0</b></summary>
           <div id="stickyCompletedList" class="sticky-note-grid completed"></div>
           <p id="stickyCompletedEmpty" class="sticky-empty">No completed notes yet.</p>
         </details>
@@ -466,6 +470,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260824-consistent-doj-label-1659-6"></script>
+  <script src="app.js?v=20260826-secure-movable-sticky-1659-7"></script>
 </body>
 </html>

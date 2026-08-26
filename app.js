@@ -2,7 +2,7 @@
 
 /* Replace only this URL after deploying Code.gs as a Google Apps Script web app. */
 const CONFIG = Object.freeze({
-  API_URL: "https://script.google.com/macros/s/AKfycbyc13F44x6wvxRVxO3zWo6JVaom2kS-AzrGZopnF7fXb1-l55hZuPyXbY7hA-sum25G/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbwfrIAKAamLlgwcvdmXmG8GD2wJ6jzpBhoBQyuZJj66X2ieyCgWqUS399IaFoIy-12I/exec",
   CHANNEL: "ADG_HR_API_V1",
   FRONTEND_VERSION: "1.6.59",
   REQUIRED_BACKEND_VERSION: "1.6.1",
@@ -35,12 +35,18 @@ const COLUMN_WIDTH_STORAGE_KEY = "hrDashboardColumnWidthsV159";
 const STICKY_FOCUS_ID_STORAGE_KEY = "hrDashboardStickyFocusIdV159";
 const STICKY_FOCUS_COLLAPSED_STORAGE_KEY = "hrDashboardStickyFocusCollapsedV159";
 const STICKY_FOCUS_LAYOUT_STORAGE_KEY = "hrDashboardStickyFocusLayoutV159";
+const SESSION_LAST_ACTIVITY_KEY = "hrDashboardLastActivityV159";
+const SESSION_EXIT_MARKER_KEY = "hrDashboardPageExitV159";
+const SESSION_IDLE_TIMEOUT_MS = 5 * 60 * 1000;
+const AUTH_SESSION_KEYS = Object.freeze(["hrSessionToken", "hrRole", "hrDisplayName", "hrUsername", SESSION_LAST_ACTIVITY_KEY]);
 const STICKY_FOCUS_SIZES = Object.freeze([
-  { className: "size-small", label: "Small" },
-  { className: "size-medium", label: "Medium" },
-  { className: "size-large", label: "Large" },
-  { className: "size-xlarge", label: "X-Large" }
+  { className: "size-small", label: "Small", width: 280, height: 220 },
+  { className: "size-medium", label: "Medium", width: 350, height: 300 },
+  { className: "size-large", label: "Large", width: 440, height: 390 },
+  { className: "size-xlarge", label: "X-Large", width: 540, height: 480 }
 ]);
+const STICKY_FOCUS_MIN_WIDTH = 240;
+const STICKY_FOCUS_MIN_HEIGHT = 150;
 const COLUMN_WIDTH_MIN = 48;
 const COLUMN_WIDTH_MAX = 480;
 const COLUMN_FILTER_OPERATORS = Object.freeze([
@@ -111,7 +117,13 @@ const state = {
   stickyFocusId: readStickyFocusId(),
   stickyFocusCollapsed: readStickyFocusCollapsed(),
   stickyFocusLayout: readStickyFocusLayout(),
-  stickyFocusDrag: null
+  stickyFocusDrag: null,
+  stickyFocusResize: null,
+  stickyFocusResizeObserver: null,
+  sessionIdleTimer: 0,
+  sessionLastActivityWrite: 0,
+  sessionLastHeartbeat: 0,
+  logoutInProgress: false
 };
 
 const $ = (id) => document.getElementById(id);
@@ -147,8 +159,11 @@ function init() {
     "confirmPassword", "passwordFormError", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton",
     "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewSortColumn", "filterViewSortDirection", "filterScrollUp", "filterScrollDown", "savedFilterViewsPanel", "savedFilterViewCount", "savedFilterViewList", "savedFilterViewEmpty", "savedFilterViewName", "saveNamedFilterViewButton", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm",
     "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError",
-    "stickyNotesButton", "stickyActiveCount", "stickyNotesDialog", "stickyNoteForm", "stickyNoteType", "stickyNoteTitle", "stickyNoteDueDate", "stickyNoteDetails", "saveStickyNoteButton", "cancelStickyEditButton", "stickyNoteError", "stickyActiveSummary", "stickyActiveList", "stickyActiveEmpty", "stickyCompletedCount", "stickyCompletedList", "stickyCompletedEmpty", "stickyFocusNote", "stickyFocusDragHandle", "stickyFocusToggle", "stickyFocusType", "stickyFocusTitle", "stickyFocusChevron", "stickyFocusBody", "stickyFocusDetails", "stickyFocusDue", "stickyFocusSizeDown", "stickyFocusSizeLabel", "stickyFocusSizeUp", "stickyFocusResetLayout", "stickyFocusManage", "stickyFocusUnpin"
+    "stickyNotesButton", "stickyActiveCount", "stickyNotesDialog", "stickyNoteForm", "stickyNoteType", "stickyNoteTitle", "stickyNoteDueDate", "stickyNoteDetails", "saveStickyNoteButton", "cancelStickyEditButton", "stickyNoteError", "stickyActiveSummary", "stickyActiveList", "stickyActiveEmpty", "stickyCompletedCount", "stickyCompletedList", "stickyCompletedEmpty", "stickySideTab", "stickySideCount", "stickyFocusNote", "stickyFocusDragHandle", "stickyFocusToggle", "stickyFocusType", "stickyFocusTitle", "stickyFocusChevron", "stickyFocusBody", "stickyFocusDetails", "stickyFocusDue", "stickyFocusSizeDown", "stickyFocusSizeLabel", "stickyFocusSizeUp", "stickyFocusEdit", "stickyFocusComplete", "stickyFocusResetLayout", "stickyFocusManage", "stickyFocusUnpin", "stickyFocusResizeGrip"
   ].forEach((id) => { refs[id] = $(id); });
+
+  const staleToken = repairStoredSession();
+  initialiseSessionSecurity(staleToken);
 
   const remembered = localStorage.getItem("hrRememberedUsername") || "";
   refs.username.value = remembered;
@@ -211,6 +226,7 @@ function init() {
   refs.backupButton.addEventListener("click", createBackup);
   refs.addEmployeeButton.addEventListener("click", () => openEmployeeDialog());
   refs.stickyNotesButton.addEventListener("click", openStickyNotes);
+  refs.stickySideTab.addEventListener("click", openStickyNotes);
   refs.stickyNoteForm.addEventListener("submit", saveStickyNote);
   refs.stickyActiveList.addEventListener("click", handleStickyNoteAction);
   refs.stickyCompletedList.addEventListener("click", handleStickyNoteAction);
@@ -221,12 +237,20 @@ function init() {
   window.addEventListener("pointermove", moveStickyFocusDrag);
   window.addEventListener("pointerup", endStickyFocusDrag);
   window.addEventListener("pointercancel", endStickyFocusDrag);
+  refs.stickyFocusResizeGrip.addEventListener("pointerdown", startStickyFocusResize);
+  refs.stickyFocusResizeGrip.addEventListener("keydown", resizeStickyFocusWithKeyboard);
+  window.addEventListener("pointermove", moveStickyFocusResize);
+  window.addEventListener("pointerup", endStickyFocusResize);
+  window.addEventListener("pointercancel", endStickyFocusResize);
   refs.stickyFocusSizeDown.addEventListener("click", () => changeStickyFocusSize(-1));
   refs.stickyFocusSizeUp.addEventListener("click", () => changeStickyFocusSize(1));
+  refs.stickyFocusEdit.addEventListener("click", editPinnedStickyNote);
+  refs.stickyFocusComplete.addEventListener("click", () => completeStickyNote(refs.stickyFocusComplete));
   refs.stickyFocusResetLayout.addEventListener("click", resetStickyFocusLayout);
   refs.stickyFocusManage.addEventListener("click", openStickyNotes);
   refs.stickyFocusUnpin.addEventListener("click", unpinStickyFocus);
   window.addEventListener("resize", debounce(applyStickyFocusLayout, 120));
+  refs.stickyNoteDetails.addEventListener("input", autoFitStickyDetailsInput);
   refs.manageColumnsButton.addEventListener("click", openColumnManager);
   refs.columnManagerForm.addEventListener("submit", addCustomColumn);
   refs.customColumnList.addEventListener("click", handleColumnManagerAction);
@@ -269,6 +293,101 @@ function init() {
   renderVersionLabels();
   probeBackendVersion();
   if (state.token) restoreSession();
+  else showLogin();
+}
+
+function navigationType() {
+  try {
+    const entry = performance.getEntriesByType("navigation")[0];
+    return entry && entry.type ? entry.type : "navigate";
+  } catch {
+    return "navigate";
+  }
+}
+
+function clearAuthSessionStorage() {
+  AUTH_SESSION_KEYS.forEach((key) => sessionStorage.removeItem(key));
+}
+
+function repairStoredSession() {
+  const now = Date.now();
+  const staleToken = state.token;
+  let pageExitMarked = false;
+  try { pageExitMarked = Boolean(localStorage.getItem(SESSION_EXIT_MARKER_KEY)); } catch { /* Storage may be disabled. */ }
+  const lastActivity = Number(sessionStorage.getItem(SESSION_LAST_ACTIVITY_KEY) || 0);
+  const expiredByIdle = Boolean(state.token) && (!lastActivity || now - lastActivity >= SESSION_IDLE_TIMEOUT_MS);
+  const returnedAfterExit = Boolean(state.token) && pageExitMarked && navigationType() !== "reload";
+
+  try { localStorage.removeItem(SESSION_EXIT_MARKER_KEY); } catch { /* Storage may be disabled. */ }
+  if (expiredByIdle || returnedAfterExit) {
+    clearAuthSessionStorage();
+    state.token = "";
+    state.role = "";
+    state.displayName = "";
+    state.username = "";
+    return staleToken;
+  }
+  if (!state.token) {
+    clearAuthSessionStorage();
+    state.role = "";
+    state.displayName = "";
+    state.username = "";
+  }
+  return "";
+}
+
+function initialiseSessionSecurity(staleToken) {
+  if (staleToken) sendLogoutBeacon(staleToken);
+  ["pointerdown", "keydown", "touchstart", "wheel"].forEach((eventName) => {
+    window.addEventListener(eventName, recordSessionActivity, { passive: true });
+  });
+  document.addEventListener("visibilitychange", checkSessionActivity);
+  window.addEventListener("pagehide", markDashboardPageExit);
+}
+
+function recordSessionActivity() {
+  if (!state.token || refs.dashboardView.hidden) return;
+  const now = Date.now();
+  if (now - state.sessionLastActivityWrite < 1000) return;
+  state.sessionLastActivityWrite = now;
+  sessionStorage.setItem(SESSION_LAST_ACTIVITY_KEY, String(now));
+  armSessionIdleTimer();
+  if (now - state.sessionLastHeartbeat >= 2 * 60 * 1000) {
+    state.sessionLastHeartbeat = now;
+    apiRequest("ping", {}).catch(() => {});
+  }
+}
+
+function armSessionIdleTimer() {
+  clearTimeout(state.sessionIdleTimer);
+  if (!state.token) return;
+  const lastActivity = Number(sessionStorage.getItem(SESSION_LAST_ACTIVITY_KEY) || 0);
+  const remaining = Math.max(0, SESSION_IDLE_TIMEOUT_MS - (Date.now() - lastActivity));
+  state.sessionIdleTimer = window.setTimeout(checkSessionActivity, remaining + 50);
+}
+
+function checkSessionActivity() {
+  if (!state.token) return;
+  const lastActivity = Number(sessionStorage.getItem(SESSION_LAST_ACTIVITY_KEY) || 0);
+  if (!lastActivity || Date.now() - lastActivity >= SESSION_IDLE_TIMEOUT_MS) {
+    performLogout("You were signed out automatically after 5 minutes of inactivity.");
+    return;
+  }
+  armSessionIdleTimer();
+}
+
+function markDashboardPageExit() {
+  if (!state.token) return;
+  try { localStorage.setItem(SESSION_EXIT_MARKER_KEY, String(Date.now())); } catch { /* Storage may be disabled. */ }
+}
+
+function sendLogoutBeacon(token) {
+  if (!token || !isApiConfigured() || !navigator.sendBeacon) return;
+  try {
+    const requestId = `logout_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const payload = JSON.stringify({ action: "logout", data: {}, token, requestId, origin: location.origin });
+    navigator.sendBeacon(CONFIG.API_URL, new URLSearchParams({ payload }));
+  } catch { /* The local session remains cleared even if the beacon is unavailable. */ }
 }
 
 function renderVersionLabels() {
@@ -320,11 +439,13 @@ async function handleLogin(event) {
     state.displayName = response.displayName;
     state.username = response.username;
     state.backendVersion = String(response.version || state.backendVersion || "").trim();
+    state.sessionLastHeartbeat = Date.now();
     renderVersionLabels();
     sessionStorage.setItem("hrSessionToken", state.token);
     sessionStorage.setItem("hrRole", state.role);
     sessionStorage.setItem("hrDisplayName", state.displayName);
     sessionStorage.setItem("hrUsername", state.username);
+    sessionStorage.setItem(SESSION_LAST_ACTIVITY_KEY, String(Date.now()));
     if (refs.rememberUsername.checked) localStorage.setItem("hrRememberedUsername", username);
     else localStorage.removeItem("hrRememberedUsername");
     refs.password.value = "";
@@ -353,6 +474,7 @@ async function restoreSession() {
 function showDashboard() {
   refs.loginView.hidden = true;
   refs.dashboardView.hidden = false;
+  refs.stickySideTab.hidden = Boolean(state.stickyFocusId);
   refs.changePasswordButton.hidden = false;
   refs.displayName.textContent = state.displayName || state.username || "User";
   refs.roleLabel.textContent = state.role === "admin" ? "Administrator access" : "View-only access";
@@ -367,27 +489,46 @@ function showDashboard() {
   }
   updateDirectEditButton();
   updateHeaderEditButtons();
+  recordSessionActivity();
+  armSessionIdleTimer();
 }
 
 function showLogin() {
+  clearTimeout(state.sessionIdleTimer);
+  state.sessionIdleTimer = 0;
+  if (!state.token) clearAuthSessionStorage();
   refs.loginView.hidden = false;
   refs.dashboardView.hidden = true;
   refs.changePasswordButton.hidden = true;
   refs.stickyFocusNote.hidden = true;
+  refs.stickySideTab.hidden = true;
   setTimeout(() => refs.username.focus(), 20);
 }
 
 async function logout() {
-  try { if (state.token) await apiRequest("logout", {}); } catch { /* Local cleanup still logs out. */ }
+  return performLogout("You have been signed out.");
+}
+
+async function performLogout(message) {
+  if (state.logoutInProgress) return;
+  state.logoutInProgress = true;
+  const token = state.token;
   clearSession();
   state.employees = [];
   state.filtered = [];
+  state.stickyNotes = [];
   showLogin();
-  showToast("You have been signed out.");
+  refs.loginError.textContent = message && message.includes("automatically") ? message : "";
+  showToast(message || "You have been signed out.");
+  sendLogoutBeacon(token);
+  state.logoutInProgress = false;
 }
 
 function clearSession() {
-  ["hrSessionToken", "hrRole", "hrDisplayName", "hrUsername"].forEach((key) => sessionStorage.removeItem(key));
+  clearTimeout(state.sessionIdleTimer);
+  state.sessionIdleTimer = 0;
+  clearAuthSessionStorage();
+  try { localStorage.removeItem(SESSION_EXIT_MARKER_KEY); } catch { /* Storage may be disabled. */ }
   state.token = ""; state.role = ""; state.displayName = ""; state.username = "";
   state.directEditEnabled = false; state.headerEditEnabled = false; state.inlineEditCode = ""; state.headerLabelsDirty = false;
 }
@@ -2531,6 +2672,7 @@ function renderStickyNotes() {
   refs.stickyCompletedCount.textContent = String(completed.length);
   refs.stickyActiveEmpty.hidden = active.length > 0;
   refs.stickyCompletedEmpty.hidden = completed.length > 0;
+  refs.stickySideCount.textContent = String(active.length);
   refs.stickyActiveList.innerHTML = active.map((note) => stickyNoteMarkup(note, false)).join("");
   refs.stickyCompletedList.innerHTML = completed.map((note) => stickyNoteMarkup(note, true)).join("");
   renderStickyFocusNote();
@@ -2604,10 +2746,12 @@ function readStickyFocusLayout() {
     return {
       size,
       x: Number.isFinite(saved.x) ? saved.x : null,
-      y: Number.isFinite(saved.y) ? saved.y : null
+      y: Number.isFinite(saved.y) ? saved.y : null,
+      width: Number.isFinite(saved.width) ? saved.width : null,
+      height: Number.isFinite(saved.height) ? saved.height : null
     };
   } catch {
-    return { size: 1, x: null, y: null };
+    return { size: 1, x: null, y: null, width: null, height: null };
   }
 }
 
@@ -2635,7 +2779,7 @@ function unpinStickyFocus() {
   state.stickyFocusCollapsed = false;
   saveStickyFocusPreference();
   renderStickyNotes();
-  showToast("The floating sticky note was closed.");
+  showToast("The sticky note was unpinned and collapsed to the side tab.");
 }
 
 function toggleStickyFocus() {
@@ -2649,15 +2793,17 @@ function changeStickyFocusSize(direction) {
   const nextSize = Math.max(0, Math.min(STICKY_FOCUS_SIZES.length - 1, state.stickyFocusLayout.size + direction));
   if (nextSize === state.stickyFocusLayout.size) return;
   state.stickyFocusLayout.size = nextSize;
+  state.stickyFocusLayout.width = STICKY_FOCUS_SIZES[nextSize].width;
+  state.stickyFocusLayout.height = STICKY_FOCUS_SIZES[nextSize].height;
   saveStickyFocusPreference();
   renderStickyFocusNote();
 }
 
 function resetStickyFocusLayout() {
-  state.stickyFocusLayout = { size: 1, x: null, y: null };
+  state.stickyFocusLayout = { size: 1, x: null, y: null, width: null, height: null };
   saveStickyFocusPreference();
   renderStickyFocusNote();
-  showToast("Sticky note size and position restored.");
+  showToast("Sticky note returned to automatic fit and its original position.");
 }
 
 function startStickyFocusDrag(event) {
@@ -2703,6 +2849,58 @@ function endStickyFocusDrag(event) {
   saveStickyFocusPreference();
 }
 
+function startStickyFocusResize(event) {
+  if (event.pointerType === "mouse" && event.button !== 0) return;
+  if (state.stickyFocusCollapsed) return;
+  const rect = refs.stickyFocusNote.getBoundingClientRect();
+  state.stickyFocusResize = {
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startY: event.clientY,
+    startWidth: rect.width,
+    startHeight: rect.height
+  };
+  state.stickyFocusLayout.x = rect.left;
+  state.stickyFocusLayout.y = rect.top;
+  try { refs.stickyFocusResizeGrip.setPointerCapture(event.pointerId); } catch { /* Pointer capture is optional. */ }
+  document.body.classList.add("sticky-focus-resizing");
+  event.preventDefault();
+}
+
+function moveStickyFocusResize(event) {
+  const resize = state.stickyFocusResize;
+  if (!resize || resize.pointerId !== event.pointerId) return;
+  const maxWidth = Math.max(STICKY_FOCUS_MIN_WIDTH, window.innerWidth - (Number(state.stickyFocusLayout.x) || 8) - 8);
+  const maxHeight = Math.max(STICKY_FOCUS_MIN_HEIGHT, window.innerHeight - (Number(state.stickyFocusLayout.y) || 8) - 8);
+  const width = Math.max(STICKY_FOCUS_MIN_WIDTH, Math.min(maxWidth, resize.startWidth + event.clientX - resize.startX));
+  const height = Math.max(STICKY_FOCUS_MIN_HEIGHT, Math.min(maxHeight, resize.startHeight + event.clientY - resize.startY));
+  state.stickyFocusLayout.width = width;
+  state.stickyFocusLayout.height = height;
+  refs.stickyFocusNote.style.width = `${width}px`;
+  refs.stickyFocusNote.style.height = `${height}px`;
+  event.preventDefault();
+}
+
+function endStickyFocusResize(event) {
+  const resize = state.stickyFocusResize;
+  if (!resize || resize.pointerId !== event.pointerId) return;
+  state.stickyFocusResize = null;
+  try { refs.stickyFocusResizeGrip.releasePointerCapture(event.pointerId); } catch { /* Pointer capture may already be released. */ }
+  document.body.classList.remove("sticky-focus-resizing");
+  saveStickyFocusPreference();
+}
+
+function resizeStickyFocusWithKeyboard(event) {
+  const movement = { ArrowLeft: [-20, 0], ArrowRight: [20, 0], ArrowUp: [0, -20], ArrowDown: [0, 20] }[event.key];
+  if (!movement || state.stickyFocusCollapsed) return;
+  const rect = refs.stickyFocusNote.getBoundingClientRect();
+  state.stickyFocusLayout.width = Math.max(STICKY_FOCUS_MIN_WIDTH, rect.width + movement[0]);
+  state.stickyFocusLayout.height = Math.max(STICKY_FOCUS_MIN_HEIGHT, rect.height + movement[1]);
+  applyStickyFocusLayout();
+  saveStickyFocusPreference();
+  event.preventDefault();
+}
+
 function moveStickyFocusWithKeyboard(event) {
   const movement = { ArrowLeft: [-20, 0], ArrowRight: [20, 0], ArrowUp: [0, -20], ArrowDown: [0, 20] }[event.key];
   if (!movement) return;
@@ -2721,6 +2919,20 @@ function applyStickyFocusLayout() {
   refs.stickyFocusSizeLabel.textContent = STICKY_FOCUS_SIZES[size].label;
   refs.stickyFocusSizeDown.disabled = size === 0;
   refs.stickyFocusSizeUp.disabled = size === STICKY_FOCUS_SIZES.length - 1;
+  const maxWidth = Math.max(STICKY_FOCUS_MIN_WIDTH, window.innerWidth - 16);
+  const maxHeight = Math.max(STICKY_FOCUS_MIN_HEIGHT, window.innerHeight - 16);
+  if (Number.isFinite(state.stickyFocusLayout.width)) {
+    state.stickyFocusLayout.width = Math.max(STICKY_FOCUS_MIN_WIDTH, Math.min(maxWidth, state.stickyFocusLayout.width));
+    refs.stickyFocusNote.style.width = `${state.stickyFocusLayout.width}px`;
+  } else {
+    refs.stickyFocusNote.style.removeProperty("width");
+  }
+  if (!state.stickyFocusCollapsed && Number.isFinite(state.stickyFocusLayout.height)) {
+    state.stickyFocusLayout.height = Math.max(STICKY_FOCUS_MIN_HEIGHT, Math.min(maxHeight, state.stickyFocusLayout.height));
+    refs.stickyFocusNote.style.height = `${state.stickyFocusLayout.height}px`;
+  } else {
+    refs.stickyFocusNote.style.removeProperty("height");
+  }
   if (!Number.isFinite(state.stickyFocusLayout.x) || !Number.isFinite(state.stickyFocusLayout.y)) {
     refs.stickyFocusNote.style.removeProperty("left");
     refs.stickyFocusNote.style.removeProperty("top");
@@ -2750,6 +2962,7 @@ function renderStickyFocusNote() {
       saveStickyFocusPreference();
     }
     refs.stickyFocusNote.hidden = true;
+    refs.stickySideTab.hidden = refs.dashboardView.hidden;
     return;
   }
   const colour = ["yellow", "pink", "blue", "green", "purple", "orange"].includes(note.colour) ? note.colour : "yellow";
@@ -2759,10 +2972,27 @@ function renderStickyFocusNote() {
   refs.stickyFocusTitle.textContent = note.title || "Untitled note";
   refs.stickyFocusDetails.textContent = note.details || "No additional details.";
   refs.stickyFocusDue.textContent = note.dueDate ? `Due ${formatDate(note.dueDate)}` : "No due date";
+  refs.stickyFocusEdit.dataset.stickyNoteId = note.id;
+  refs.stickyFocusComplete.dataset.completeStickyNote = note.id;
   refs.stickyFocusToggle.setAttribute("aria-expanded", String(!state.stickyFocusCollapsed));
   refs.stickyFocusChevron.textContent = state.stickyFocusCollapsed ? "+" : "−";
   refs.stickyFocusNote.hidden = false;
+  refs.stickySideTab.hidden = true;
   applyStickyFocusLayout();
+}
+
+function editPinnedStickyNote() {
+  const id = refs.stickyFocusEdit.dataset.stickyNoteId || state.stickyFocusId;
+  if (!id) return;
+  openStickyNotes().then(() => editStickyNote(id)).catch(() => {});
+}
+
+function autoFitStickyDetailsInput() {
+  const input = refs.stickyNoteDetails;
+  input.style.height = "auto";
+  const height = Math.max(88, Math.min(300, input.scrollHeight));
+  input.style.height = `${height}px`;
+  input.style.overflowY = input.scrollHeight > 300 ? "auto" : "hidden";
 }
 
 function editStickyNote(id) {
@@ -2772,6 +3002,7 @@ function editStickyNote(id) {
   refs.stickyNoteType.value = note.type || "Reminder";
   refs.stickyNoteTitle.value = note.title || "";
   refs.stickyNoteDetails.value = note.details || "";
+  autoFitStickyDetailsInput();
   refs.stickyNoteDueDate.value = toIsoDate(note.dueDate || "");
   const colour = refs.stickyNoteForm.querySelector(`input[name="stickyColour"][value="${CSS.escape(note.colour || "yellow")}"]`);
   if (colour) colour.checked = true;
@@ -2788,6 +3019,7 @@ function cancelStickyEdit() {
   refs.saveStickyNoteButton.textContent = "Save note";
   refs.cancelStickyEditButton.hidden = true;
   refs.stickyNoteError.textContent = "";
+  autoFitStickyDetailsInput();
 }
 
 async function completeStickyNote(button) {
@@ -2796,7 +3028,7 @@ async function completeStickyNote(button) {
     const response = await apiRequest("completeStickyNote", { id: button.dataset.completeStickyNote });
     state.stickyNotes = Array.isArray(response.notes) ? response.notes : state.stickyNotes;
     renderStickyNotes();
-    showToast("Completed note moved to saved history.");
+    showToast("Completed note was removed from active reminders and saved in the diary.");
   } catch (error) {
     showToast(friendlyError(error), true);
     if (button.isConnected) setButtonBusy(button, false, "✓ Completed");
@@ -3296,7 +3528,20 @@ function apiRequest(action, data, includeToken = true) {
       if (!event.data || event.data.channel !== CONFIG.CHANNEL || event.data.requestId !== requestId || finished) return;
       finished = true; clearTimeout(timeout); cleanup();
       if (event.data.ok) resolve(event.data.data || {});
-      else reject(Object.assign(new Error(event.data.message || "Request failed."), { code: event.data.code || "API_ERROR" }));
+      else {
+        const error = Object.assign(new Error(event.data.message || "Request failed."), { code: event.data.code || "API_ERROR" });
+        if (includeToken && error.code === "SESSION_EXPIRED" && state.token) {
+          window.setTimeout(() => {
+            clearSession();
+            state.employees = [];
+            state.filtered = [];
+            state.stickyNotes = [];
+            showLogin();
+            refs.loginError.textContent = "Your session expired. Please sign in again.";
+          }, 0);
+        }
+        reject(error);
+      }
     };
     window.addEventListener("message", onMessage);
     document.body.append(frame, form);
