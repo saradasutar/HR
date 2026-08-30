@@ -1,0 +1,19 @@
+HR DASHBOARD v1.6.59 — BACKEND LINK + HEADER CONTRAST + FAVICON
+
+Upload and replace every file in this ZIP in the root of the GitHub HR repository.
+
+Included:
+- index.html
+- styles.css
+- app.js
+- favicon.svg
+- favicon-32.png
+- favicon.ico
+- apple-touch-icon.png
+
+The frontend is linked to the Apps Script Web App /exec URL supplied on 30 August 2026.
+The white header visibility defect is corrected with a blur-free navy-to-teal gradient and
+high-contrast text. The performance optimisations and HR Dashboard v1.6.59 features remain.
+
+No Apps Script code replacement is required if that supplied deployment already contains the
+matching HR backend. After GitHub publishes, hard-refresh the page and sign in again.
