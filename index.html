@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://script.google.com">
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
   <link rel="dns-prefetch" href="//script.google.com">
-  <link rel="preload" href="app.js?v=20260830-contrast-backend-1659" as="script">
-  <link rel="stylesheet" href="styles.css?v=20260830-contrast-backend-1659">
+  <link rel="preload" href="app.js?v=20260831-security-timeout-1659" as="script">
+  <link rel="stylesheet" href="styles.css?v=20260831-security-timeout-1659">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -59,7 +59,7 @@
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
-          <p class="session-security-note">🔐 Automatic sign-out after 5 minutes of inactivity or after leaving/closing the dashboard.</p>
+          <p id="loginSessionSecurityNote" class="session-security-note">🔐 Automatic sign-out setting is being checked…</p>
           <div class="version-pair login-version-pair" aria-label="Application versions">
             <span>Frontend <strong id="loginFrontendVersion">v1.6.59</strong></span>
             <span>Backend <strong id="loginBackendVersion">Checking…</strong></span>
@@ -83,6 +83,7 @@
           <div class="topbar-work-actions">
             <button id="reportsButton" class="soft-btn report-launch-btn" type="button"><span aria-hidden="true">▤</span> Reports &amp; Print</button>
             <button id="backupButton" class="soft-btn admin-only" type="button">Create backup</button>
+            <button id="administrationButton" class="soft-btn admin-only admin-settings-btn" type="button" title="Administration and security settings" aria-label="Open Administration and security settings"><span aria-hidden="true">⚙</span><span class="admin-settings-label">Administration</span></button>
             <button id="addEmployeeButton" class="primary-btn admin-only" type="button"><span aria-hidden="true">＋</span> Add employee</button>
             <button id="stickyNotesButton" class="soft-btn sticky-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📌</span> Target / Reminder <b id="stickyActiveCount">0</b></button>
           </div>
@@ -474,10 +475,37 @@
     </form>
   </dialog>
 
+  <dialog id="administrationDialog" class="modal security-settings-modal">
+    <form id="securitySettingsForm" method="dialog">
+      <header class="modal-header"><div><p class="eyebrow accent">Administration</p><h2>Security settings</h2><p>Control the inactivity sign-out period for every dashboard user.</p></div><button class="modal-close" type="button" data-close-dialog="administrationDialog" aria-label="Close security settings">×</button></header>
+      <div class="security-settings-body">
+        <section class="security-setting-card">
+          <div class="security-setting-icon" aria-hidden="true">⏱</div>
+          <div><span>Current automatic sign-out</span><strong id="currentSessionTimeout">30 minutes</strong><small>Applies to administrators and view-only users.</small></div>
+        </section>
+        <label class="security-timeout-field"><span>Sign out after inactivity</span><select id="sessionTimeoutMinutes" required><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30" selected>30 minutes</option></select><small>A warning appears one minute before sign-out. Clicking, typing, scrolling or touching resets the timer.</small></label>
+        <div class="security-behaviour-note"><strong>Closing protection remains active</strong><span>Leaving or closing this dashboard ends the session. Reopening always requires login.</span></div>
+      </div>
+      <p id="securitySettingsError" class="form-error security-settings-error" role="alert"></p>
+      <footer class="modal-footer"><button class="soft-btn" type="button" data-close-dialog="administrationDialog">Cancel</button><button id="saveSecuritySettingsButton" class="primary-btn" type="submit"><span>Save security setting</span></button></footer>
+    </form>
+  </dialog>
+
+  <dialog id="sessionWarningDialog" class="modal session-warning-modal" aria-labelledby="sessionWarningTitle">
+    <div class="session-warning-sheet">
+      <div class="session-warning-icon" aria-hidden="true">⏳</div>
+      <p class="eyebrow accent">Security warning</p>
+      <h2 id="sessionWarningTitle">Your session is about to end</h2>
+      <strong id="sessionWarningCountdown" class="session-warning-countdown">1:00</strong>
+      <p id="sessionWarningMessage">Your inactivity limit is almost reached.</p>
+      <div class="session-warning-actions"><button id="warningSignOutButton" class="soft-btn danger-soft-btn" type="button">Sign out now</button><button id="staySignedInButton" class="primary-btn" type="button"><span>Stay signed in</span></button></div>
+    </div>
+  </dialog>
+
   <button id="changePasswordButton" class="security-fab" type="button" hidden title="Change password">🔐</button>
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260830-contrast-backend-1659"></script>
+  <script src="app.js?v=20260831-security-timeout-1659"></script>
 </body>
 </html>
