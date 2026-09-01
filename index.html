@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://script.google.com">
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
   <link rel="dns-prefetch" href="//script.google.com">
-  <link rel="preload" href="app.js?v=20260901-work-diary-file-register-1659" as="script">
-  <link rel="stylesheet" href="styles.css?v=20260901-work-diary-file-register-1659">
+  <link rel="preload" href="app.js?v=20260901-visible-form-save-1659" as="script">
+  <link rel="stylesheet" href="styles.css?v=20260901-visible-form-save-1659">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -483,7 +483,7 @@
       <div class="diary-body">
         <form id="diaryEntryForm" class="diary-entry-form">
           <input id="diaryEntryId" type="hidden">
-          <div class="diary-form-title"><strong id="diaryFormHeading">New diary entry</strong><button id="cancelDiaryEditButton" type="button" class="soft-btn" hidden>Cancel edit</button></div>
+          <div class="diary-form-title"><strong id="diaryFormHeading">New diary entry</strong><div class="form-heading-actions"><button id="cancelDiaryEditButton" type="button" class="soft-btn" hidden>Cancel edit</button><button class="primary-btn quick-form-save" type="submit">Save</button></div></div>
           <label><span>Date</span><input id="diaryEntryDate" type="date" required></label>
           <label class="diary-title-field"><span>Title *</span><input id="diaryEntryTitle" maxlength="140" required placeholder="Short, clear heading"></label>
           <label class="diary-details-field"><span>Details *</span><textarea id="diaryEntryDetails" maxlength="10000" rows="5" required placeholder="Write any number of lines…"></textarea></label>
@@ -511,7 +511,7 @@
   <dialog id="fileRegisterDialog" class="modal file-register-modal">
     <div class="file-register-sheet"><header class="modal-header file-register-header"><div><p class="eyebrow accent">Office file index</p><h2>📁 File Register</h2><p>Add, edit, delete and instantly search File Numbers and subjects.</p></div><button class="modal-close" type="button" data-close-dialog="fileRegisterDialog" aria-label="Close File Register">×</button></header>
       <div class="file-register-body">
-        <form id="fileRecordForm" class="file-record-form admin-only"><input id="fileRecordId" type="hidden"><div class="diary-form-title"><strong id="fileRecordFormHeading">Add file record</strong><button id="cancelFileRecordEditButton" class="soft-btn" type="button" hidden>Cancel edit</button></div><label><span>File No. *</span><input id="fileRecordNo" required maxlength="160" placeholder="e.g. 12/3/2026-Admn"></label><label class="file-subject-field"><span>Subject *</span><textarea id="fileRecordSubject" required maxlength="1000" rows="3"></textarea></label><label><span>Category</span><input id="fileRecordCategory" maxlength="100"></label><label><span>Section</span><input id="fileRecordSection" maxlength="100"></label><label><span>Status</span><select id="fileRecordStatus"><option>Active</option><option>Pending</option><option>Closed</option><option>Archived</option></select></label><label class="file-remarks-field"><span>Remarks</span><textarea id="fileRecordRemarks" maxlength="4000" rows="3"></textarea></label><label class="file-link-field"><span>Google Drive/File link</span><input id="fileRecordLink" type="url" maxlength="1000"></label><p id="fileRecordError" class="form-error" role="alert"></p><button id="saveFileRecordButton" class="primary-btn" type="submit">Save file record</button></form>
+        <form id="fileRecordForm" class="file-record-form admin-only"><input id="fileRecordId" type="hidden"><div class="diary-form-title"><strong id="fileRecordFormHeading">Add file record</strong><div class="form-heading-actions"><button id="cancelFileRecordEditButton" class="soft-btn" type="button" hidden>Cancel edit</button><button class="primary-btn quick-form-save" type="submit">Save</button></div></div><label><span>File No. *</span><input id="fileRecordNo" required maxlength="160" placeholder="e.g. 12/3/2026-Admn"></label><label class="file-subject-field"><span>Subject *</span><textarea id="fileRecordSubject" required maxlength="1000" rows="3"></textarea></label><label><span>Category</span><input id="fileRecordCategory" maxlength="100"></label><label><span>Section</span><input id="fileRecordSection" maxlength="100"></label><label><span>Status</span><select id="fileRecordStatus"><option>Active</option><option>Pending</option><option>Closed</option><option>Archived</option></select></label><label class="file-remarks-field"><span>Remarks</span><textarea id="fileRecordRemarks" maxlength="4000" rows="3"></textarea></label><label class="file-link-field"><span>Google Drive/File link</span><input id="fileRecordLink" type="url" maxlength="1000"></label><p id="fileRecordError" class="form-error" role="alert"></p><button id="saveFileRecordButton" class="primary-btn" type="submit">Save file record</button></form>
         <section class="file-record-browser"><div class="file-search-tools"><label class="diary-search"><span>⌕</span><input id="fileRecordSearch" type="search" placeholder="Search File No., subject, category, section…"></label><select id="fileRecordStatusFilter"><option value="">All statuses</option><option>Active</option><option>Pending</option><option>Closed</option><option>Archived</option></select><button id="clearFileRecordSearchButton" class="soft-btn" type="button">Clear</button></div><strong id="fileRecordSummary">0 file records</strong><div id="fileRecordList" class="file-record-list"></div><p id="fileRecordEmpty" class="sticky-empty">No matching file records.</p></section>
       </div><footer class="modal-footer"><span id="fileRegisterStorageNote">Using the HR spreadsheet.</span><button class="soft-btn" type="button" data-close-dialog="fileRegisterDialog">Close</button></footer>
     </div>
@@ -549,6 +549,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260901-work-diary-file-register-1659"></script>
+  <script src="app.js?v=20260901-visible-form-save-1659"></script>
 </body>
 </html>
