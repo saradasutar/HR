@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://script.google.com">
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
   <link rel="dns-prefetch" href="//script.google.com">
-  <link rel="preload" href="app.js?v=20260831-security-timeout-1659" as="script">
-  <link rel="stylesheet" href="styles.css?v=20260831-security-timeout-1659">
+  <link rel="preload" href="app.js?v=20260901-work-diary-file-register-1659" as="script">
+  <link rel="stylesheet" href="styles.css?v=20260901-work-diary-file-register-1659">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -86,6 +86,8 @@
             <button id="administrationButton" class="soft-btn admin-only admin-settings-btn" type="button" title="Administration and security settings" aria-label="Open Administration and security settings"><span aria-hidden="true">⚙</span><span class="admin-settings-label">Administration</span></button>
             <button id="addEmployeeButton" class="primary-btn admin-only" type="button"><span aria-hidden="true">＋</span> Add employee</button>
             <button id="stickyNotesButton" class="soft-btn sticky-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📌</span> Target / Reminder <b id="stickyActiveCount">0</b></button>
+            <button id="workDiaryButton" class="soft-btn diary-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📔</span> Work Diary</button>
+            <button id="fileRegisterButton" class="soft-btn file-register-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📁</span> File Register</button>
           </div>
           <span id="lastUpdated" class="last-updated">Not yet refreshed</span>
           <div class="version-pair dashboard-version-pair" aria-label="Application versions">
@@ -232,7 +234,7 @@
   <dialog id="stickyNotesDialog" class="modal sticky-notes-modal">
     <div class="sticky-notes-sheet">
       <header class="modal-header sticky-notes-header">
-        <div><p class="eyebrow accent">Work organiser</p><h2>Targets &amp; Reminders</h2><p>Active notes stay here; completed notes move safely into the Sticky Note Diary.</p></div>
+        <div><p class="eyebrow accent">Work organiser</p><h2>Targets &amp; Reminders</h2><p>Active notes stay here; completed notes move safely into the searchable Work Diary.</p></div>
         <button class="modal-close" type="button" data-close-dialog="stickyNotesDialog" aria-label="Close targets and reminders">×</button>
       </header>
       <div class="sticky-notes-body">
@@ -475,6 +477,46 @@
     </form>
   </dialog>
 
+  <dialog id="workDiaryDialog" class="modal work-diary-modal">
+    <div class="work-diary-sheet">
+      <header class="modal-header diary-header"><div><p class="eyebrow accent">Office record &amp; learning</p><h2>📔 Work Diary</h2><p>Write once, then find entries by day, month, category, source or learning.</p></div><button class="modal-close" type="button" data-close-dialog="workDiaryDialog" aria-label="Close Work Diary">×</button></header>
+      <div class="diary-body">
+        <form id="diaryEntryForm" class="diary-entry-form">
+          <input id="diaryEntryId" type="hidden">
+          <div class="diary-form-title"><strong id="diaryFormHeading">New diary entry</strong><button id="cancelDiaryEditButton" type="button" class="soft-btn" hidden>Cancel edit</button></div>
+          <label><span>Date</span><input id="diaryEntryDate" type="date" required></label>
+          <label class="diary-title-field"><span>Title *</span><input id="diaryEntryTitle" maxlength="140" required placeholder="Short, clear heading"></label>
+          <label class="diary-details-field"><span>Details *</span><textarea id="diaryEntryDetails" maxlength="10000" rows="5" required placeholder="Write any number of lines…"></textarea></label>
+          <label><span>Category</span><select id="diaryEntryCategory"><option>Work</option><option>Meeting</option><option>Follow-up</option><option>Decision</option><option>Personal note</option><option>Learning</option></select></label>
+          <label><span>Tags</span><input id="diaryEntryTags" maxlength="300" placeholder="RTI, Training, Administration"></label>
+          <label><span>Related employee</span><input id="diaryEntryEmployee" maxlength="160" list="diaryEmployeeSuggestions" placeholder="Optional"><datalist id="diaryEmployeeSuggestions"></datalist></label>
+          <label><span>Link</span><input id="diaryEntryLink" type="url" maxlength="1000" placeholder="Optional document or webpage link"></label>
+          <label><span>Visibility</span><select id="diaryEntryVisibility"><option>Private</option><option>Administrators</option><option>All signed-in users</option></select></label>
+          <div class="diary-marker-options"><label><input id="diaryEntryLearning" type="checkbox"> <span>💡 Mark as Learning</span></label><label><input id="diaryEntryImportant" type="checkbox"> <span>★ Mark Important</span></label></div>
+          <p id="diaryEntryError" class="form-error" role="alert"></p>
+          <button id="saveDiaryEntryButton" class="primary-btn diary-save-btn" type="submit">Save diary entry</button>
+        </form>
+        <section class="diary-browser">
+          <div class="diary-view-tabs" role="tablist"><button type="button" data-diary-view="recent" class="active">Recent</button><button type="button" data-diary-view="daily">Daily</button><button type="button" data-diary-view="monthly">Monthly</button><button type="button" data-diary-view="learning">💡 Learnings</button></div>
+          <div class="diary-search-row"><label class="diary-search"><span>⌕</span><input id="diarySearch" type="search" placeholder="Search title, details, tags, employee…"></label><select id="diaryMonthFilter" aria-label="Filter diary by month"><option value="">All months</option></select><select id="diaryCategoryFilter" aria-label="Filter diary by category"><option value="">All categories</option></select><select id="diarySourceFilter" aria-label="Filter diary by source"><option value="">All sources</option></select><label class="diary-limit-label">Show <select id="diaryRecentLimit"><option>5</option><option>10</option><option>20</option></select></label><button id="clearDiaryFiltersButton" class="soft-btn" type="button">Clear</button></div>
+          <div class="diary-browser-summary"><strong id="diaryResultSummary">Latest entries</strong><span id="diaryLearningCount">0 learnings</span></div>
+          <div id="diaryEntryList" class="diary-entry-list"></div>
+          <p id="diaryEmptyState" class="sticky-empty">No diary entries match this view.</p>
+        </section>
+      </div>
+      <footer class="modal-footer"><span>Completed targets and reminders are saved here automatically.</span><button class="soft-btn" type="button" data-close-dialog="workDiaryDialog">Close</button></footer>
+    </div>
+  </dialog>
+
+  <dialog id="fileRegisterDialog" class="modal file-register-modal">
+    <div class="file-register-sheet"><header class="modal-header file-register-header"><div><p class="eyebrow accent">Office file index</p><h2>📁 File Register</h2><p>Add, edit, delete and instantly search File Numbers and subjects.</p></div><button class="modal-close" type="button" data-close-dialog="fileRegisterDialog" aria-label="Close File Register">×</button></header>
+      <div class="file-register-body">
+        <form id="fileRecordForm" class="file-record-form admin-only"><input id="fileRecordId" type="hidden"><div class="diary-form-title"><strong id="fileRecordFormHeading">Add file record</strong><button id="cancelFileRecordEditButton" class="soft-btn" type="button" hidden>Cancel edit</button></div><label><span>File No. *</span><input id="fileRecordNo" required maxlength="160" placeholder="e.g. 12/3/2026-Admn"></label><label class="file-subject-field"><span>Subject *</span><textarea id="fileRecordSubject" required maxlength="1000" rows="3"></textarea></label><label><span>Category</span><input id="fileRecordCategory" maxlength="100"></label><label><span>Section</span><input id="fileRecordSection" maxlength="100"></label><label><span>Status</span><select id="fileRecordStatus"><option>Active</option><option>Pending</option><option>Closed</option><option>Archived</option></select></label><label class="file-remarks-field"><span>Remarks</span><textarea id="fileRecordRemarks" maxlength="4000" rows="3"></textarea></label><label class="file-link-field"><span>Google Drive/File link</span><input id="fileRecordLink" type="url" maxlength="1000"></label><p id="fileRecordError" class="form-error" role="alert"></p><button id="saveFileRecordButton" class="primary-btn" type="submit">Save file record</button></form>
+        <section class="file-record-browser"><div class="file-search-tools"><label class="diary-search"><span>⌕</span><input id="fileRecordSearch" type="search" placeholder="Search File No., subject, category, section…"></label><select id="fileRecordStatusFilter"><option value="">All statuses</option><option>Active</option><option>Pending</option><option>Closed</option><option>Archived</option></select><button id="clearFileRecordSearchButton" class="soft-btn" type="button">Clear</button></div><strong id="fileRecordSummary">0 file records</strong><div id="fileRecordList" class="file-record-list"></div><p id="fileRecordEmpty" class="sticky-empty">No matching file records.</p></section>
+      </div><footer class="modal-footer"><span id="fileRegisterStorageNote">Using the HR spreadsheet.</span><button class="soft-btn" type="button" data-close-dialog="fileRegisterDialog">Close</button></footer>
+    </div>
+  </dialog>
+
   <dialog id="administrationDialog" class="modal security-settings-modal">
     <form id="securitySettingsForm" method="dialog">
       <header class="modal-header"><div><p class="eyebrow accent">Administration</p><h2>Security settings</h2><p>Control the inactivity sign-out period for every dashboard user.</p></div><button class="modal-close" type="button" data-close-dialog="administrationDialog" aria-label="Close security settings">×</button></header>
@@ -485,6 +527,7 @@
         </section>
         <label class="security-timeout-field"><span>Sign out after inactivity</span><select id="sessionTimeoutMinutes" required><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30" selected>30 minutes</option></select><small>A warning appears one minute before sign-out. Clicking, typing, scrolling or touching resets the timer.</small></label>
         <div class="security-behaviour-note"><strong>Closing protection remains active</strong><span>Leaving or closing this dashboard ends the session. Reopening always requires login.</span></div>
+        <label class="security-timeout-field"><span>File Register Google Sheet link</span><input id="fileRegisterSpreadsheetUrl" type="url" placeholder="Paste Google Sheet link; leave blank to use HR spreadsheet"><small>The Apps Script owner must have Editor access. A tab named File Register is created automatically.</small></label>
       </div>
       <p id="securitySettingsError" class="form-error security-settings-error" role="alert"></p>
       <footer class="modal-footer"><button class="soft-btn" type="button" data-close-dialog="administrationDialog">Cancel</button><button id="saveSecuritySettingsButton" class="primary-btn" type="submit"><span>Save security setting</span></button></footer>
@@ -506,6 +549,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260831-security-timeout-1659"></script>
+  <script src="app.js?v=20260901-work-diary-file-register-1659"></script>
 </body>
 </html>
