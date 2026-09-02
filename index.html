@@ -315,6 +315,10 @@
             <label id="reportValueField" class="report-field" hidden><span id="reportValueLabel">Select value</span><select id="reportValue"></select></label>
             <label id="reportTextField" class="report-field" hidden><span>Designation contains</span><input id="reportTextValue" type="search" placeholder="For example: Engineer"></label>
           </div>
+          <div id="reportPrintColumnsField" class="report-print-columns-field" hidden>
+            <div class="field-filter-control"><span>Columns to print</span><details id="reportPrintColumnsPicker" class="field-filter-picker"><summary id="reportPrintColumnsSummary">Using dashboard columns…</summary><div id="reportPrintColumnsOptions" class="field-filter-options" aria-label="Choose which columns to include in this printout"></div></details></div>
+            <div class="report-print-columns-actions"><button id="reportPrintColumnsSelectAll" class="soft-btn" type="button">Select all</button><button id="reportPrintColumnsReset" class="soft-btn" type="button">Match dashboard view</button></div>
+          </div>
           <div class="report-control-actions"><button id="reportResetButton" class="soft-btn" type="button">Reset</button><button class="primary-btn" type="submit">Generate report</button></div>
         </form>
 
