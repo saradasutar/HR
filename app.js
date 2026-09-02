@@ -2,7 +2,7 @@
 const CONFIG = Object.freeze({
     API_URL: "https://script.google.com/macros/s/AKfycbyc13F44x6wvxRVxO3zWo6JVaom2kS-AzrGZopnF7fXb1-l55hZuPyXbY7hA-sum25G/exec",
     CHANNEL: "ADG_HR_API_V1",
-    FRONTEND_VERSION: "1.6.63",
+    FRONTEND_VERSION: "1.6.65",
     REQUIRED_BACKEND_VERSION: "1.6.2",
     REQUEST_TIMEOUT_MS: 45e3
   }),
@@ -155,6 +155,7 @@ const CONFIG = Object.freeze({
     stickyFocusCollapsed: readStickyFocusCollapsed(),
     stickyFocusLayout: readStickyFocusLayout(),
     stickyFocusDrag: null,
+    stickyFocusToggleMoved: !1,
     stickyFocusResize: null,
     stickyFocusResizeObserver: null,
     stickyNotesLoadTimer: 0,
@@ -187,7 +188,9 @@ function init() {
     passive: !0
   }), refs.filterScrollUp.addEventListener("click", () => scrollFilterDialog(-1)), refs.filterScrollDown.addEventListener("click", () => scrollFilterDialog(1)), refs.savedFilterViewsPanel.addEventListener("toggle", () => setTimeout(updateFilterScrollButtons, 0)), refs.savedFilterViewList.addEventListener("click", handleNamedFilterViewAction), refs.saveNamedFilterViewButton.addEventListener("click", saveNamedFilterView), refs.savedFilterViewName.addEventListener("keydown", e => {
     "Enter" === e.key && (e.preventDefault(), saveNamedFilterView())
-  }), refs.columnFilterRuleList.addEventListener("change", handleColumnFilterRuleChange), refs.columnFilterRuleList.addEventListener("click", handleColumnFilterRuleAction), refs.addColumnFilterRuleButton.addEventListener("click", addColumnFilterRule), refs.applyFilterViewButton.addEventListener("click", applyDashboardFilterView), refs.clearFilterViewButton.addEventListener("click", clearDashboardFilterView), refs.directEditToggle.addEventListener("click", toggleDirectEdit), refs.editHeadersButton.addEventListener("click", toggleHeaderEdit), refs.saveHeadersButton.addEventListener("click", saveHeaderLabels), refs.resetHeadersButton.addEventListener("click", resetHeaderLabels), refs.importButton.addEventListener("click", () => refs.csvFileInput.click()), refs.csvFileInput.addEventListener("change", importCsv), refs.replaceAllButton.addEventListener("click", () => refs.replaceCsvFileInput.click()), refs.replaceCsvFileInput.addEventListener("change", replaceAllCsv), refs.backupButton.addEventListener("click", createBackup), refs.addEmployeeButton.addEventListener("click", () => openEmployeeDialog()), refs.stickyNotesButton.addEventListener("click", openStickyNotes), refs.stickySideTab.addEventListener("click", openStickyNotes), refs.stickyNoteForm.addEventListener("submit", saveStickyNote), refs.stickyActiveList.addEventListener("click", handleStickyNoteAction), refs.stickyCompletedList.addEventListener("click", handleStickyNoteAction), refs.cancelStickyEditButton.addEventListener("click", cancelStickyEdit), refs.stickyFocusToggle.addEventListener("click", toggleStickyFocus), refs.stickyFocusDragHandle.addEventListener("pointerdown", startStickyFocusDrag), refs.stickyFocusDragHandle.addEventListener("keydown", moveStickyFocusWithKeyboard), window.addEventListener("pointermove", moveStickyFocusDrag), window.addEventListener("pointerup", endStickyFocusDrag), window.addEventListener("pointercancel", endStickyFocusDrag), refs.stickyFocusResizeGrip.addEventListener("pointerdown", startStickyFocusResize), refs.stickyFocusResizeGrip.addEventListener("keydown", resizeStickyFocusWithKeyboard), window.addEventListener("pointermove", moveStickyFocusResize), window.addEventListener("pointerup", endStickyFocusResize), window.addEventListener("pointercancel", endStickyFocusResize), refs.stickyFocusSizeDown.addEventListener("click", () => changeStickyFocusSize(-1)), refs.stickyFocusSizeUp.addEventListener("click", () => changeStickyFocusSize(1)), refs.stickyFocusEdit.addEventListener("click", editPinnedStickyNote), refs.stickyFocusComplete.addEventListener("click", () => completeStickyNote(refs.stickyFocusComplete)), refs.stickyFocusResetLayout.addEventListener("click", resetStickyFocusLayout), refs.stickyFocusManage.addEventListener("click", openStickyNotes), refs.stickyFocusUnpin.addEventListener("click", unpinStickyFocus), window.addEventListener("resize", debounce(applyStickyFocusLayout, 120)), refs.stickyNoteDetails.addEventListener("input", autoFitStickyDetailsInput), refs.workDiaryButton.addEventListener("click", openWorkDiary), refs.diaryEntryForm.addEventListener("submit", saveDiaryEntry), refs.cancelDiaryEditButton.addEventListener("click", resetDiaryForm), refs.diaryEntryList.addEventListener("click", handleDiaryAction), refs.diarySearch.addEventListener("input", debounce(renderDiaryEntries, 120)), [refs.diaryMonthFilter, refs.diaryCategoryFilter, refs.diarySourceFilter, refs.diaryRecentLimit].forEach(e => e.addEventListener("change", renderDiaryEntries)), refs.clearDiaryFiltersButton.addEventListener("click", clearDiaryFilters), document.querySelectorAll("[data-diary-view]").forEach(e => e.addEventListener("click", () => {
+  }), refs.columnFilterRuleList.addEventListener("change", handleColumnFilterRuleChange), refs.columnFilterRuleList.addEventListener("click", handleColumnFilterRuleAction), refs.addColumnFilterRuleButton.addEventListener("click", addColumnFilterRule), refs.applyFilterViewButton.addEventListener("click", applyDashboardFilterView), refs.clearFilterViewButton.addEventListener("click", clearDashboardFilterView), refs.directEditToggle.addEventListener("click", toggleDirectEdit), refs.editHeadersButton.addEventListener("click", toggleHeaderEdit), refs.saveHeadersButton.addEventListener("click", saveHeaderLabels), refs.resetHeadersButton.addEventListener("click", resetHeaderLabels), refs.importButton.addEventListener("click", () => refs.csvFileInput.click()), refs.csvFileInput.addEventListener("change", importCsv), refs.replaceAllButton.addEventListener("click", () => refs.replaceCsvFileInput.click()), refs.replaceCsvFileInput.addEventListener("change", replaceAllCsv), refs.backupButton.addEventListener("click", createBackup), refs.addEmployeeButton.addEventListener("click", () => openEmployeeDialog()), refs.stickyNotesButton.addEventListener("click", openStickyNotes), refs.stickySideTab.addEventListener("click", openStickyNotes), refs.stickyNoteForm.addEventListener("submit", saveStickyNote), refs.stickyActiveList.addEventListener("click", handleStickyNoteAction), refs.stickyCompletedList.addEventListener("click", handleStickyNoteAction), refs.cancelStickyEditButton.addEventListener("click", cancelStickyEdit), refs.stickyFocusToggle.addEventListener("click", toggleStickyFocus), refs.stickyFocusToggle.addEventListener("pointerdown", startStickyFocusToggleDrag), refs.stickyFocusToggle.addEventListener("keydown", e => {
+    state.stickyFocusCollapsed && moveStickyFocusWithKeyboard(e)
+  }), refs.stickyFocusDragHandle.addEventListener("pointerdown", startStickyFocusDrag), refs.stickyFocusDragHandle.addEventListener("keydown", moveStickyFocusWithKeyboard), window.addEventListener("pointermove", moveStickyFocusDrag), window.addEventListener("pointerup", endStickyFocusDrag), window.addEventListener("pointercancel", endStickyFocusDrag), refs.stickyFocusResizeGrip.addEventListener("pointerdown", startStickyFocusResize), refs.stickyFocusResizeGrip.addEventListener("keydown", resizeStickyFocusWithKeyboard), window.addEventListener("pointermove", moveStickyFocusResize), window.addEventListener("pointerup", endStickyFocusResize), window.addEventListener("pointercancel", endStickyFocusResize), refs.stickyFocusSizeDown.addEventListener("click", () => changeStickyFocusSize(-1)), refs.stickyFocusSizeUp.addEventListener("click", () => changeStickyFocusSize(1)), refs.stickyFocusEdit.addEventListener("click", editPinnedStickyNote), refs.stickyFocusComplete.addEventListener("click", () => completeStickyNote(refs.stickyFocusComplete)), refs.stickyFocusResetLayout.addEventListener("click", resetStickyFocusLayout), refs.stickyFocusManage.addEventListener("click", openStickyNotes), refs.stickyFocusUnpin.addEventListener("click", unpinStickyFocus), window.addEventListener("resize", debounce(applyStickyFocusLayout, 120)), refs.stickyNoteDetails.addEventListener("input", autoFitStickyDetailsInput), refs.workDiaryButton.addEventListener("click", openWorkDiary), refs.diaryEntryForm.addEventListener("submit", saveDiaryEntry), refs.cancelDiaryEditButton.addEventListener("click", resetDiaryForm), refs.diaryEntryList.addEventListener("click", handleDiaryAction), refs.diarySearch.addEventListener("input", debounce(renderDiaryEntries, 120)), [refs.diaryMonthFilter, refs.diaryCategoryFilter, refs.diarySourceFilter, refs.diaryRecentLimit].forEach(e => e.addEventListener("change", renderDiaryEntries)), refs.clearDiaryFiltersButton.addEventListener("click", clearDiaryFilters), document.querySelectorAll("[data-diary-view]").forEach(e => e.addEventListener("click", () => {
     state.diaryView = e.dataset.diaryView, renderDiaryEntries()
   })), refs.fileRegisterButton.addEventListener("click", openFileRegister), refs.fileRecordForm.addEventListener("submit", saveFileRecord), refs.cancelFileRecordEditButton.addEventListener("click", resetFileRecordForm), refs.fileRecordList.addEventListener("click", handleFileRecordAction), refs.fileRecordSearch.addEventListener("input", debounce(renderFileRecords, 120)), refs.fileRecordStatusFilter.addEventListener("change", renderFileRecords), refs.clearFileRecordSearchButton.addEventListener("click", () => {
     refs.fileRecordSearch.value = "", refs.fileRecordStatusFilter.value = "", renderFileRecords()
@@ -2315,6 +2318,7 @@ function unpinStickyFocus() {
 }
 
 function toggleStickyFocus() {
+  if (state.stickyFocusToggleMoved) return void (state.stickyFocusToggleMoved = !1);
   state.stickyFocusId && (state.stickyFocusCollapsed = !state.stickyFocusCollapsed, saveStickyFocusPreference(), renderStickyFocusNote())
 }
 
@@ -2341,12 +2345,17 @@ function startStickyFocusDrag(e) {
     startX: e.clientX,
     startY: e.clientY,
     originX: t.left,
-    originY: t.top
-  }, state.stickyFocusLayout.x = t.left, state.stickyFocusLayout.y = t.top;
+    originY: t.top,
+    el: e.currentTarget
+  }, state.stickyFocusLayout.x = t.left, state.stickyFocusLayout.y = t.top, state.stickyFocusToggleMoved = !1;
   try {
-    refs.stickyFocusDragHandle.setPointerCapture(e.pointerId)
+    e.currentTarget.setPointerCapture(e.pointerId)
   } catch {}
   document.body.classList.add("sticky-focus-dragging"), e.preventDefault()
+}
+
+function startStickyFocusToggleDrag(e) {
+  state.stickyFocusCollapsed && startStickyFocusDrag(e)
 }
 
 function moveStickyFocusDrag(e) {
@@ -2357,7 +2366,7 @@ function moveStickyFocusDrag(e) {
     o = Math.max(8, window.innerHeight - r.height - 8),
     i = Math.max(8, Math.min(s, t.originX + e.clientX - t.startX)),
     n = Math.max(8, Math.min(o, t.originY + e.clientY - t.startY));
-  state.stickyFocusLayout.x = i, state.stickyFocusLayout.y = n, refs.stickyFocusNote.style.left = `${i}px`, refs.stickyFocusNote.style.top = `${n}px`, refs.stickyFocusNote.style.right = "auto", refs.stickyFocusNote.style.bottom = "auto", e.preventDefault()
+  (Math.abs(e.clientX - t.startX) > 3 || Math.abs(e.clientY - t.startY) > 3) && (state.stickyFocusToggleMoved = !0), state.stickyFocusLayout.x = i, state.stickyFocusLayout.y = n, refs.stickyFocusNote.style.left = `${i}px`, refs.stickyFocusNote.style.top = `${n}px`, refs.stickyFocusNote.style.right = "auto", refs.stickyFocusNote.style.bottom = "auto", e.preventDefault()
 }
 
 function endStickyFocusDrag(e) {
@@ -2365,7 +2374,7 @@ function endStickyFocusDrag(e) {
   if (t && t.pointerId === e.pointerId) {
     state.stickyFocusDrag = null;
     try {
-      refs.stickyFocusDragHandle.releasePointerCapture(e.pointerId)
+      (t.el || refs.stickyFocusDragHandle).releasePointerCapture(e.pointerId)
     } catch {}
     document.body.classList.remove("sticky-focus-dragging"), saveStickyFocusPreference()
   }
