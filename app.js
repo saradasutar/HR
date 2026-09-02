@@ -2,7 +2,7 @@
 const CONFIG = Object.freeze({
     API_URL: "https://script.google.com/macros/s/AKfycbyc13F44x6wvxRVxO3zWo6JVaom2kS-AzrGZopnF7fXb1-l55hZuPyXbY7hA-sum25G/exec",
     CHANNEL: "ADG_HR_API_V1",
-    FRONTEND_VERSION: "1.6.65",
+    FRONTEND_VERSION: "1.6.66",
     REQUIRED_BACKEND_VERSION: "1.6.2",
     REQUEST_TIMEOUT_MS: 45e3
   }),
@@ -2346,8 +2346,9 @@ function startStickyFocusDrag(e) {
     startY: e.clientY,
     originX: t.left,
     originY: t.top,
-    el: e.currentTarget
-  }, state.stickyFocusLayout.x = t.left, state.stickyFocusLayout.y = t.top, state.stickyFocusToggleMoved = !1;
+    el: e.currentTarget,
+    moved: !1
+  }, state.stickyFocusLayout.x = t.left, state.stickyFocusLayout.y = t.top;
   try {
     e.currentTarget.setPointerCapture(e.pointerId)
   } catch {}
@@ -2366,13 +2367,13 @@ function moveStickyFocusDrag(e) {
     o = Math.max(8, window.innerHeight - r.height - 8),
     i = Math.max(8, Math.min(s, t.originX + e.clientX - t.startX)),
     n = Math.max(8, Math.min(o, t.originY + e.clientY - t.startY));
-  (Math.abs(e.clientX - t.startX) > 3 || Math.abs(e.clientY - t.startY) > 3) && (state.stickyFocusToggleMoved = !0), state.stickyFocusLayout.x = i, state.stickyFocusLayout.y = n, refs.stickyFocusNote.style.left = `${i}px`, refs.stickyFocusNote.style.top = `${n}px`, refs.stickyFocusNote.style.right = "auto", refs.stickyFocusNote.style.bottom = "auto", e.preventDefault()
+  (Math.abs(e.clientX - t.startX) > 3 || Math.abs(e.clientY - t.startY) > 3) && (t.moved = !0), state.stickyFocusLayout.x = i, state.stickyFocusLayout.y = n, refs.stickyFocusNote.style.left = `${i}px`, refs.stickyFocusNote.style.top = `${n}px`, refs.stickyFocusNote.style.right = "auto", refs.stickyFocusNote.style.bottom = "auto", e.preventDefault()
 }
 
 function endStickyFocusDrag(e) {
   const t = state.stickyFocusDrag;
   if (t && t.pointerId === e.pointerId) {
-    state.stickyFocusDrag = null;
+    state.stickyFocusDrag = null, t.moved && t.el === refs.stickyFocusToggle && (state.stickyFocusToggleMoved = !0);
     try {
       (t.el || refs.stickyFocusDragHandle).releasePointerCapture(e.pointerId)
     } catch {}
