@@ -2,7 +2,7 @@
 const CONFIG = Object.freeze({
     API_URL: "https://script.google.com/macros/s/AKfycbyc13F44x6wvxRVxO3zWo6JVaom2kS-AzrGZopnF7fXb1-l55hZuPyXbY7hA-sum25G/exec",
     CHANNEL: "ADG_HR_API_V1",
-    FRONTEND_VERSION: "1.6.60",
+    FRONTEND_VERSION: "1.6.61",
     REQUIRED_BACKEND_VERSION: "1.6.2",
     REQUEST_TIMEOUT_MS: 45e3
   }),
@@ -2439,7 +2439,7 @@ function applyStickyFocusLayout() {
   state.stickyFocusLayout.size = e, refs.stickyFocusSizeLabel.textContent = STICKY_FOCUS_SIZES[e].label, refs.stickyFocusSizeDown.disabled = 0 === e, refs.stickyFocusSizeUp.disabled = e === STICKY_FOCUS_SIZES.length - 1;
   const t = Math.max(240, window.innerWidth - 16),
     r = Math.max(150, window.innerHeight - 16);
-  if (Number.isFinite(state.stickyFocusLayout.width) ? (state.stickyFocusLayout.width = Math.max(240, Math.min(t, state.stickyFocusLayout.width)), refs.stickyFocusNote.style.width = `${state.stickyFocusLayout.width}px`) : refs.stickyFocusNote.style.removeProperty("width"), !state.stickyFocusCollapsed && Number.isFinite(state.stickyFocusLayout.height) ? (state.stickyFocusLayout.height = Math.max(150, Math.min(r, state.stickyFocusLayout.height)), refs.stickyFocusNote.style.height = `${state.stickyFocusLayout.height}px`) : refs.stickyFocusNote.style.removeProperty("height"), !Number.isFinite(state.stickyFocusLayout.x) || !Number.isFinite(state.stickyFocusLayout.y)) return refs.stickyFocusNote.style.removeProperty("left"), refs.stickyFocusNote.style.removeProperty("top"), refs.stickyFocusNote.style.removeProperty("right"), void refs.stickyFocusNote.style.removeProperty("bottom");
+  if (!state.stickyFocusCollapsed && Number.isFinite(state.stickyFocusLayout.width) ? (state.stickyFocusLayout.width = Math.max(240, Math.min(t, state.stickyFocusLayout.width)), refs.stickyFocusNote.style.width = `${state.stickyFocusLayout.width}px`) : refs.stickyFocusNote.style.removeProperty("width"), !state.stickyFocusCollapsed && Number.isFinite(state.stickyFocusLayout.height) ? (state.stickyFocusLayout.height = Math.max(150, Math.min(r, state.stickyFocusLayout.height)), refs.stickyFocusNote.style.height = `${state.stickyFocusLayout.height}px`) : refs.stickyFocusNote.style.removeProperty("height"), !Number.isFinite(state.stickyFocusLayout.x) || !Number.isFinite(state.stickyFocusLayout.y)) return refs.stickyFocusNote.style.removeProperty("left"), refs.stickyFocusNote.style.removeProperty("top"), refs.stickyFocusNote.style.removeProperty("right"), void refs.stickyFocusNote.style.removeProperty("bottom");
   const s = refs.stickyFocusNote.getBoundingClientRect(),
     o = Math.max(8, window.innerWidth - s.width - 8),
     i = Math.max(8, window.innerHeight - s.height - 8),
