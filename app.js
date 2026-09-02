@@ -2,7 +2,7 @@
 const CONFIG = Object.freeze({
     API_URL: "https://script.google.com/macros/s/AKfycbyc13F44x6wvxRVxO3zWo6JVaom2kS-AzrGZopnF7fXb1-l55hZuPyXbY7hA-sum25G/exec",
     CHANNEL: "ADG_HR_API_V1",
-    FRONTEND_VERSION: "1.6.66",
+    FRONTEND_VERSION: "1.6.67",
     REQUIRED_BACKEND_VERSION: "1.6.2",
     REQUEST_TIMEOUT_MS: 45e3
   }),
@@ -19,6 +19,7 @@ const CONFIG = Object.freeze({
   STICKY_FOCUS_ID_STORAGE_KEY = "hrDashboardStickyFocusIdV159",
   STICKY_FOCUS_COLLAPSED_STORAGE_KEY = "hrDashboardStickyFocusCollapsedV159",
   STICKY_FOCUS_LAYOUT_STORAGE_KEY = "hrDashboardStickyFocusLayoutV159",
+  STICKY_SIDE_TAB_LAYOUT_STORAGE_KEY = "hrDashboardStickySideTabLayoutV166",
   SESSION_LAST_ACTIVITY_KEY = "hrDashboardLastActivityV159",
   SESSION_EXIT_MARKER_KEY = "hrDashboardPageExitV159",
   SESSION_TIMEOUT_STORAGE_KEY = "hrDashboardSessionTimeoutMinutesV159",
@@ -156,6 +157,9 @@ const CONFIG = Object.freeze({
     stickyFocusLayout: readStickyFocusLayout(),
     stickyFocusDrag: null,
     stickyFocusToggleMoved: !1,
+    stickySideTabDrag: null,
+    stickySideTabMoved: !1,
+    stickySideTabLayout: readStickySideTabLayout(),
     stickyFocusResize: null,
     stickyFocusResizeObserver: null,
     stickyNotesLoadTimer: 0,
@@ -188,9 +192,11 @@ function init() {
     passive: !0
   }), refs.filterScrollUp.addEventListener("click", () => scrollFilterDialog(-1)), refs.filterScrollDown.addEventListener("click", () => scrollFilterDialog(1)), refs.savedFilterViewsPanel.addEventListener("toggle", () => setTimeout(updateFilterScrollButtons, 0)), refs.savedFilterViewList.addEventListener("click", handleNamedFilterViewAction), refs.saveNamedFilterViewButton.addEventListener("click", saveNamedFilterView), refs.savedFilterViewName.addEventListener("keydown", e => {
     "Enter" === e.key && (e.preventDefault(), saveNamedFilterView())
-  }), refs.columnFilterRuleList.addEventListener("change", handleColumnFilterRuleChange), refs.columnFilterRuleList.addEventListener("click", handleColumnFilterRuleAction), refs.addColumnFilterRuleButton.addEventListener("click", addColumnFilterRule), refs.applyFilterViewButton.addEventListener("click", applyDashboardFilterView), refs.clearFilterViewButton.addEventListener("click", clearDashboardFilterView), refs.directEditToggle.addEventListener("click", toggleDirectEdit), refs.editHeadersButton.addEventListener("click", toggleHeaderEdit), refs.saveHeadersButton.addEventListener("click", saveHeaderLabels), refs.resetHeadersButton.addEventListener("click", resetHeaderLabels), refs.importButton.addEventListener("click", () => refs.csvFileInput.click()), refs.csvFileInput.addEventListener("change", importCsv), refs.replaceAllButton.addEventListener("click", () => refs.replaceCsvFileInput.click()), refs.replaceCsvFileInput.addEventListener("change", replaceAllCsv), refs.backupButton.addEventListener("click", createBackup), refs.addEmployeeButton.addEventListener("click", () => openEmployeeDialog()), refs.stickyNotesButton.addEventListener("click", openStickyNotes), refs.stickySideTab.addEventListener("click", openStickyNotes), refs.stickyNoteForm.addEventListener("submit", saveStickyNote), refs.stickyActiveList.addEventListener("click", handleStickyNoteAction), refs.stickyCompletedList.addEventListener("click", handleStickyNoteAction), refs.cancelStickyEditButton.addEventListener("click", cancelStickyEdit), refs.stickyFocusToggle.addEventListener("click", toggleStickyFocus), refs.stickyFocusToggle.addEventListener("pointerdown", startStickyFocusToggleDrag), refs.stickyFocusToggle.addEventListener("keydown", e => {
+  }), refs.columnFilterRuleList.addEventListener("change", handleColumnFilterRuleChange), refs.columnFilterRuleList.addEventListener("click", handleColumnFilterRuleAction), refs.addColumnFilterRuleButton.addEventListener("click", addColumnFilterRule), refs.applyFilterViewButton.addEventListener("click", applyDashboardFilterView), refs.clearFilterViewButton.addEventListener("click", clearDashboardFilterView), refs.directEditToggle.addEventListener("click", toggleDirectEdit), refs.editHeadersButton.addEventListener("click", toggleHeaderEdit), refs.saveHeadersButton.addEventListener("click", saveHeaderLabels), refs.resetHeadersButton.addEventListener("click", resetHeaderLabels), refs.importButton.addEventListener("click", () => refs.csvFileInput.click()), refs.csvFileInput.addEventListener("change", importCsv), refs.replaceAllButton.addEventListener("click", () => refs.replaceCsvFileInput.click()), refs.replaceCsvFileInput.addEventListener("change", replaceAllCsv), refs.backupButton.addEventListener("click", createBackup), refs.addEmployeeButton.addEventListener("click", () => openEmployeeDialog()), refs.stickyNotesButton.addEventListener("click", openStickyNotes), refs.stickySideTab.addEventListener("click", handleStickySideTabClick), refs.stickySideTab.addEventListener("pointerdown", startStickySideTabDrag), window.addEventListener("pointermove", moveStickySideTabDrag), window.addEventListener("pointerup", endStickySideTabDrag), window.addEventListener("pointercancel", endStickySideTabDrag), refs.stickyNoteForm.addEventListener("submit", saveStickyNote), refs.stickyActiveList.addEventListener("click", handleStickyNoteAction), refs.stickyCompletedList.addEventListener("click", handleStickyNoteAction), refs.cancelStickyEditButton.addEventListener("click", cancelStickyEdit), refs.stickyFocusToggle.addEventListener("click", toggleStickyFocus), refs.stickyFocusToggle.addEventListener("pointerdown", startStickyFocusToggleDrag), refs.stickyFocusToggle.addEventListener("keydown", e => {
     state.stickyFocusCollapsed && moveStickyFocusWithKeyboard(e)
-  }), refs.stickyFocusDragHandle.addEventListener("pointerdown", startStickyFocusDrag), refs.stickyFocusDragHandle.addEventListener("keydown", moveStickyFocusWithKeyboard), window.addEventListener("pointermove", moveStickyFocusDrag), window.addEventListener("pointerup", endStickyFocusDrag), window.addEventListener("pointercancel", endStickyFocusDrag), refs.stickyFocusResizeGrip.addEventListener("pointerdown", startStickyFocusResize), refs.stickyFocusResizeGrip.addEventListener("keydown", resizeStickyFocusWithKeyboard), window.addEventListener("pointermove", moveStickyFocusResize), window.addEventListener("pointerup", endStickyFocusResize), window.addEventListener("pointercancel", endStickyFocusResize), refs.stickyFocusSizeDown.addEventListener("click", () => changeStickyFocusSize(-1)), refs.stickyFocusSizeUp.addEventListener("click", () => changeStickyFocusSize(1)), refs.stickyFocusEdit.addEventListener("click", editPinnedStickyNote), refs.stickyFocusComplete.addEventListener("click", () => completeStickyNote(refs.stickyFocusComplete)), refs.stickyFocusResetLayout.addEventListener("click", resetStickyFocusLayout), refs.stickyFocusManage.addEventListener("click", openStickyNotes), refs.stickyFocusUnpin.addEventListener("click", unpinStickyFocus), window.addEventListener("resize", debounce(applyStickyFocusLayout, 120)), refs.stickyNoteDetails.addEventListener("input", autoFitStickyDetailsInput), refs.workDiaryButton.addEventListener("click", openWorkDiary), refs.diaryEntryForm.addEventListener("submit", saveDiaryEntry), refs.cancelDiaryEditButton.addEventListener("click", resetDiaryForm), refs.diaryEntryList.addEventListener("click", handleDiaryAction), refs.diarySearch.addEventListener("input", debounce(renderDiaryEntries, 120)), [refs.diaryMonthFilter, refs.diaryCategoryFilter, refs.diarySourceFilter, refs.diaryRecentLimit].forEach(e => e.addEventListener("change", renderDiaryEntries)), refs.clearDiaryFiltersButton.addEventListener("click", clearDiaryFilters), document.querySelectorAll("[data-diary-view]").forEach(e => e.addEventListener("click", () => {
+  }), refs.stickyFocusDragHandle.addEventListener("pointerdown", startStickyFocusDrag), refs.stickyFocusDragHandle.addEventListener("keydown", moveStickyFocusWithKeyboard), window.addEventListener("pointermove", moveStickyFocusDrag), window.addEventListener("pointerup", endStickyFocusDrag), window.addEventListener("pointercancel", endStickyFocusDrag), refs.stickyFocusResizeGrip.addEventListener("pointerdown", startStickyFocusResize), refs.stickyFocusResizeGrip.addEventListener("keydown", resizeStickyFocusWithKeyboard), window.addEventListener("pointermove", moveStickyFocusResize), window.addEventListener("pointerup", endStickyFocusResize), window.addEventListener("pointercancel", endStickyFocusResize), refs.stickyFocusSizeDown.addEventListener("click", () => changeStickyFocusSize(-1)), refs.stickyFocusSizeUp.addEventListener("click", () => changeStickyFocusSize(1)), refs.stickyFocusEdit.addEventListener("click", editPinnedStickyNote), refs.stickyFocusComplete.addEventListener("click", () => completeStickyNote(refs.stickyFocusComplete)), refs.stickyFocusResetLayout.addEventListener("click", resetStickyFocusLayout), refs.stickyFocusManage.addEventListener("click", openStickyNotes), refs.stickyFocusUnpin.addEventListener("click", unpinStickyFocus), window.addEventListener("resize", debounce(() => {
+    applyStickyFocusLayout(), applyStickySideTabLayout()
+  }, 120)), refs.stickyNoteDetails.addEventListener("input", autoFitStickyDetailsInput), refs.workDiaryButton.addEventListener("click", openWorkDiary), refs.diaryEntryForm.addEventListener("submit", saveDiaryEntry), refs.cancelDiaryEditButton.addEventListener("click", resetDiaryForm), refs.diaryEntryList.addEventListener("click", handleDiaryAction), refs.diarySearch.addEventListener("input", debounce(renderDiaryEntries, 120)), [refs.diaryMonthFilter, refs.diaryCategoryFilter, refs.diarySourceFilter, refs.diaryRecentLimit].forEach(e => e.addEventListener("change", renderDiaryEntries)), refs.clearDiaryFiltersButton.addEventListener("click", clearDiaryFilters), document.querySelectorAll("[data-diary-view]").forEach(e => e.addEventListener("click", () => {
     state.diaryView = e.dataset.diaryView, renderDiaryEntries()
   })), refs.fileRegisterButton.addEventListener("click", openFileRegister), refs.fileRecordForm.addEventListener("submit", saveFileRecord), refs.cancelFileRecordEditButton.addEventListener("click", resetFileRecordForm), refs.fileRecordList.addEventListener("click", handleFileRecordAction), refs.fileRecordSearch.addEventListener("input", debounce(renderFileRecords, 120)), refs.fileRecordStatusFilter.addEventListener("change", renderFileRecords), refs.clearFileRecordSearchButton.addEventListener("click", () => {
     refs.fileRecordSearch.value = "", refs.fileRecordStatusFilter.value = "", renderFileRecords()
@@ -430,7 +436,7 @@ async function restoreSession() {
 }
 
 function showDashboard() {
-  refs.loginView.hidden = !0, refs.dashboardView.hidden = !1, refs.stickySideTab.hidden = Boolean(state.stickyFocusId), refs.changePasswordButton.hidden = !1, refs.displayName.textContent = state.displayName || state.username || "User", refs.roleLabel.textContent = "admin" === state.role ? "Administrator access" : "View-only access", refs.userInitial.textContent = (state.displayName || state.username || "U").charAt(0).toUpperCase(), renderVersionLabels(), updateSessionSecurityText(), document.querySelectorAll(".admin-only").forEach(e => {
+  refs.loginView.hidden = !0, refs.dashboardView.hidden = !1, refs.stickySideTab.hidden = Boolean(state.stickyFocusId), refs.changePasswordButton.hidden = !1, refs.displayName.textContent = state.displayName || state.username || "User", refs.roleLabel.textContent = "admin" === state.role ? "Administrator access" : "View-only access", refs.userInitial.textContent = (state.displayName || state.username || "U").charAt(0).toUpperCase(), renderVersionLabels(), updateSessionSecurityText(), applyStickySideTabLayout(), document.querySelectorAll(".admin-only").forEach(e => {
     e.hidden = "admin" !== state.role
   }), "admin" === state.role ? state.directEditEnabled = !0 : (state.directEditEnabled = !1, state.headerEditEnabled = !1, state.inlineEditCode = "", state.headerLabelsDirty = !1), updateDirectEditButton(), updateHeaderEditButtons(), recordSessionActivity(), armSessionIdleTimer()
 }
@@ -2308,6 +2314,83 @@ function saveStickyFocusPreference() {
   } catch {}
 }
 
+function readStickySideTabLayout() {
+  try {
+    const e = JSON.parse(localStorage.getItem(STICKY_SIDE_TAB_LAYOUT_STORAGE_KEY) || "{}");
+    return {
+      x: Number.isFinite(e.x) ? e.x : null,
+      y: Number.isFinite(e.y) ? e.y : null
+    }
+  } catch {
+    return {
+      x: null,
+      y: null
+    }
+  }
+}
+
+function saveStickySideTabLayout() {
+  try {
+    localStorage.setItem(STICKY_SIDE_TAB_LAYOUT_STORAGE_KEY, JSON.stringify(state.stickySideTabLayout))
+  } catch {}
+}
+
+function applyStickySideTabLayout() {
+  if (!refs.stickySideTab || refs.stickySideTab.hidden) return;
+  const e = Number.isFinite(state.stickySideTabLayout.x) && Number.isFinite(state.stickySideTabLayout.y);
+  if (refs.stickySideTab.classList.toggle("is-dragged", e), !e) return refs.stickySideTab.style.removeProperty("left"), refs.stickySideTab.style.removeProperty("top"), refs.stickySideTab.style.removeProperty("right"), void refs.stickySideTab.style.removeProperty("bottom");
+  const t = refs.stickySideTab.getBoundingClientRect(),
+    r = Math.max(8, window.innerWidth - t.width - 8),
+    s = Math.max(8, window.innerHeight - t.height - 8),
+    o = Math.max(8, Math.min(r, state.stickySideTabLayout.x)),
+    i = Math.max(8, Math.min(s, state.stickySideTabLayout.y));
+  state.stickySideTabLayout.x = o, state.stickySideTabLayout.y = i, refs.stickySideTab.style.left = `${o}px`, refs.stickySideTab.style.top = `${i}px`, refs.stickySideTab.style.right = "auto", refs.stickySideTab.style.bottom = "auto"
+}
+
+function startStickySideTabDrag(e) {
+  if ("mouse" === e.pointerType && 0 !== e.button) return;
+  const t = refs.stickySideTab.getBoundingClientRect();
+  state.stickySideTabDrag = {
+    pointerId: e.pointerId,
+    startX: e.clientX,
+    startY: e.clientY,
+    originX: t.left,
+    originY: t.top,
+    moved: !1
+  }, state.stickySideTabLayout.x = t.left, state.stickySideTabLayout.y = t.top, refs.stickySideTab.classList.add("is-dragged");
+  try {
+    refs.stickySideTab.setPointerCapture(e.pointerId)
+  } catch {}
+  document.body.classList.add("sticky-focus-dragging"), e.preventDefault()
+}
+
+function moveStickySideTabDrag(e) {
+  const t = state.stickySideTabDrag;
+  if (!t || t.pointerId !== e.pointerId) return;
+  const r = refs.stickySideTab.getBoundingClientRect(),
+    s = Math.max(8, window.innerWidth - r.width - 8),
+    o = Math.max(8, window.innerHeight - r.height - 8),
+    i = Math.max(8, Math.min(s, t.originX + e.clientX - t.startX)),
+    n = Math.max(8, Math.min(o, t.originY + e.clientY - t.startY));
+  (Math.abs(e.clientX - t.startX) > 3 || Math.abs(e.clientY - t.startY) > 3) && (t.moved = !0), state.stickySideTabLayout.x = i, state.stickySideTabLayout.y = n, refs.stickySideTab.style.left = `${i}px`, refs.stickySideTab.style.top = `${n}px`, refs.stickySideTab.style.right = "auto", refs.stickySideTab.style.bottom = "auto", e.preventDefault()
+}
+
+function endStickySideTabDrag(e) {
+  const t = state.stickySideTabDrag;
+  if (t && t.pointerId === e.pointerId) {
+    state.stickySideTabDrag = null, t.moved && (state.stickySideTabMoved = !0);
+    try {
+      refs.stickySideTab.releasePointerCapture(e.pointerId)
+    } catch {}
+    document.body.classList.remove("sticky-focus-dragging"), saveStickySideTabLayout()
+  }
+}
+
+function handleStickySideTabClick(e) {
+  if (state.stickySideTabMoved) return void (state.stickySideTabMoved = !1);
+  openStickyNotes(e)
+}
+
 function pinStickyFocus(e) {
   const t = state.stickyNotes.find(t => t.id === e && "Completed" !== t.status);
   t && (state.stickyFocusId = e, state.stickyFocusCollapsed = !1, saveStickyFocusPreference(), renderStickyNotes(), showToast(`“${t.title||"Reminder"}” will remain open over the dashboard.`))
@@ -2460,7 +2543,7 @@ function applyStickyFocusLayout() {
 
 function renderStickyFocusNote() {
   const e = state.stickyNotes.find(e => e.id === state.stickyFocusId && "Completed" !== e.status);
-  if (!e || refs.dashboardView.hidden) return state.stickyFocusId && !e && (state.stickyFocusId = "", state.stickyFocusCollapsed = !1, saveStickyFocusPreference()), refs.stickyFocusNote.hidden = !0, void(refs.stickySideTab.hidden = refs.dashboardView.hidden);
+  if (!e || refs.dashboardView.hidden) return state.stickyFocusId && !e && (state.stickyFocusId = "", state.stickyFocusCollapsed = !1, saveStickyFocusPreference()), refs.stickyFocusNote.hidden = !0, refs.stickySideTab.hidden = refs.dashboardView.hidden, void applyStickySideTabLayout();
   const t = ["yellow", "pink", "blue", "green", "purple", "orange"].includes(e.colour) ? e.colour : "yellow",
     r = Math.max(0, Math.min(STICKY_FOCUS_SIZES.length - 1, state.stickyFocusLayout.size));
   refs.stickyFocusNote.className = `sticky-focus-note ${t} ${STICKY_FOCUS_SIZES[r].className}${state.stickyFocusCollapsed?" is-collapsed":""}`, refs.stickyFocusType.textContent = e.type || "Reminder", refs.stickyFocusTitle.textContent = e.title || "Untitled note", refs.stickyFocusDetails.textContent = e.details || "No additional details.", refs.stickyFocusDue.textContent = e.dueDate ? `Due ${formatDate(e.dueDate)}` : "No due date", refs.stickyFocusEdit.dataset.stickyNoteId = e.id, refs.stickyFocusComplete.dataset.completeStickyNote = e.id, refs.stickyFocusToggle.setAttribute("aria-expanded", String(!state.stickyFocusCollapsed)), refs.stickyFocusChevron.textContent = state.stickyFocusCollapsed ? "+" : "−", refs.stickyFocusNote.hidden = !1, refs.stickySideTab.hidden = !0, applyStickyFocusLayout()
