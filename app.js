@@ -2,8 +2,8 @@
 const CONFIG = Object.freeze({
     API_URL: "https://script.google.com/macros/s/AKfycbyc13F44x6wvxRVxO3zWo6JVaom2kS-AzrGZopnF7fXb1-l55hZuPyXbY7hA-sum25G/exec",
     CHANNEL: "ADG_HR_API_V1",
-    FRONTEND_VERSION: "1.6.67",
-    REQUIRED_BACKEND_VERSION: "1.6.2",
+    FRONTEND_VERSION: "1.6.69",
+    REQUIRED_BACKEND_VERSION: "1.6.3",
     REQUEST_TIMEOUT_MS: 45e3
   }),
   CORE_COLUMNS = ["Sl No.", "Employee Name", "Employee Code", "Designation", "Grp", "DoB", "DoR", "Cat", "DoJ Govt", "DoJ in Current Office", "Present/Permanent Address", "Mob", "Email", "AGE", "Strength Status", "Relieving Date", "Post Sensitivity", "REMARK ADMN"],
@@ -127,6 +127,8 @@ const CONFIG = Object.freeze({
     savedManualOrders: readSavedManualOrders(),
     namedFilterViews: [],
     filterViewsLoadTimer: 0,
+    activeFilterViewId: "",
+    activeFilterViewName: "",
     search: "",
     detailEmployeeCode: "",
     filterDisplayColumns: [],
@@ -673,6 +675,7 @@ function normalizeFilterViewFromServer(e) {
     name: String(e && e.name || "").trim().slice(0, 60),
     filters: e && e.filters && "object" == typeof e.filters ? e.filters : {},
     columns: Array.isArray(e && e.columns) ? e.columns.map(String) : [],
+    rowOrder: Array.isArray(e && e.rowOrder) ? e.rowOrder.map(String) : [],
     savedAt: Date.parse(e && (e.updatedAt || e.createdAt) || "") || 0
   }
 }
@@ -1020,8 +1023,10 @@ function renderNamedFilterViews() {
     const t = dashboardFilterValues(e.filters),
       r = dashboardFilterCount(t),
       s = e.columns.filter((e, t, r) => state.columns.includes(e) && r.indexOf(e) === t),
-      o = `${r||"No"} filter${1===r?"":"s"} · ${s.length||state.columns.length} column${1===(s.length||state.columns.length)?"":"s"} · ${"desc"===t.sortDirection?"Descending":"Ascending"}`;
-    return `<article class="saved-filter-view-card" data-saved-filter-view="${escapeAttribute(e.id)}"><button class="saved-filter-main" type="button" data-saved-filter-action="open"><strong>${escapeHtml(e.name)}</strong><small>${escapeHtml(o)}</small></button><div class="saved-filter-actions"><button type="button" data-saved-filter-action="open">Open</button><button type="button" data-saved-filter-action="print">Print</button><button class="delete" type="button" data-saved-filter-action="delete">Delete</button></div></article>`
+      i = Array.isArray(e.rowOrder) && e.rowOrder.length,
+      a = state.activeFilterViewId === e.id,
+      o = `${r||"No"} filter${1===r?"":"s"} · ${s.length||state.columns.length} column${1===(s.length||state.columns.length)?"":"s"} · ${"desc"===t.sortDirection?"Descending":"Ascending"}${i?" · Custom order saved":""}`;
+    return `<article class="saved-filter-view-card${a?" is-active":""}" data-saved-filter-view="${escapeAttribute(e.id)}"><button class="saved-filter-main" type="button" data-saved-filter-action="open"><strong>${escapeHtml(e.name)}${a?'<span class="saved-filter-active-badge">Currently viewing</span>':""}</strong><small>${escapeHtml(o)}</small></button><div class="saved-filter-actions"><button type="button" data-saved-filter-action="open">Open</button><button type="button" data-saved-filter-action="print">Print</button><button class="delete" type="button" data-saved-filter-action="delete">Delete</button></div></article>`
   }).join(""), setTimeout(updateFilterScrollButtons, 0)
 }
 
@@ -1043,7 +1048,8 @@ async function saveNamedFilterView() {
       id: r ? r.id : "",
       name: e,
       filters: selectedFilterViewValues(),
-      columns: visibleTableColumns()
+      columns: visibleTableColumns(),
+      rowOrder: state.filtered.map(e => String(e["Employee Code"] || "")).filter(Boolean).slice(0, 1200)
     };
   setButtonBusy(refs.saveNamedFilterViewButton, !0, r ? "Updating…" : "Saving…");
   try {
@@ -1079,7 +1085,16 @@ async function handleNamedFilterViewAction(e) {
 
 function applyNamedFilterView(e, t) {
   const r = e.columns.filter((e, t, r) => state.columns.includes(e) && r.indexOf(e) === t);
-  r.length && (state.dashboardColumns = frozenColumnsFirst(r), saveDashboardColumnPreference(), updateChooseColumnsButton()), setCurrentDashboardFilters(e.filters), state.inlineEditCode = "", state.page = 1, refs.filterViewDialog.close(), applyFilters(), showToast(`Saved filter view “${e.name}” opened.`), t && setTimeout(openFilteredReport, 80)
+  r.length && (state.dashboardColumns = frozenColumnsFirst(r), saveDashboardColumnPreference(), updateChooseColumnsButton()), setCurrentDashboardFilters(e.filters), state.inlineEditCode = "", state.page = 1, refs.filterViewDialog.close(), applyFilters();
+  if (Array.isArray(e.rowOrder) && e.rowOrder.length) {
+    const s = new Map(e.rowOrder.map((e, t) => [String(e), t]));
+    state.filtered.sort((e, t) => {
+      const r = String(e["Employee Code"] || ""),
+        o = String(t["Employee Code"] || "");
+      return (s.has(r) ? s.get(r) : Number.MAX_SAFE_INTEGER) - (s.has(o) ? s.get(o) : Number.MAX_SAFE_INTEGER)
+    }), state.manualOrderActive = !0, state.savedOrderRestored = !0
+  }
+  state.activeFilterViewId = e.id, state.activeFilterViewName = e.name, renderTable(), renderNamedFilterViews(), showToast(`Saved filter view “${e.name}” opened.`), t && setTimeout(openFilteredReport, 80)
 }
 
 function scrollFilterDialog(e) {
@@ -1381,7 +1396,7 @@ function populateSelect(e, t, r) {
 }
 
 function applyFilters() {
-  state.page = 1, state.manualOrderActive = !1, state.savedOrderRestored = !1;
+  state.page = 1, state.manualOrderActive = !1, state.savedOrderRestored = !1, state.activeFilterViewId = "", state.activeFilterViewName = "";
   const e = refs.globalSearch.value.trim().toLocaleLowerCase(),
     t = refs.groupFilter.value,
     r = refs.categoryFilter.value,
@@ -1507,7 +1522,7 @@ function renderTable() {
   }).join(""), refs.tableBody.querySelectorAll(".inline-long-text").forEach(e => {
     e.style.height = "auto", e.style.height = `${e.scrollHeight}px`
   }), applySavedColumnWidths(), refs.emptyState.hidden = 0 !== t, refs.employeeTable.hidden = 0 === t;
-  const s = state.headerEditEnabled ? " · Header editing is on — rename headings, then choose Save headers" : hasActiveDashboardFilter() ? " · Filtered view — click a header arrow to sort or use row ↑ ↓ to arrange manually; choose Edit filtered row, then Save" + (state.savedOrderRestored ? " · Saved order restored" : state.manualOrderActive ? " · Unsaved manual order" : "") : isDashboardColumnCustomized() ? ` · Custom view: ${e.length} selected columns` : state.directEditEnabled ? " · Row editing is on — choose Edit row, then Save" : t ? " · Click a row for full details" : "";
+  const s = state.headerEditEnabled ? " · Header editing is on — rename headings, then choose Save headers" : hasActiveDashboardFilter() ? " · Filtered view — click a header arrow to sort or use row ↑ ↓ to arrange manually; choose Edit filtered row, then Save" + (state.activeFilterViewName ? ` · Saved view: "${state.activeFilterViewName}"` : state.savedOrderRestored ? " · Saved order restored" : state.manualOrderActive ? " · Unsaved manual order" : "") : isDashboardColumnCustomized() ? ` · Custom view: ${e.length} selected columns` : state.directEditEnabled ? " · Row editing is on — choose Edit row, then Save" : t ? " · Click a row for full details" : "";
   refs.resultSummary.textContent = `${t} record${1===t?"":"s"}${state.search?" matching search":""}${s}`, refs.pageInfo.textContent = t ? `Showing all ${t} employee${1===t?"":"s"} · Use the visible ▲ ▼ buttons or scrollbar to view every row` : "Showing 0 employees", updateSaveOrderButtons(), requestAnimationFrame(updateDirectoryScrollButtons)
 }
 
