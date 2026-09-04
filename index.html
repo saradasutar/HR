@@ -320,6 +320,17 @@
             <div class="report-print-columns-actions"><button id="reportPrintColumnsSelectAll" class="soft-btn" type="button">Select all</button><button id="reportPrintColumnsReset" class="soft-btn" type="button">Match dashboard view</button><button id="resetReportColumnWidthsButton" class="soft-btn" type="button" title="Restore the original print column widths">Reset print widths</button></div>
             <p class="report-print-hint">Drag the thin line between column headers below to adjust spacing before printing.</p>
           </div>
+          <div id="reportHeaderFooterField" class="report-header-footer-field">
+            <div class="report-header-footer-grid">
+              <label class="report-field"><span>Header note (optional)</span><input id="reportHeaderNote" type="text" maxlength="140" placeholder="e.g. Ref No. / Subject line"></label>
+              <label class="report-field"><span>Footer note (optional)</span><input id="reportFooterNote" type="text" maxlength="140" placeholder="e.g. For internal circulation only"></label>
+            </div>
+            <div class="report-header-footer-toggles">
+              <label class="report-checkbox-field"><input id="reportFooterSignatures" type="checkbox"><span>Add signature line (Prepared by / Verified by)</span></label>
+              <label class="report-checkbox-field"><input id="reportFooterRepeat" type="checkbox" checked><span>Repeat footer on every printed page</span></label>
+            </div>
+            <p class="report-print-hint">For page numbers, print date or the report title on every page, use your browser's own Print dialog → "More settings" → "Headers and footers".</p>
+          </div>
           <div class="report-control-actions"><button id="reportResetButton" class="soft-btn" type="button">Reset</button><button class="primary-btn" type="submit">Generate report</button></div>
         </form>
 
@@ -328,12 +339,20 @@
             <p class="report-office">O/o ADG(B), CPWD, Bengaluru</p>
             <h3 id="reportTitle">Employees aged 50–60</h3>
             <p id="reportCriteria">Age calculated on the selected reference date</p>
+            <p id="reportHeaderNoteDisplay" class="report-header-note-display" hidden></p>
             <div class="report-meta"><span id="reportCount">0 employees</span><span id="reportGeneratedAt"></span></div>
           </header>
           <div id="reportTableWrap" class="report-table-wrap">
             <table id="reportTable" class="report-table"><thead><tr id="reportTableHead"></tr></thead><tbody id="reportTableBody"></tbody></table>
           </div>
           <div id="reportEmptyState" class="report-empty" hidden><span>⌕</span><strong>No employees match this report</strong><p>Change the selected dates or filters and generate the report again.</p></div>
+          <footer id="reportPrintFooter" class="report-print-footer" hidden>
+            <p id="reportFooterNoteDisplay" class="report-footer-note-display" hidden></p>
+            <div id="reportSignatureBlock" class="report-signature-block" hidden>
+              <div class="report-signature-line"><span>Prepared by</span></div>
+              <div class="report-signature-line"><span>Verified by</span></div>
+            </div>
+          </footer>
         </section>
       </div>
 

@@ -10,3 +10,20 @@
 .data-panel .panel-actions button{min-height:32px;padding:0 9px}
 .data-panel .panel-actions .action-card-label{line-height:1.08}
 .report-print-hint{margin:2px 0 0;color:#5b7182;font-size:10.5px;font-weight:700}
+/* v1.6.72 — print header/footer options */
+.report-header-footer-field{margin-top:10px;padding-top:10px;border-top:1px dashed #cfe0e6}
+.report-header-footer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.report-header-footer-toggles{display:flex;flex-wrap:wrap;gap:14px;margin-top:9px}
+.report-checkbox-field{display:inline-flex;align-items:center;gap:7px;color:#173f52;font-size:12px;font-weight:800;cursor:pointer}
+.report-header-note-display{margin:4px 0 0;color:#173f52;font-size:11.5px;font-weight:800}
+.report-print-footer{margin-top:16px;padding-top:10px;border-top:1px solid #dce8ef}
+.report-footer-note-display{margin:0 0 8px;color:#3a5568;font-size:10.5px;font-weight:700}
+.report-signature-block{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:30px}
+.report-signature-line{padding-top:8px;border-top:1px solid #445468;color:#173f52;font-size:10.5px;font-weight:800;text-align:center}
+@media print{
+body.printing-report .report-header-footer-field{display:none!important}
+body.printing-report .report-header-note-display{color:#000}
+body.printing-report .report-print-footer{display:block!important;background:#fff;color:#000}
+body.printing-report .report-print-footer.report-footer-repeat{position:fixed;left:10mm;right:10mm;bottom:0}
+body.printing-report .report-signature-line{border-top-color:#000;color:#000}
+}
