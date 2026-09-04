@@ -2,7 +2,7 @@
 const CONFIG = Object.freeze({
     API_URL: "https://script.google.com/macros/s/AKfycbyc13F44x6wvxRVxO3zWo6JVaom2kS-AzrGZopnF7fXb1-l55hZuPyXbY7hA-sum25G/exec",
     CHANNEL: "ADG_HR_API_V1",
-    FRONTEND_VERSION: "1.6.69",
+    FRONTEND_VERSION: "1.6.70",
     REQUIRED_BACKEND_VERSION: "1.6.3",
     REQUEST_TIMEOUT_MS: 45e3
   }),
@@ -1073,7 +1073,9 @@ async function handleNamedFilterViewAction(e) {
     if (!confirm(`Delete the saved filter view “${s.name}” for everyone?`)) return;
     setButtonBusy(t, !0, "Deleting…");
     try {
-      const e = await apiRequest("deleteFilterView", { id: s.id });
+      const e = await apiRequest("deleteFilterView", {
+        id: s.id
+      });
       state.namedFilterViews = Array.isArray(e.views) ? e.views.map(normalizeFilterViewFromServer) : state.namedFilterViews.filter(e => e.id !== s.id), renderNamedFilterViews(), showToast(`Saved filter view “${s.name}” deleted.`)
     } catch (e) {
       showFilterViewError(friendlyError(e)), showToast(friendlyError(e), !0), setButtonBusy(t, !1, "Delete")
@@ -2402,7 +2404,7 @@ function endStickySideTabDrag(e) {
 }
 
 function handleStickySideTabClick(e) {
-  if (state.stickySideTabMoved) return void (state.stickySideTabMoved = !1);
+  if (state.stickySideTabMoved) return void(state.stickySideTabMoved = !1);
   openStickyNotes(e)
 }
 
@@ -2416,7 +2418,7 @@ function unpinStickyFocus() {
 }
 
 function toggleStickyFocus() {
-  if (state.stickyFocusToggleMoved) return void (state.stickyFocusToggleMoved = !1);
+  if (state.stickyFocusToggleMoved) return void(state.stickyFocusToggleMoved = !1);
   state.stickyFocusId && (state.stickyFocusCollapsed = !state.stickyFocusCollapsed, saveStickyFocusPreference(), renderStickyFocusNote())
 }
 
