@@ -2,7 +2,7 @@
 const CONFIG = Object.freeze({
     API_URL: "https://script.google.com/macros/s/AKfycbyc13F44x6wvxRVxO3zWo6JVaom2kS-AzrGZopnF7fXb1-l55hZuPyXbY7hA-sum25G/exec",
     CHANNEL: "ADG_HR_API_V1",
-    FRONTEND_VERSION: "1.6.70",
+    FRONTEND_VERSION: "1.6.71",
     REQUIRED_BACKEND_VERSION: "1.6.3",
     REQUEST_TIMEOUT_MS: 45e3
   }),
@@ -16,6 +16,7 @@ const CONFIG = Object.freeze({
   COMPLETED_WORK_HISTORY_LABEL = "Completed Work History",
   CUSTOM_FIELD_MAX_LENGTH = 500,
   COLUMN_WIDTH_STORAGE_KEY = "hrDashboardColumnWidthsV159",
+  REPORT_COLUMN_WIDTH_STORAGE_KEY = "hrDashboardReportColumnWidthsV166",
   STICKY_FOCUS_ID_STORAGE_KEY = "hrDashboardStickyFocusIdV159",
   STICKY_FOCUS_COLLAPSED_STORAGE_KEY = "hrDashboardStickyFocusCollapsedV159",
   STICKY_FOCUS_LAYOUT_STORAGE_KEY = "hrDashboardStickyFocusLayoutV159",
@@ -183,7 +184,7 @@ const CONFIG = Object.freeze({
   refs = {};
 
 function init() {
-  ["loginView", "dashboardView", "loginForm", "username", "password", "togglePassword", "rememberUsername", "loginButton", "loginError", "loginFrontendVersion", "loginBackendVersion", "dashboardFrontendVersion", "dashboardBackendVersion", "logoutButton", "refreshButton", "lastUpdated", "displayName", "roleLabel", "userInitial", "statTotal", "statPresent", "statSensitive", "statNonSensitive", "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter", "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTableWrap", "employeeTable", "tableHead", "tableBody", "emptyState", "tableScrollUp", "tableScrollDown", "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "resetColumnWidthsButton", "chooseFiltersButton", "savedViewsButton", "saveOrderButton", "resetOrderButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton", "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterPicker", "fieldFilterPickerSummary", "fieldFilterOptions", "applyFieldFilter", "clearFieldFilter", "dataLoadStatus", "dataLoadStatusTitle", "dataLoadStatusMessage", "retryEmployeeLoadButton", "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm", "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton", "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks", "fieldDoB", "fieldDoR", "fieldCategory", "fieldDoJGovt", "fieldDoJOfficeLabel", "fieldDoJOffice", "fieldAddress", "fieldPostSensitivity", "fieldStrengthStatus", "fieldRelievingDate", "relievingDateHint", "fieldMobile", "fieldEmail", "fieldAge", "customEmployeeFields", "pendingWorkArchiveToolbar", "pendingWorkArchiveToolbarNote", "pendingWorkArchiveButton", "pendingWorkArchiveSection", "pendingWorkArchiveSummary", "pendingWorkArchiveNote", "pendingWorkItemList", "moveCompletedWorkButton", "completedWorkHistoryDetails", "completedWorkHistoryCount", "completedWorkHistoryList", "inlineWorkDialog", "inlineWorkEmployeeName", "inlineWorkNote", "inlineWorkItemList", "inlineWorkHistoryCount", "inlineWorkHistoryList", "inlineWorkError", "inlineMoveWorkButton", "loadingOverlay", "loadingText", "toastRegion", "employeeDetailsDialog", "detailsAvatar", "detailsEmployeeName", "detailsEmployeeSubtitle", "detailsStrengthStatus", "detailsPostSensitivity", "employeeDetailsContent", "detailsEditButton", "reportsButton", "reportDialog", "reportForm", "reportType", "reportReferenceField", "reportReferenceDate", "reportAgeMinField", "reportAgeMin", "reportAgeMaxField", "reportAgeMax", "reportFromField", "reportFromDate", "reportToField", "reportToDate", "reportValueField", "reportValueLabel", "reportValue", "reportTextField", "reportTextValue", "reportResetButton", "reportTitle", "reportCriteria", "reportCount", "reportGeneratedAt", "reportTableWrap", "reportTable", "reportTableHead", "reportTableBody", "reportEmptyState", "reportFooterSummary", "reportExportButton", "reportPrintButton", "reportPrintColumnsField", "reportPrintColumnsPicker", "reportPrintColumnsSummary", "reportPrintColumnsOptions", "reportPrintColumnsSelectAll", "reportPrintColumnsReset", "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword", "confirmPassword", "passwordFormError", "administrationButton", "administrationDialog", "securitySettingsForm", "sessionTimeoutMinutes", "currentSessionTimeout", "securitySettingsError", "saveSecuritySettingsButton", "loginSessionSecurityNote", "sessionWarningDialog", "sessionWarningCountdown", "sessionWarningMessage", "staySignedInButton", "warningSignOutButton", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton", "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewSortColumn", "filterViewSortDirection", "filterScrollUp", "filterScrollDown", "savedFilterViewsPanel", "savedFilterViewCount", "savedFilterViewList", "savedFilterViewEmpty", "savedFilterViewName", "saveNamedFilterViewButton", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm", "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError", "stickyNotesButton", "stickyActiveCount", "stickyNotesDialog", "stickyNoteForm", "stickyNoteType", "stickyNoteTitle", "stickyNoteDueDate", "stickyNoteDetails", "saveStickyNoteButton", "cancelStickyEditButton", "stickyNoteError", "stickyActiveSummary", "stickyActiveList", "stickyActiveEmpty", "stickyCompletedCount", "stickyCompletedList", "stickyCompletedEmpty", "stickySideTab", "stickySideCount", "stickyFocusNote", "stickyFocusDragHandle", "stickyFocusToggle", "stickyFocusType", "stickyFocusTitle", "stickyFocusChevron", "stickyFocusBody", "stickyFocusDetails", "stickyFocusDue", "stickyFocusSizeDown", "stickyFocusSizeLabel", "stickyFocusSizeUp", "stickyFocusEdit", "stickyFocusComplete", "stickyFocusResetLayout", "stickyFocusManage", "stickyFocusUnpin", "stickyFocusResizeGrip", "workDiaryButton", "workDiaryDialog", "diaryEntryForm", "diaryEntryId", "diaryEntryDate", "diaryEntryTitle", "diaryEntryDetails", "diaryEntryCategory", "diaryEntryTags", "diaryEntryEmployee", "diaryEmployeeSuggestions", "diaryEntryLink", "diaryEntryVisibility", "diaryEntryLearning", "diaryEntryImportant", "diaryEntryError", "saveDiaryEntryButton", "cancelDiaryEditButton", "diaryFormHeading", "diarySearch", "diaryMonthFilter", "diaryCategoryFilter", "diarySourceFilter", "diaryRecentLimit", "clearDiaryFiltersButton", "diaryResultSummary", "diaryLearningCount", "diaryEntryList", "diaryEmptyState", "fileRegisterButton", "fileRegisterDialog", "fileRecordForm", "fileRecordId", "fileRecordFormHeading", "fileRecordNo", "fileRecordSubject", "fileRecordCategory", "fileRecordSection", "fileRecordStatus", "fileRecordRemarks", "fileRecordLink", "fileRecordError", "saveFileRecordButton", "cancelFileRecordEditButton", "fileRecordSearch", "fileRecordStatusFilter", "clearFileRecordSearchButton", "fileRecordSummary", "fileRecordList", "fileRecordEmpty", "fileRegisterStorageNote", "fileRegisterSpreadsheetUrl"].forEach(e => {
+  ["loginView", "dashboardView", "loginForm", "username", "password", "togglePassword", "rememberUsername", "loginButton", "loginError", "loginFrontendVersion", "loginBackendVersion", "dashboardFrontendVersion", "dashboardBackendVersion", "logoutButton", "refreshButton", "lastUpdated", "displayName", "roleLabel", "userInitial", "statTotal", "statPresent", "statSensitive", "statNonSensitive", "statRetiring", "statGroupB", "resultSummary", "globalSearch", "groupFilter", "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTableWrap", "employeeTable", "tableHead", "tableBody", "emptyState", "tableScrollUp", "tableScrollDown", "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "resetColumnWidthsButton", "chooseFiltersButton", "savedViewsButton", "saveOrderButton", "resetOrderButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton", "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterPicker", "fieldFilterPickerSummary", "fieldFilterOptions", "applyFieldFilter", "clearFieldFilter", "dataLoadStatus", "dataLoadStatusTitle", "dataLoadStatusMessage", "retryEmployeeLoadButton", "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm", "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton", "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks", "fieldDoB", "fieldDoR", "fieldCategory", "fieldDoJGovt", "fieldDoJOfficeLabel", "fieldDoJOffice", "fieldAddress", "fieldPostSensitivity", "fieldStrengthStatus", "fieldRelievingDate", "relievingDateHint", "fieldMobile", "fieldEmail", "fieldAge", "customEmployeeFields", "pendingWorkArchiveToolbar", "pendingWorkArchiveToolbarNote", "pendingWorkArchiveButton", "pendingWorkArchiveSection", "pendingWorkArchiveSummary", "pendingWorkArchiveNote", "pendingWorkItemList", "moveCompletedWorkButton", "completedWorkHistoryDetails", "completedWorkHistoryCount", "completedWorkHistoryList", "inlineWorkDialog", "inlineWorkEmployeeName", "inlineWorkNote", "inlineWorkItemList", "inlineWorkHistoryCount", "inlineWorkHistoryList", "inlineWorkError", "inlineMoveWorkButton", "loadingOverlay", "loadingText", "toastRegion", "employeeDetailsDialog", "detailsAvatar", "detailsEmployeeName", "detailsEmployeeSubtitle", "detailsStrengthStatus", "detailsPostSensitivity", "employeeDetailsContent", "detailsEditButton", "reportsButton", "reportDialog", "reportForm", "reportType", "reportReferenceField", "reportReferenceDate", "reportAgeMinField", "reportAgeMin", "reportAgeMaxField", "reportAgeMax", "reportFromField", "reportFromDate", "reportToField", "reportToDate", "reportValueField", "reportValueLabel", "reportValue", "reportTextField", "reportTextValue", "reportResetButton", "reportTitle", "reportCriteria", "reportCount", "reportGeneratedAt", "reportTableWrap", "reportTable", "reportTableHead", "reportTableBody", "reportEmptyState", "reportFooterSummary", "reportExportButton", "reportPrintButton", "reportPrintColumnsField", "reportPrintColumnsPicker", "reportPrintColumnsSummary", "reportPrintColumnsOptions", "reportPrintColumnsSelectAll", "reportPrintColumnsReset", "resetReportColumnWidthsButton", "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword", "confirmPassword", "passwordFormError", "administrationButton", "administrationDialog", "securitySettingsForm", "sessionTimeoutMinutes", "currentSessionTimeout", "securitySettingsError", "saveSecuritySettingsButton", "loginSessionSecurityNote", "sessionWarningDialog", "sessionWarningCountdown", "sessionWarningMessage", "staySignedInButton", "warningSignOutButton", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton", "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewSortColumn", "filterViewSortDirection", "filterScrollUp", "filterScrollDown", "savedFilterViewsPanel", "savedFilterViewCount", "savedFilterViewList", "savedFilterViewEmpty", "savedFilterViewName", "saveNamedFilterViewButton", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm", "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError", "stickyNotesButton", "stickyActiveCount", "stickyNotesDialog", "stickyNoteForm", "stickyNoteType", "stickyNoteTitle", "stickyNoteDueDate", "stickyNoteDetails", "saveStickyNoteButton", "cancelStickyEditButton", "stickyNoteError", "stickyActiveSummary", "stickyActiveList", "stickyActiveEmpty", "stickyCompletedCount", "stickyCompletedList", "stickyCompletedEmpty", "stickySideTab", "stickySideCount", "stickyFocusNote", "stickyFocusDragHandle", "stickyFocusToggle", "stickyFocusType", "stickyFocusTitle", "stickyFocusChevron", "stickyFocusBody", "stickyFocusDetails", "stickyFocusDue", "stickyFocusSizeDown", "stickyFocusSizeLabel", "stickyFocusSizeUp", "stickyFocusEdit", "stickyFocusComplete", "stickyFocusResetLayout", "stickyFocusManage", "stickyFocusUnpin", "stickyFocusResizeGrip", "workDiaryButton", "workDiaryDialog", "diaryEntryForm", "diaryEntryId", "diaryEntryDate", "diaryEntryTitle", "diaryEntryDetails", "diaryEntryCategory", "diaryEntryTags", "diaryEntryEmployee", "diaryEmployeeSuggestions", "diaryEntryLink", "diaryEntryVisibility", "diaryEntryLearning", "diaryEntryImportant", "diaryEntryError", "saveDiaryEntryButton", "cancelDiaryEditButton", "diaryFormHeading", "diarySearch", "diaryMonthFilter", "diaryCategoryFilter", "diarySourceFilter", "diaryRecentLimit", "clearDiaryFiltersButton", "diaryResultSummary", "diaryLearningCount", "diaryEntryList", "diaryEmptyState", "fileRegisterButton", "fileRegisterDialog", "fileRecordForm", "fileRecordId", "fileRecordFormHeading", "fileRecordNo", "fileRecordSubject", "fileRecordCategory", "fileRecordSection", "fileRecordStatus", "fileRecordRemarks", "fileRecordLink", "fileRecordError", "saveFileRecordButton", "cancelFileRecordEditButton", "fileRecordSearch", "fileRecordStatusFilter", "clearFileRecordSearchButton", "fileRecordSummary", "fileRecordList", "fileRecordEmpty", "fileRegisterStorageNote", "fileRegisterSpreadsheetUrl"].forEach(e => {
     refs[e] = $(e)
   });
   initialiseSessionSecurity(repairStoredSession());
@@ -202,7 +203,7 @@ function init() {
     state.diaryView = e.dataset.diaryView, renderDiaryEntries()
   })), refs.fileRegisterButton.addEventListener("click", openFileRegister), refs.fileRecordForm.addEventListener("submit", saveFileRecord), refs.cancelFileRecordEditButton.addEventListener("click", resetFileRecordForm), refs.fileRecordList.addEventListener("click", handleFileRecordAction), refs.fileRecordSearch.addEventListener("input", debounce(renderFileRecords, 120)), refs.fileRecordStatusFilter.addEventListener("change", renderFileRecords), refs.clearFileRecordSearchButton.addEventListener("click", () => {
     refs.fileRecordSearch.value = "", refs.fileRecordStatusFilter.value = "", renderFileRecords()
-  }), refs.manageColumnsButton.addEventListener("click", openColumnManager), refs.columnManagerForm.addEventListener("submit", addCustomColumn), refs.customColumnList.addEventListener("click", handleColumnManagerAction), refs.reportsButton.addEventListener("click", openReports), refs.reportForm.addEventListener("submit", generateReport), refs.reportType.addEventListener("change", updateReportControls), refs.reportResetButton.addEventListener("click", () => resetReportForm(!0)), refs.reportExportButton.addEventListener("click", exportReportCsv), refs.reportPrintButton.addEventListener("click", printReport), refs.reportPrintColumnsOptions && refs.reportPrintColumnsOptions.addEventListener("change", handleReportPrintColumnsChange), refs.reportPrintColumnsSelectAll && refs.reportPrintColumnsSelectAll.addEventListener("click", selectAllReportPrintColumns), refs.reportPrintColumnsReset && refs.reportPrintColumnsReset.addEventListener("click", resetReportPrintColumns), document.querySelectorAll("[data-report-preset]").forEach(e => e.addEventListener("click", applyReportPreset)), window.addEventListener("afterprint", () => document.body.classList.remove("printing-report")), refs.employeeForm.addEventListener("submit", saveEmployee), refs.fieldDoB.addEventListener("change", updateCalculatedFields), refs.fieldStrengthStatus.addEventListener("change", updateStrengthDateState), refs.customEmployeeFields.addEventListener("input", handleCustomEmployeeFieldInput), refs.pendingWorkItemList.addEventListener("change", updateMoveCompletedWorkButton), refs.pendingWorkArchiveButton.addEventListener("click", openPendingWorkArchive), refs.moveCompletedWorkButton.addEventListener("click", moveSelectedWorkToCompleted), refs.inlineWorkItemList.addEventListener("change", updateInlineMoveWorkButton), refs.inlineMoveWorkButton.addEventListener("click", moveInlineSelectedWork), refs.inlineWorkDialog.addEventListener("close", () => {
+  }), refs.manageColumnsButton.addEventListener("click", openColumnManager), refs.columnManagerForm.addEventListener("submit", addCustomColumn), refs.customColumnList.addEventListener("click", handleColumnManagerAction), refs.reportsButton.addEventListener("click", openReports), refs.reportForm.addEventListener("submit", generateReport), refs.reportType.addEventListener("change", updateReportControls), refs.reportResetButton.addEventListener("click", () => resetReportForm(!0)), refs.reportExportButton.addEventListener("click", exportReportCsv), refs.reportPrintButton.addEventListener("click", printReport), refs.reportPrintColumnsOptions && refs.reportPrintColumnsOptions.addEventListener("change", handleReportPrintColumnsChange), refs.reportPrintColumnsSelectAll && refs.reportPrintColumnsSelectAll.addEventListener("click", selectAllReportPrintColumns), refs.reportPrintColumnsReset && refs.reportPrintColumnsReset.addEventListener("click", resetReportPrintColumns), refs.resetReportColumnWidthsButton && refs.resetReportColumnWidthsButton.addEventListener("click", resetAllReportColumnWidths), document.querySelectorAll("[data-report-preset]").forEach(e => e.addEventListener("click", applyReportPreset)), window.addEventListener("afterprint", () => document.body.classList.remove("printing-report")), refs.employeeForm.addEventListener("submit", saveEmployee), refs.fieldDoB.addEventListener("change", updateCalculatedFields), refs.fieldStrengthStatus.addEventListener("change", updateStrengthDateState), refs.customEmployeeFields.addEventListener("input", handleCustomEmployeeFieldInput), refs.pendingWorkItemList.addEventListener("change", updateMoveCompletedWorkButton), refs.pendingWorkArchiveButton.addEventListener("click", openPendingWorkArchive), refs.moveCompletedWorkButton.addEventListener("click", moveSelectedWorkToCompleted), refs.inlineWorkItemList.addEventListener("change", updateInlineMoveWorkButton), refs.inlineMoveWorkButton.addEventListener("click", moveInlineSelectedWork), refs.inlineWorkDialog.addEventListener("close", () => {
     state.inlineWorkTargetCode = ""
   }), refs.changePasswordButton.addEventListener("click", () => refs.passwordDialog.showModal()), refs.administrationButton.addEventListener("click", openAdministrationSettings), refs.securitySettingsForm.addEventListener("submit", saveSecuritySettings), refs.staySignedInButton.addEventListener("click", staySignedIn), refs.warningSignOutButton.addEventListener("click", () => performLogout("You have been signed out.")), refs.sessionWarningDialog.addEventListener("cancel", e => e.preventDefault()), refs.detailsEditButton.addEventListener("click", editSelectedEmployee), refs.fieldFilterOptions.addEventListener("change", updateFieldFilterPickerSummary), refs.applyFieldFilter.addEventListener("click", applyParticularFieldFilter), refs.clearFieldFilter.addEventListener("click", resetParticularFieldFilter), refs.passwordForm.addEventListener("submit", changePassword), document.querySelectorAll("[data-close-dialog]").forEach(e => {
     e.addEventListener("click", () => $(e.dataset.closeDialog).close())
@@ -617,6 +618,91 @@ function resetAllColumnWidths() {
 
 function updateResetColumnWidthsButton() {
   refs.resetColumnWidthsButton && (refs.resetColumnWidthsButton.disabled = 0 === Object.keys(readSavedColumnWidths()).length)
+}
+
+function setupReportColumnResizeHandles() {
+  refs.reportTableHead && refs.reportTableHead.querySelectorAll("th[data-report-column-key]").forEach(e => {
+    e.classList.add("resizable-column-header");
+    const t = e.dataset.reportColumnKey,
+      r = document.createElement("span");
+    r.className = "column-resize-handle", r.dataset.resizeReportColumn = t, r.tabIndex = 0, r.setAttribute("role", "separator"), r.setAttribute("aria-orientation", "vertical"), r.setAttribute("aria-label", `Resize ${columnLabel(t)} print column`), r.title = "Drag to adjust this column's width for the printed report. Use Left/Right arrow for fine adjustment. Double-click to reset.", r.addEventListener("pointerdown", startReportColumnResize), r.addEventListener("keydown", resizeReportColumnWithKeyboard), r.addEventListener("click", e => e.stopPropagation()), r.addEventListener("dblclick", e => {
+      e.preventDefault(), e.stopPropagation(), resetOneReportColumnWidth(t)
+    }), e.appendChild(r)
+  })
+}
+
+function startReportColumnResize(e) {
+  if (0 !== e.button && "touch" !== e.pointerType) return;
+  e.preventDefault(), e.stopPropagation();
+  const t = e.currentTarget,
+    r = t.closest("th"),
+    s = t.dataset.resizeReportColumn,
+    o = e.clientX,
+    i = r.getBoundingClientRect().width;
+  let n = i;
+  document.body.classList.add("resizing-column");
+  const a = e => {
+      e.preventDefault(), n = setReportColumnWidth(s, i + e.clientX - o)
+    },
+    l = () => {
+      document.removeEventListener("pointermove", a), document.removeEventListener("pointerup", l), document.removeEventListener("pointercancel", l), document.body.classList.remove("resizing-column"), saveReportColumnWidth(s, n), showToast(`${columnLabel(s)} print width saved.`)
+    };
+  document.addEventListener("pointermove", a, {
+    passive: !1
+  }), document.addEventListener("pointerup", l, {
+    once: !0
+  }), document.addEventListener("pointercancel", l, {
+    once: !0
+  })
+}
+
+function resizeReportColumnWithKeyboard(e) {
+  if (!["ArrowLeft", "ArrowRight"].includes(e.key)) return;
+  e.preventDefault(), e.stopPropagation();
+  const t = e.currentTarget.dataset.resizeReportColumn,
+    r = e.currentTarget.closest("th"),
+    s = e.shiftKey ? 25 : 10,
+    o = "ArrowRight" === e.key ? 1 : -1;
+  saveReportColumnWidth(t, setReportColumnWidth(t, r.getBoundingClientRect().width + o * s))
+}
+
+function readSavedReportColumnWidths() {
+  try {
+    const e = JSON.parse(localStorage.getItem(REPORT_COLUMN_WIDTH_STORAGE_KEY) || "{}");
+    return !e || "object" != typeof e || Array.isArray(e) ? {} : Object.fromEntries(Object.entries(e).filter(([, e]) => Number.isFinite(Number(e))))
+  } catch {
+    return {}
+  }
+}
+
+function saveReportColumnWidth(e, t) {
+  const r = readSavedReportColumnWidths();
+  r[e] = Math.round(t), localStorage.setItem(REPORT_COLUMN_WIDTH_STORAGE_KEY, JSON.stringify(r)), updateResetReportColumnWidthsButton()
+}
+
+function setReportColumnWidth(e, t) {
+  const r = Math.max(40, Math.min(480, Math.round(Number(t) || 40)));
+  return refs.reportTable && refs.reportTable.querySelectorAll('[data-report-column-key]').forEach(t => {
+    t.dataset.reportColumnKey === e && (t.style.width = `${r}px`, t.style.minWidth = `${r}px`, t.style.maxWidth = `${r}px`)
+  }), r
+}
+
+function applySavedReportColumnWidths() {
+  const e = readSavedReportColumnWidths();
+  Object.entries(e).forEach(([e, t]) => setReportColumnWidth(e, t)), updateResetReportColumnWidthsButton()
+}
+
+function resetOneReportColumnWidth(e) {
+  const t = readSavedReportColumnWidths();
+  delete t[e], localStorage.setItem(REPORT_COLUMN_WIDTH_STORAGE_KEY, JSON.stringify(t)), generateReport(), showToast(`${columnLabel(e)} print width reset.`)
+}
+
+function resetAllReportColumnWidths() {
+  localStorage.removeItem(REPORT_COLUMN_WIDTH_STORAGE_KEY), generateReport(), showToast("Original print column widths restored.")
+}
+
+function updateResetReportColumnWidthsButton() {
+  refs.resetReportColumnWidthsButton && (refs.resetReportColumnWidthsButton.disabled = 0 === Object.keys(readSavedReportColumnWidths()).length)
 }
 
 function columnVisualClass(e) {
@@ -1878,7 +1964,7 @@ function dashboardViewReportColumns() {
 
 function renderReport() {
   const e = state.reportRows.length;
-  refs.reportTitle.textContent = state.reportTitle, refs.reportCriteria.textContent = state.reportCriteria, refs.reportCount.textContent = `${e.toLocaleString("en-IN")} employee${1===e?"":"s"}`, refs.reportGeneratedAt.textContent = `Generated ${new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeStyle:"short"}).format(new Date)}`, refs.reportTableHead.innerHTML = state.reportColumns.map(e => `<th class="${reportColumnClass(e.key||e.label)}">${escapeHtml(e.label)}</th>`).join(""), refs.reportTableBody.innerHTML = state.reportRows.map((e, t) => `<tr>${state.reportColumns.map(r=>{const s=r.get(e,t),o=null==s||""===s?"—":s,i=r.key||r.label,n=reportColumnClass(i);return"Post Sensitivity"===i?`<td class="${n}"><span class="badge sensitivity ${sensitivityClass(o)}">${escapeHtml(o)}</span></td>`:"Strength Status"===i?`<td class="${n}"><span class="badge strength ${strengthClass(o)}">${escapeHtml(o)}</span></td>`:`<td class="${n}">${escapeHtml(o)}</td>`}).join("")}</tr>`).join(""), refs.reportTableWrap.hidden = 0 === e, refs.reportEmptyState.hidden = 0 !== e, refs.reportExportButton.disabled = 0 === e, refs.reportPrintButton.disabled = 0 === e, refs.reportFooterSummary.textContent = e ? `${e.toLocaleString("en-IN")} matching employee${1===e?"":"s"} ready to print` : "No matching employees"
+  refs.reportTitle.textContent = state.reportTitle, refs.reportCriteria.textContent = state.reportCriteria, refs.reportCount.textContent = `${e.toLocaleString("en-IN")} employee${1===e?"":"s"}`, refs.reportGeneratedAt.textContent = `Generated ${new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeStyle:"short"}).format(new Date)}`, refs.reportTableHead.innerHTML = state.reportColumns.map(e => `<th class="${reportColumnClass(e.key||e.label)}" data-report-column-key="${escapeAttribute(e.key||e.label)}">${escapeHtml(e.label)}</th>`).join(""), refs.reportTableBody.innerHTML = state.reportRows.map((e, t) => `<tr>${state.reportColumns.map(r=>{const s=r.get(e,t),o=null==s||""===s?"—":s,i=r.key||r.label,n=reportColumnClass(i),c=escapeAttribute(i);return"Post Sensitivity"===i?`<td class="${n}" data-report-column-key="${c}"><span class="badge sensitivity ${sensitivityClass(o)}">${escapeHtml(o)}</span></td>`:"Strength Status"===i?`<td class="${n}" data-report-column-key="${c}"><span class="badge strength ${strengthClass(o)}">${escapeHtml(o)}</span></td>`:`<td class="${n}" data-report-column-key="${c}">${escapeHtml(o)}</td>`}).join("")}</tr>`).join(""), setupReportColumnResizeHandles(), applySavedReportColumnWidths(), refs.reportTableWrap.hidden = 0 === e, refs.reportEmptyState.hidden = 0 !== e, refs.reportExportButton.disabled = 0 === e, refs.reportPrintButton.disabled = 0 === e, refs.reportFooterSummary.textContent = e ? `${e.toLocaleString("en-IN")} matching employee${1===e?"":"s"} ready to print` : "No matching employees"
 }
 
 function reportColumnClass(e) {
