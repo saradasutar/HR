@@ -328,7 +328,7 @@
           </div>
           <div id="reportPrintColumnsField" class="report-print-columns-field">
             <div class="field-filter-control"><span>Columns to print</span><details id="reportPrintColumnsPicker" class="field-filter-picker"><summary id="reportPrintColumnsSummary">Using default columns…</summary><div id="reportPrintColumnsOptions" class="field-filter-options" aria-label="Choose which columns to include in this printout"></div></details></div>
-            <div class="report-print-columns-actions"><button id="reportPrintColumnsSelectAll" class="soft-btn" type="button">Select all</button><button id="reportPrintColumnsReset" class="soft-btn" type="button">Use all columns</button><button id="resetReportColumnWidthsButton" class="soft-btn" type="button" title="Restore the original print column widths">Reset print widths</button></div>
+            <div class="report-print-columns-actions"><button id="reportPrintColumnsSelectAll" class="soft-btn" type="button">Select all</button><button id="reportPrintColumnsDeselectAll" class="soft-btn" type="button">Deselect all</button><button id="reportPrintColumnsReset" class="soft-btn" type="button">Use all columns</button><button id="resetReportColumnWidthsButton" class="soft-btn" type="button" title="Restore the original print column widths">Reset print widths</button></div>
             <p class="report-print-hint">Drag the thin line between column headers below to adjust spacing before printing.</p>
           </div>
           <div id="reportAlignmentField" class="report-orientation-field">
@@ -356,6 +356,7 @@
             <span>Page orientation</span>
             <label class="report-radio-field"><input type="radio" name="reportOrientation" id="reportOrientationLandscape" value="landscape" checked><span>Landscape (wide tables)</span></label>
             <label class="report-radio-field"><input type="radio" name="reportOrientation" id="reportOrientationPortrait" value="portrait"><span>Portrait</span></label>
+            <label class="report-page-size-field"><span>Page size</span><select id="reportPageSize"><option value="A4">A4</option><option value="Letter">Letter</option><option value="Legal">Legal</option></select></label>
           </div>
           <div class="report-control-actions"><button id="reportResetButton" class="soft-btn" type="button">Reset</button><button class="primary-btn" type="submit">Generate report</button></div>
         </form>
@@ -371,7 +372,7 @@
           <div id="reportTableWrap" class="report-table-wrap">
             <table id="reportTable" class="report-table"><thead><tr id="reportTableHead"></tr></thead><tbody id="reportTableBody"></tbody></table>
           </div>
-          <div id="reportEmptyState" class="report-empty" hidden><span>⌕</span><strong>No employees match this report</strong><p>Change the selected dates or filters and generate the report again.</p></div>
+          <div id="reportEmptyState" class="report-empty" hidden><span>⌕</span><strong id="reportEmptyTitle">No employees match this report</strong><p id="reportEmptyHint">Change the selected dates or filters and generate the report again.</p></div>
           <footer id="reportPrintFooter" class="report-print-footer" hidden>
             <p id="reportFooterNoteDisplay" class="report-footer-note-display" hidden></p>
             <div id="reportSignatureBlock" class="report-signature-block" hidden>
