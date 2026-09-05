@@ -315,10 +315,19 @@
             <label id="reportValueField" class="report-field" hidden><span id="reportValueLabel">Select value</span><select id="reportValue"></select></label>
             <label id="reportTextField" class="report-field" hidden><span>Designation contains</span><input id="reportTextValue" type="search" placeholder="For example: Engineer"></label>
           </div>
-          <div id="reportPrintColumnsField" class="report-print-columns-field" hidden>
-            <div class="field-filter-control"><span>Columns to print</span><details id="reportPrintColumnsPicker" class="field-filter-picker"><summary id="reportPrintColumnsSummary">Using dashboard columns…</summary><div id="reportPrintColumnsOptions" class="field-filter-options" aria-label="Choose which columns to include in this printout"></div></details></div>
-            <div class="report-print-columns-actions"><button id="reportPrintColumnsSelectAll" class="soft-btn" type="button">Select all</button><button id="reportPrintColumnsReset" class="soft-btn" type="button">Match dashboard view</button><button id="resetReportColumnWidthsButton" class="soft-btn" type="button" title="Restore the original print column widths">Reset print widths</button></div>
+          <div id="reportPrintColumnsField" class="report-print-columns-field">
+            <div class="field-filter-control"><span>Columns to print</span><details id="reportPrintColumnsPicker" class="field-filter-picker"><summary id="reportPrintColumnsSummary">Using default columns…</summary><div id="reportPrintColumnsOptions" class="field-filter-options" aria-label="Choose which columns to include in this printout"></div></details></div>
+            <div class="report-print-columns-actions"><button id="reportPrintColumnsSelectAll" class="soft-btn" type="button">Select all</button><button id="reportPrintColumnsReset" class="soft-btn" type="button">Use all columns</button><button id="resetReportColumnWidthsButton" class="soft-btn" type="button" title="Restore the original print column widths">Reset print widths</button></div>
             <p class="report-print-hint">Drag the thin line between column headers below to adjust spacing before printing.</p>
+          </div>
+          <div id="reportAlignmentField" class="report-orientation-field">
+            <span>Column text alignment</span>
+            <select id="reportColumnAlignment">
+              <option value="auto">Auto</option>
+              <option value="left">Left</option>
+              <option value="center">Centre</option>
+              <option value="right">Right</option>
+            </select>
           </div>
           <div id="reportHeaderFooterField" class="report-header-footer-field">
             <div class="report-header-footer-grid">
@@ -326,6 +335,7 @@
               <label class="report-field"><span>Footer note (optional)</span><input id="reportFooterNote" type="text" maxlength="140" placeholder="e.g. For internal circulation only"></label>
             </div>
             <div class="report-header-footer-toggles">
+              <label class="report-checkbox-field"><input id="reportShowHeading" type="checkbox" checked><span>Show office name / title text at the top</span></label>
               <label class="report-checkbox-field"><input id="reportFooterSignatures" type="checkbox"><span>Add signature line (Prepared by / Verified by)</span></label>
               <label class="report-checkbox-field"><input id="reportFooterRepeat" type="checkbox" checked><span>Repeat footer on every printed page</span></label>
             </div>
@@ -340,7 +350,7 @@
         </form>
 
         <section id="reportPreview" class="report-preview" aria-live="polite">
-          <header class="report-print-heading">
+          <header id="reportPrintHeading" class="report-print-heading">
             <p class="report-office">O/o ADG(B), CPWD, Bengaluru</p>
             <h3 id="reportTitle">Employees aged 50–60</h3>
             <p id="reportCriteria">Age calculated on the selected reference date</p>
