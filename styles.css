@@ -27,3 +27,6 @@ body.printing-report .report-print-footer{display:block!important;background:#ff
 body.printing-report .report-print-footer.report-footer-repeat{position:fixed;left:10mm;right:10mm;bottom:0}
 body.printing-report .report-signature-line{border-top-color:#000;color:#000}
 }
+/* v1.6.73 — print page orientation option */
+.report-orientation-field{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:10px;padding-top:10px;border-top:1px dashed #cfe0e6;color:#173f52;font-size:12px;font-weight:900}
+.report-radio-field{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;cursor:pointer}

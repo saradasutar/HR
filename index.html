@@ -331,6 +331,11 @@
             </div>
             <p class="report-print-hint">For page numbers, print date or the report title on every page, use your browser's own Print dialog → "More settings" → "Headers and footers".</p>
           </div>
+          <div id="reportOrientationField" class="report-orientation-field">
+            <span>Page orientation</span>
+            <label class="report-radio-field"><input type="radio" name="reportOrientation" id="reportOrientationLandscape" value="landscape" checked><span>Landscape (wide tables)</span></label>
+            <label class="report-radio-field"><input type="radio" name="reportOrientation" id="reportOrientationPortrait" value="portrait"><span>Portrait</span></label>
+          </div>
           <div class="report-control-actions"><button id="reportResetButton" class="soft-btn" type="button">Reset</button><button class="primary-btn" type="submit">Generate report</button></div>
         </form>
 
