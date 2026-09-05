@@ -94,6 +94,7 @@
             <span>FE <strong id="dashboardFrontendVersion">v1.6.59</strong></span>
             <span>BE <strong id="dashboardBackendVersion">Checking…</strong></span>
           </div>
+          <button id="customizeStatsButton" class="soft-btn" type="button" title="Choose which stat cards to show"><span aria-hidden="true">⚙</span> Customize cards</button>
           <button id="refreshButton" class="soft-btn" type="button" title="Refresh employee data">↻ <span>Refresh</span></button>
           <div class="user-chip">
             <span id="userInitial" class="avatar">A</span>
@@ -102,14 +103,24 @@
           <button id="logoutButton" class="logout-btn" type="button">Logout</button>
         </div>
       </div>
-      <section class="stat-grid sensitivity-stat-grid topbar-stats" aria-label="Employee statistics">
-        <article class="stat-card blue"><div class="stat-icon">👥</div><div><span data-short="Total">Total employees</span><strong id="statTotal">0</strong><small>Employee master</small></div></article>
-        <article class="stat-card teal"><div class="stat-icon">✓</div><div><span data-short="Present">Present strength</span><strong id="statPresent">0</strong><small>Marked present</small></div></article>
-        <article class="stat-card rose"><div class="stat-icon">S</div><div><span data-short="Sensitive">Present · Sensitive</span><strong id="statSensitive">0</strong><small>Sensitive posts</small></div></article>
-        <article class="stat-card aqua"><div class="stat-icon">NS</div><div><span data-short="Non-Sens.">Present · Non-Sensitive</span><strong id="statNonSensitive">0</strong><small>Non-Sensitive posts</small></div></article>
-        <article class="stat-card amber"><div class="stat-icon">⌛</div><div><span data-short="Retiring">Retiring in 24 months</span><strong id="statRetiring">0</strong><small>Based on DoR</small></div></article>
-        <article class="stat-card violet"><div class="stat-icon">B</div><div><span data-short="Group B">Group B employees</span><strong id="statGroupB">0</strong><small>Current records</small></div></article>
-      </section>
+      <section id="statCardGrid" class="stat-grid sensitivity-stat-grid topbar-stats" aria-label="Employee statistics"></section>
+
+      <dialog id="statCardDialog" class="modal small-modal">
+        <form method="dialog">
+          <header class="modal-header">
+            <div><p class="eyebrow accent">Dashboard</p><h2>Choose stat cards</h2><p>Pick up to 6 counts to show at the top of the dashboard. New cards appear at the end; unchecking one removes it.</p></div>
+            <button class="modal-close" type="button" data-close-dialog="statCardDialog" aria-label="Close">×</button>
+          </header>
+          <div class="stat-card-picker-body">
+            <p id="statCardPickerSummary" class="stat-card-picker-summary">0 of 6 selected</p>
+            <div id="statCardOptions" class="stat-card-options"></div>
+          </div>
+          <footer class="modal-footer">
+            <button id="resetStatCardsButton" class="soft-btn" type="button">Use default cards</button>
+            <button class="primary-btn" type="button" data-close-dialog="statCardDialog">Done</button>
+          </footer>
+        </form>
+      </dialog>
     </header>
 
     <main class="page-shell">

@@ -34,3 +34,17 @@ body.printing-report .report-signature-line{border-top-color:#000;color:#000}
 .report-table.align-left th,.report-table.align-left td{text-align:left!important}
 .report-table.align-center th,.report-table.align-center td{text-align:center!important}
 .report-table.align-right th,.report-table.align-right td{text-align:right!important}
+/* v1.6.75 — customizable stat cards */
+.stat-card-picker-body{display:grid;gap:10px;padding:18px 24px}
+.stat-card-picker-summary{margin:0;color:#075985;font-size:12px;font-weight:900}
+.stat-card-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:min(52vh,440px);overflow:auto;padding-right:2px}
+.stat-card-option{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid #d3e5ea;border-radius:12px;background:#fff;cursor:pointer}
+.stat-card-option.is-checked{border-color:#0f766e;background:#e9f8f5;box-shadow:inset 3px 0 #0f766e}
+.stat-card-option input{width:17px;height:17px;flex:none;accent-color:#0f766e}
+.stat-card-option input:disabled{cursor:not-allowed}
+.stat-card-option:has(input:disabled){opacity:.5;cursor:not-allowed}
+.stat-card-option-icon{width:28px;height:28px;flex:none;display:grid;place-items:center;border-radius:9px;color:#075985;background:#e7f3fa;font-size:12px;font-weight:900}
+.stat-card-option-text{min-width:0;display:grid;gap:2px}
+.stat-card-option-text strong{overflow:hidden;color:#173f52;font-size:12.5px;font-weight:900;text-overflow:ellipsis;white-space:nowrap}
+.stat-card-option-text small{color:#65808b;font-size:10.5px;font-weight:750}
+@media (max-width:620px){.stat-card-options{grid-template-columns:1fr}}
