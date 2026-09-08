@@ -603,6 +603,72 @@
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
   <script src="app.js?v=20260901-row-edit-restored-1659"></script>
- 
+ <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const dragTab = document.getElementById('stickySideTab');
+    if (!dragTab) return;
+
+    let isDragging = false;
+    let startX, startY, initialLeft, initialTop;
+    let hasMoved = false; // To distinguish between a click and a drag
+
+    const startDrag = (e) => {
+        isDragging = true;
+        hasMoved = false;
+        
+        // Get initial coordinates
+        startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+        startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+        
+        // Convert 'right' positioning to 'left' so it can move freely across the screen
+        const rect = dragTab.getBoundingClientRect();
+        initialLeft = rect.left;
+        initialTop = rect.top;
+        
+        dragTab.style.left = `${initialLeft}px`;
+        dragTab.style.right = 'auto'; // Release the right-side lock
+        dragTab.style.transition = 'none'; // Disable transition for smooth dragging
+    };
+
+    const drag = (e) => {
+        if (!isDragging) return;
+        
+        const currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+        const currentY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+        
+        const dx = currentX - startX;
+        const dy = currentY - startY;
+        
+        // If moved more than 3 pixels, treat it as a drag
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+
+        dragTab.style.left = `${initialLeft + dx}px`;
+        dragTab.style.top = `${initialTop + dy}px`;
+    };
+
+    const stopDrag = (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        // If it was just a click and didn't move, manually open the dialog
+        if (!hasMoved) {
+            const dialog = document.getElementById('stickyNotesDialog');
+            if (dialog && typeof dialog.showModal === 'function') {
+                dialog.showModal();
+            }
+        }
+    };
+
+    // Mouse Events
+    dragTab.addEventListener('mousedown', startDrag);
+    window.addEventListener('mousemove', drag);
+    window.addEventListener('mouseup', stopDrag);
+
+    // Touch Events for Mobile
+    dragTab.addEventListener('touchstart', startDrag, { passive: false });
+    window.addEventListener('touchmove', drag, { passive: false });
+    window.addEventListener('touchend', stopDrag);
+});
+</script>
 </body>
 </html>
