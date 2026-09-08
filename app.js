@@ -2,7 +2,7 @@
 const CONFIG = Object.freeze({
     API_URL: "https://script.google.com/macros/s/AKfycbyc13F44x6wvxRVxO3zWo6JVaom2kS-AzrGZopnF7fXb1-l55hZuPyXbY7hA-sum25G/exec",
     CHANNEL: "ADG_HR_API_V1",
-    FRONTEND_VERSION: "1.8.1",
+    FRONTEND_VERSION: "1.6.76",
     REQUIRED_BACKEND_VERSION: "1.6.3",
     REQUEST_TIMEOUT_MS: 45e3
   }),
@@ -22,8 +22,10 @@ const CONFIG = Object.freeze({
   REPORT_PAGE_SIZE_STORAGE_KEY = "hrDashboardReportPageSizeV166",
   REPORT_ALIGNMENT_STORAGE_KEY = "hrDashboardReportAlignmentV166",
   STAT_CARD_STORAGE_KEY = "hrDashboardStatCardSelectionV175",
-  STICKY_PIN_STORAGE_KEY = "hrDashboardPinnedStickyIdsV180",
-  STICKY_CARD_LAYOUT_STORAGE_KEY = "hrDashboardStickyCardLayoutsV180",
+  STICKY_FOCUS_ID_STORAGE_KEY = "hrDashboardStickyFocusIdV159",
+  STICKY_FOCUS_COLLAPSED_STORAGE_KEY = "hrDashboardStickyFocusCollapsedV159",
+  STICKY_FOCUS_LAYOUT_STORAGE_KEY = "hrDashboardStickyFocusLayoutV159",
+  STICKY_SIDE_TAB_LAYOUT_STORAGE_KEY = "hrDashboardStickySideTabLayoutV166",
   SESSION_LAST_ACTIVITY_KEY = "hrDashboardLastActivityV159",
   SESSION_EXIT_MARKER_KEY = "hrDashboardPageExitV159",
   SESSION_TIMEOUT_STORAGE_KEY = "hrDashboardSessionTimeoutMinutesV159",
@@ -35,6 +37,27 @@ const CONFIG = Object.freeze({
   BACKEND_VERSION_CACHE_TTL_MS = 216e5,
   BACKEND_PROBE_DELAY_MS = 1800,
   AUTH_SESSION_KEYS = Object.freeze(["hrSessionToken", "hrRole", "hrDisplayName", "hrUsername", SESSION_LAST_ACTIVITY_KEY, SESSION_TIMEOUT_STORAGE_KEY]),
+  STICKY_FOCUS_SIZES = Object.freeze([{
+    className: "size-small",
+    label: "Small",
+    width: 280,
+    height: 220
+  }, {
+    className: "size-medium",
+    label: "Medium",
+    width: 350,
+    height: 300
+  }, {
+    className: "size-large",
+    label: "Large",
+    width: 440,
+    height: 390
+  }, {
+    className: "size-xlarge",
+    label: "X-Large",
+    width: 540,
+    height: 480
+  }]),
   STICKY_FOCUS_MIN_WIDTH = 240,
   STICKY_FOCUS_MIN_HEIGHT = 150,
   COLUMN_WIDTH_MIN = 48,
@@ -137,8 +160,17 @@ const CONFIG = Object.freeze({
     inlineWorkTargetCode: "",
     stickyNotes: [],
     stickyEditId: "",
-    stickyTopZ: 300,
+    stickyFocusId: readStickyFocusId(),
+    stickyFocusCollapsed: readStickyFocusCollapsed(),
+    stickyFocusLayout: readStickyFocusLayout(),
+    stickyFocusDrag: null,
+    stickyFocusToggleMoved: !1,
+    stickySideTabDrag: null,
+    stickySideTabMoved: !1,
+    stickySideTabLayout: readStickySideTabLayout(),
     statCardSelection: null,
+    stickyFocusResize: null,
+    stickyFocusResizeObserver: null,
     stickyNotesLoadTimer: 0,
     diaryEntries: [],
     diaryView: "recent",
@@ -158,7 +190,7 @@ const CONFIG = Object.freeze({
   refs = {};
 
 function init() {
-  ["loginView", "dashboardView", "loginForm", "username", "password", "togglePassword", "rememberUsername", "loginButton", "loginError", "loginFrontendVersion", "loginBackendVersion", "dashboardFrontendVersion", "dashboardBackendVersion", "logoutButton", "refreshButton", "lastUpdated", "displayName", "roleLabel", "userInitial", "statCardGrid", "customizeStatsButton", "statCardDialog", "statCardPickerSummary", "statCardOptions", "resetStatCardsButton", "resultSummary", "globalSearch", "groupFilter", "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTableWrap", "employeeTable", "tableHead", "tableBody", "emptyState", "tableScrollUp", "tableScrollDown", "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "resetColumnWidthsButton", "chooseFiltersButton", "savedViewsButton", "saveOrderButton", "resetOrderButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton", "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterPicker", "fieldFilterPickerSummary", "fieldFilterOptions", "applyFieldFilter", "clearFieldFilter", "dataLoadStatus", "dataLoadStatusTitle", "dataLoadStatusMessage", "retryEmployeeLoadButton", "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm", "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton", "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks", "fieldDoB", "fieldDoR", "fieldCategory", "fieldDoJGovt", "fieldDoJOfficeLabel", "fieldDoJOffice", "fieldAddress", "fieldPostSensitivity", "fieldStrengthStatus", "fieldRelievingDate", "relievingDateHint", "fieldMobile", "fieldEmail", "fieldAge", "customEmployeeFields", "pendingWorkArchiveToolbar", "pendingWorkArchiveToolbarNote", "pendingWorkArchiveButton", "pendingWorkArchiveSection", "pendingWorkArchiveSummary", "pendingWorkArchiveNote", "pendingWorkItemList", "moveCompletedWorkButton", "completedWorkHistoryDetails", "completedWorkHistoryCount", "completedWorkHistoryList", "inlineWorkDialog", "inlineWorkEmployeeName", "inlineWorkNote", "inlineWorkItemList", "inlineWorkHistoryCount", "inlineWorkHistoryList", "inlineWorkError", "inlineMoveWorkButton", "loadingOverlay", "loadingText", "toastRegion", "employeeDetailsDialog", "detailsAvatar", "detailsEmployeeName", "detailsEmployeeSubtitle", "detailsStrengthStatus", "detailsPostSensitivity", "employeeDetailsContent", "detailsEditButton", "reportsButton", "reportDialog", "reportForm", "reportType", "reportReferenceField", "reportReferenceDate", "reportAgeMinField", "reportAgeMin", "reportAgeMaxField", "reportAgeMax", "reportFromField", "reportFromDate", "reportToField", "reportToDate", "reportValueField", "reportValueLabel", "reportValue", "reportTextField", "reportTextValue", "reportResetButton", "reportTitle", "reportCriteria", "reportCount", "reportGeneratedAt", "reportTableWrap", "reportTable", "reportTableHead", "reportTableBody", "reportEmptyState", "reportEmptyTitle", "reportEmptyHint", "reportFooterSummary", "reportExportButton", "reportPrintButton", "reportPrintColumnsField", "reportPrintColumnsPicker", "reportPrintColumnsSummary", "reportPrintColumnsOptions", "reportPrintColumnsSelectAll", "reportPrintColumnsDeselectAll", "reportPrintColumnsReset", "resetReportColumnWidthsButton", "reportHeaderNote", "reportFooterNote", "reportFooterSignatures", "reportFooterRepeat", "reportHeaderNoteDisplay", "reportPrintFooter", "reportFooterNoteDisplay", "reportSignatureBlock", "reportOrientationLandscape", "reportOrientationPortrait", "reportPageSize", "reportAlignmentField", "reportColumnAlignment", "reportShowHeading", "reportPrintHeading", "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword", "confirmPassword", "passwordFormError", "administrationButton", "administrationDialog", "securitySettingsForm", "sessionTimeoutMinutes", "currentSessionTimeout", "securitySettingsError", "saveSecuritySettingsButton", "loginSessionSecurityNote", "sessionWarningDialog", "sessionWarningCountdown", "sessionWarningMessage", "staySignedInButton", "warningSignOutButton", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton", "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewSortColumn", "filterViewSortDirection", "filterScrollUp", "filterScrollDown", "savedFilterViewsPanel", "savedFilterViewCount", "savedFilterViewList", "savedFilterViewEmpty", "savedFilterViewName", "saveNamedFilterViewButton", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm", "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError", "stickyNotesButton", "stickyActiveCount", "stickyNotesDialog", "stickyNoteForm", "stickyNoteType", "stickyNoteTitle", "stickyNoteDueDate", "stickyNoteDetails", "saveStickyNoteButton", "cancelStickyEditButton", "stickyNoteError", "stickyActiveSummary", "stickyActiveList", "stickyActiveEmpty", "stickyCompletedCount", "stickyCompletedTargetCount", "stickyCompletedReminderCount", "stickyCompletedTargetList", "stickyCompletedReminderList", "stickyCompletedTargetEmpty", "stickyCompletedReminderEmpty", "pinnedStickyLayer", "workDiaryButton", "workDiaryDialog", "diaryEntryForm", "diaryEntryId", "diaryEntryDate", "diaryEntryTitle", "diaryEntryDetails", "diaryEntryCategory", "diaryEntryTags", "diaryEntryEmployee", "diaryEmployeeSuggestions", "diaryEntryLink", "diaryEntryVisibility", "diaryEntryLearning", "diaryEntryImportant", "diaryEntryError", "saveDiaryEntryButton", "cancelDiaryEditButton", "diaryFormHeading", "diarySearch", "diaryMonthFilter", "diaryCategoryFilter", "diarySourceFilter", "diaryRecentLimit", "clearDiaryFiltersButton", "diaryResultSummary", "diaryLearningCount", "diaryEntryList", "diaryEmptyState", "fileRegisterButton", "fileRegisterDialog", "fileRecordForm", "fileRecordId", "fileRecordFormHeading", "fileRecordNo", "fileRecordSubject", "fileRecordCategory", "fileRecordSection", "fileRecordStatus", "fileRecordRemarks", "fileRecordLink", "fileRecordError", "saveFileRecordButton", "cancelFileRecordEditButton", "fileRecordSearch", "fileRecordStatusFilter", "clearFileRecordSearchButton", "fileRecordSummary", "fileRecordList", "fileRecordEmpty", "fileRegisterStorageNote", "fileRegisterSpreadsheetUrl"].forEach(e => {
+  ["loginView", "dashboardView", "loginForm", "username", "password", "togglePassword", "rememberUsername", "loginButton", "loginError", "loginFrontendVersion", "loginBackendVersion", "dashboardFrontendVersion", "dashboardBackendVersion", "logoutButton", "refreshButton", "lastUpdated", "displayName", "roleLabel", "userInitial", "statCardGrid", "customizeStatsButton", "statCardDialog", "statCardPickerSummary", "statCardOptions", "resetStatCardsButton", "resultSummary", "globalSearch", "groupFilter", "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTableWrap", "employeeTable", "tableHead", "tableBody", "emptyState", "tableScrollUp", "tableScrollDown", "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "resetColumnWidthsButton", "chooseFiltersButton", "savedViewsButton", "saveOrderButton", "resetOrderButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton", "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterPicker", "fieldFilterPickerSummary", "fieldFilterOptions", "applyFieldFilter", "clearFieldFilter", "dataLoadStatus", "dataLoadStatusTitle", "dataLoadStatusMessage", "retryEmployeeLoadButton", "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm", "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton", "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks", "fieldDoB", "fieldDoR", "fieldCategory", "fieldDoJGovt", "fieldDoJOfficeLabel", "fieldDoJOffice", "fieldAddress", "fieldPostSensitivity", "fieldStrengthStatus", "fieldRelievingDate", "relievingDateHint", "fieldMobile", "fieldEmail", "fieldAge", "customEmployeeFields", "pendingWorkArchiveToolbar", "pendingWorkArchiveToolbarNote", "pendingWorkArchiveButton", "pendingWorkArchiveSection", "pendingWorkArchiveSummary", "pendingWorkArchiveNote", "pendingWorkItemList", "moveCompletedWorkButton", "completedWorkHistoryDetails", "completedWorkHistoryCount", "completedWorkHistoryList", "inlineWorkDialog", "inlineWorkEmployeeName", "inlineWorkNote", "inlineWorkItemList", "inlineWorkHistoryCount", "inlineWorkHistoryList", "inlineWorkError", "inlineMoveWorkButton", "loadingOverlay", "loadingText", "toastRegion", "employeeDetailsDialog", "detailsAvatar", "detailsEmployeeName", "detailsEmployeeSubtitle", "detailsStrengthStatus", "detailsPostSensitivity", "employeeDetailsContent", "detailsEditButton", "reportsButton", "reportDialog", "reportForm", "reportType", "reportReferenceField", "reportReferenceDate", "reportAgeMinField", "reportAgeMin", "reportAgeMaxField", "reportAgeMax", "reportFromField", "reportFromDate", "reportToField", "reportToDate", "reportValueField", "reportValueLabel", "reportValue", "reportTextField", "reportTextValue", "reportResetButton", "reportTitle", "reportCriteria", "reportCount", "reportGeneratedAt", "reportTableWrap", "reportTable", "reportTableHead", "reportTableBody", "reportEmptyState", "reportEmptyTitle", "reportEmptyHint", "reportFooterSummary", "reportExportButton", "reportPrintButton", "reportPrintColumnsField", "reportPrintColumnsPicker", "reportPrintColumnsSummary", "reportPrintColumnsOptions", "reportPrintColumnsSelectAll", "reportPrintColumnsDeselectAll", "reportPrintColumnsReset", "resetReportColumnWidthsButton", "reportHeaderNote", "reportFooterNote", "reportFooterSignatures", "reportFooterRepeat", "reportHeaderNoteDisplay", "reportPrintFooter", "reportFooterNoteDisplay", "reportSignatureBlock", "reportOrientationLandscape", "reportOrientationPortrait", "reportPageSize", "reportAlignmentField", "reportColumnAlignment", "reportShowHeading", "reportPrintHeading", "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword", "confirmPassword", "passwordFormError", "administrationButton", "administrationDialog", "securitySettingsForm", "sessionTimeoutMinutes", "currentSessionTimeout", "securitySettingsError", "saveSecuritySettingsButton", "loginSessionSecurityNote", "sessionWarningDialog", "sessionWarningCountdown", "sessionWarningMessage", "staySignedInButton", "warningSignOutButton", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton", "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewSortColumn", "filterViewSortDirection", "filterScrollUp", "filterScrollDown", "savedFilterViewsPanel", "savedFilterViewCount", "savedFilterViewList", "savedFilterViewEmpty", "savedFilterViewName", "saveNamedFilterViewButton", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm", "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError", "stickyNotesButton", "stickyActiveCount", "stickyNotesDialog", "stickyNoteForm", "stickyNoteType", "stickyNoteTitle", "stickyNoteDueDate", "stickyNoteDetails", "saveStickyNoteButton", "cancelStickyEditButton", "stickyNoteError", "stickyActiveSummary", "stickyActiveList", "stickyActiveEmpty", "stickyCompletedCount", "stickyCompletedList", "stickyCompletedEmpty", "stickySideTab", "stickySideCount", "stickyFocusNote", "stickyFocusDragHandle", "stickyFocusToggle", "stickyFocusType", "stickyFocusTitle", "stickyFocusChevron", "stickyFocusBody", "stickyFocusDetails", "stickyFocusDue", "stickyFocusSizeDown", "stickyFocusSizeLabel", "stickyFocusSizeUp", "stickyFocusEdit", "stickyFocusComplete", "stickyFocusResetLayout", "stickyFocusManage", "stickyFocusUnpin", "stickyFocusResizeGrip", "workDiaryButton", "workDiaryDialog", "diaryEntryForm", "diaryEntryId", "diaryEntryDate", "diaryEntryTitle", "diaryEntryDetails", "diaryEntryCategory", "diaryEntryTags", "diaryEntryEmployee", "diaryEmployeeSuggestions", "diaryEntryLink", "diaryEntryVisibility", "diaryEntryLearning", "diaryEntryImportant", "diaryEntryError", "saveDiaryEntryButton", "cancelDiaryEditButton", "diaryFormHeading", "diarySearch", "diaryMonthFilter", "diaryCategoryFilter", "diarySourceFilter", "diaryRecentLimit", "clearDiaryFiltersButton", "diaryResultSummary", "diaryLearningCount", "diaryEntryList", "diaryEmptyState", "fileRegisterButton", "fileRegisterDialog", "fileRecordForm", "fileRecordId", "fileRecordFormHeading", "fileRecordNo", "fileRecordSubject", "fileRecordCategory", "fileRecordSection", "fileRecordStatus", "fileRecordRemarks", "fileRecordLink", "fileRecordError", "saveFileRecordButton", "cancelFileRecordEditButton", "fileRecordSearch", "fileRecordStatusFilter", "clearFileRecordSearchButton", "fileRecordSummary", "fileRecordList", "fileRecordEmpty", "fileRegisterStorageNote", "fileRegisterSpreadsheetUrl"].forEach(e => {
     refs[e] = $(e)
   });
   initialiseSessionSecurity(repairStoredSession());
@@ -169,7 +201,11 @@ function init() {
     passive: !0
   }), refs.filterScrollUp.addEventListener("click", () => scrollFilterDialog(-1)), refs.filterScrollDown.addEventListener("click", () => scrollFilterDialog(1)), refs.savedFilterViewsPanel.addEventListener("toggle", () => setTimeout(updateFilterScrollButtons, 0)), refs.savedFilterViewList.addEventListener("click", handleNamedFilterViewAction), refs.saveNamedFilterViewButton.addEventListener("click", saveNamedFilterView), refs.savedFilterViewName.addEventListener("keydown", e => {
     "Enter" === e.key && (e.preventDefault(), saveNamedFilterView())
-  }), refs.columnFilterRuleList.addEventListener("change", handleColumnFilterRuleChange), refs.columnFilterRuleList.addEventListener("click", handleColumnFilterRuleAction), refs.addColumnFilterRuleButton.addEventListener("click", addColumnFilterRule), refs.applyFilterViewButton.addEventListener("click", applyDashboardFilterView), refs.clearFilterViewButton.addEventListener("click", clearDashboardFilterView), refs.directEditToggle.addEventListener("click", toggleDirectEdit), refs.editHeadersButton.addEventListener("click", toggleHeaderEdit), refs.saveHeadersButton.addEventListener("click", saveHeaderLabels), refs.resetHeadersButton.addEventListener("click", resetHeaderLabels), refs.importButton.addEventListener("click", () => refs.csvFileInput.click()), refs.csvFileInput.addEventListener("change", importCsv), refs.replaceAllButton.addEventListener("click", () => refs.replaceCsvFileInput.click()), refs.replaceCsvFileInput.addEventListener("change", replaceAllCsv), refs.backupButton.addEventListener("click", createBackup), refs.addEmployeeButton.addEventListener("click", () => openEmployeeDialog()), refs.stickyNotesButton.addEventListener("click", openStickyNotes), refs.stickyNoteForm.addEventListener("submit", saveStickyNote), refs.stickyActiveList.addEventListener("click", handleStickyNoteAction), refs.stickyCompletedTargetList.addEventListener("click", handleStickyNoteAction), refs.stickyCompletedReminderList.addEventListener("click", handleStickyNoteAction), refs.pinnedStickyLayer && refs.pinnedStickyLayer.addEventListener("click", handleStickyNoteAction), refs.cancelStickyEditButton.addEventListener("click", cancelStickyEdit), window.addEventListener("resize", debounce(clampAllPinnedStickyCards, 120)), refs.stickyNoteDetails.addEventListener("input", autoFitStickyDetailsInput), refs.workDiaryButton.addEventListener("click", openWorkDiary), refs.diaryEntryForm.addEventListener("submit", saveDiaryEntry), refs.cancelDiaryEditButton.addEventListener("click", resetDiaryForm), refs.diaryEntryList.addEventListener("click", handleDiaryAction), refs.diarySearch.addEventListener("input", debounce(renderDiaryEntries, 120)), [refs.diaryMonthFilter, refs.diaryCategoryFilter, refs.diarySourceFilter, refs.diaryRecentLimit].forEach(e => e.addEventListener("change", renderDiaryEntries)), refs.clearDiaryFiltersButton.addEventListener("click", clearDiaryFilters), document.querySelectorAll("[data-diary-view]").forEach(e => e.addEventListener("click", () => {
+  }), refs.columnFilterRuleList.addEventListener("change", handleColumnFilterRuleChange), refs.columnFilterRuleList.addEventListener("click", handleColumnFilterRuleAction), refs.addColumnFilterRuleButton.addEventListener("click", addColumnFilterRule), refs.applyFilterViewButton.addEventListener("click", applyDashboardFilterView), refs.clearFilterViewButton.addEventListener("click", clearDashboardFilterView), refs.directEditToggle.addEventListener("click", toggleDirectEdit), refs.editHeadersButton.addEventListener("click", toggleHeaderEdit), refs.saveHeadersButton.addEventListener("click", saveHeaderLabels), refs.resetHeadersButton.addEventListener("click", resetHeaderLabels), refs.importButton.addEventListener("click", () => refs.csvFileInput.click()), refs.csvFileInput.addEventListener("change", importCsv), refs.replaceAllButton.addEventListener("click", () => refs.replaceCsvFileInput.click()), refs.replaceCsvFileInput.addEventListener("change", replaceAllCsv), refs.backupButton.addEventListener("click", createBackup), refs.addEmployeeButton.addEventListener("click", () => openEmployeeDialog()), refs.stickyNotesButton.addEventListener("click", openStickyNotes), refs.stickySideTab.addEventListener("click", handleStickySideTabClick), refs.stickySideTab.addEventListener("pointerdown", startStickySideTabDrag), window.addEventListener("pointermove", moveStickySideTabDrag), window.addEventListener("pointerup", endStickySideTabDrag), window.addEventListener("pointercancel", endStickySideTabDrag), refs.stickyNoteForm.addEventListener("submit", saveStickyNote), refs.stickyActiveList.addEventListener("click", handleStickyNoteAction), refs.stickyCompletedList.addEventListener("click", handleStickyNoteAction), refs.cancelStickyEditButton.addEventListener("click", cancelStickyEdit), refs.stickyFocusToggle.addEventListener("click", toggleStickyFocus), refs.stickyFocusToggle.addEventListener("pointerdown", startStickyFocusToggleDrag), refs.stickyFocusToggle.addEventListener("keydown", e => {
+    state.stickyFocusCollapsed && moveStickyFocusWithKeyboard(e)
+  }), refs.stickyFocusDragHandle.addEventListener("pointerdown", startStickyFocusDrag), refs.stickyFocusDragHandle.addEventListener("keydown", moveStickyFocusWithKeyboard), window.addEventListener("pointermove", moveStickyFocusDrag), window.addEventListener("pointerup", endStickyFocusDrag), window.addEventListener("pointercancel", endStickyFocusDrag), refs.stickyFocusResizeGrip.addEventListener("pointerdown", startStickyFocusResize), refs.stickyFocusResizeGrip.addEventListener("keydown", resizeStickyFocusWithKeyboard), window.addEventListener("pointermove", moveStickyFocusResize), window.addEventListener("pointerup", endStickyFocusResize), window.addEventListener("pointercancel", endStickyFocusResize), refs.stickyFocusSizeDown.addEventListener("click", () => changeStickyFocusSize(-1)), refs.stickyFocusSizeUp.addEventListener("click", () => changeStickyFocusSize(1)), refs.stickyFocusEdit.addEventListener("click", editPinnedStickyNote), refs.stickyFocusComplete.addEventListener("click", () => completeStickyNote(refs.stickyFocusComplete)), refs.stickyFocusResetLayout.addEventListener("click", resetStickyFocusLayout), refs.stickyFocusManage.addEventListener("click", openStickyNotes), refs.stickyFocusUnpin.addEventListener("click", unpinStickyFocus), window.addEventListener("resize", debounce(() => {
+    applyStickyFocusLayout(), applyStickySideTabLayout()
+  }, 120)), refs.stickyNoteDetails.addEventListener("input", autoFitStickyDetailsInput), refs.workDiaryButton.addEventListener("click", openWorkDiary), refs.diaryEntryForm.addEventListener("submit", saveDiaryEntry), refs.cancelDiaryEditButton.addEventListener("click", resetDiaryForm), refs.diaryEntryList.addEventListener("click", handleDiaryAction), refs.diarySearch.addEventListener("input", debounce(renderDiaryEntries, 120)), [refs.diaryMonthFilter, refs.diaryCategoryFilter, refs.diarySourceFilter, refs.diaryRecentLimit].forEach(e => e.addEventListener("change", renderDiaryEntries)), refs.clearDiaryFiltersButton.addEventListener("click", clearDiaryFilters), document.querySelectorAll("[data-diary-view]").forEach(e => e.addEventListener("click", () => {
     state.diaryView = e.dataset.diaryView, renderDiaryEntries()
   })), refs.fileRegisterButton.addEventListener("click", openFileRegister), refs.fileRecordForm.addEventListener("submit", saveFileRecord), refs.cancelFileRecordEditButton.addEventListener("click", resetFileRecordForm), refs.fileRecordList.addEventListener("click", handleFileRecordAction), refs.fileRecordSearch.addEventListener("input", debounce(renderFileRecords, 120)), refs.fileRecordStatusFilter.addEventListener("change", renderFileRecords), refs.clearFileRecordSearchButton.addEventListener("click", () => {
     refs.fileRecordSearch.value = "", refs.fileRecordStatusFilter.value = "", renderFileRecords()
@@ -409,13 +445,13 @@ async function restoreSession() {
 }
 
 function showDashboard() {
-  refs.loginView.hidden = !0, refs.dashboardView.hidden = !1, refs.changePasswordButton.hidden = !1, refs.displayName.textContent = state.displayName || state.username || "User", refs.roleLabel.textContent = "admin" === state.role ? "Administrator access" : "View-only access", refs.userInitial.textContent = (state.displayName || state.username || "U").charAt(0).toUpperCase(), renderVersionLabels(), updateSessionSecurityText(), document.querySelectorAll(".admin-only").forEach(e => {
+  refs.loginView.hidden = !0, refs.dashboardView.hidden = !1, refs.stickySideTab.hidden = Boolean(state.stickyFocusId), refs.changePasswordButton.hidden = !1, refs.displayName.textContent = state.displayName || state.username || "User", refs.roleLabel.textContent = "admin" === state.role ? "Administrator access" : "View-only access", refs.userInitial.textContent = (state.displayName || state.username || "U").charAt(0).toUpperCase(), renderVersionLabels(), updateSessionSecurityText(), applyStickySideTabLayout(), document.querySelectorAll(".admin-only").forEach(e => {
     e.hidden = "admin" !== state.role
   }), "admin" === state.role ? state.directEditEnabled = !0 : (state.directEditEnabled = !1, state.headerEditEnabled = !1, state.inlineEditCode = "", state.headerLabelsDirty = !1), updateDirectEditButton(), updateHeaderEditButtons(), recordSessionActivity(), armSessionIdleTimer()
 }
 
 function showLogin() {
-  clearTimeout(state.sessionIdleTimer), clearTimeout(state.sessionWarningTimer), clearTimeout(state.sessionHeartbeatTimer), clearSessionWarning(), state.sessionIdleTimer = 0, state.sessionWarningTimer = 0, state.sessionHeartbeatTimer = 0, state.token || clearAuthSessionStorage(), refs.loginView.hidden = !1, refs.dashboardView.hidden = !0, refs.changePasswordButton.hidden = !0, refs.pinnedStickyLayer && (refs.pinnedStickyLayer.hidden = !0, refs.pinnedStickyLayer.innerHTML = ""), updateSessionSecurityText(), scheduleBackendVersionProbe(), setTimeout(() => refs.username.focus(), 20)
+  clearTimeout(state.sessionIdleTimer), clearTimeout(state.sessionWarningTimer), clearTimeout(state.sessionHeartbeatTimer), clearSessionWarning(), state.sessionIdleTimer = 0, state.sessionWarningTimer = 0, state.sessionHeartbeatTimer = 0, state.token || clearAuthSessionStorage(), refs.loginView.hidden = !1, refs.dashboardView.hidden = !0, refs.changePasswordButton.hidden = !0, refs.stickyFocusNote.hidden = !0, refs.stickySideTab.hidden = !0, updateSessionSecurityText(), scheduleBackendVersionProbe(), setTimeout(() => refs.username.focus(), 20)
 }
 async function logout() {
   return performLogout("You have been signed out.")
@@ -2584,19 +2620,15 @@ async function loadStickyNotes() {
 
 function renderStickyNotes() {
   const e = state.stickyNotes.filter(e => "Completed" !== e.status),
-    t = state.stickyNotes.filter(e => "Completed" === e.status),
-    r = [...t].sort((e, t) => String(t.completedAt || "").localeCompare(String(e.completedAt || ""))),
-    s = r.filter(e => "Target" === (e.type || "Reminder")),
-    o = r.filter(e => "Target" !== (e.type || "Reminder")),
-    i = 10;
-  refs.stickyActiveCount.textContent = String(e.length), refs.stickyActiveSummary.textContent = `${e.length} active note${1===e.length?"":"s"}`, refs.stickyCompletedCount.textContent = String(t.length), refs.stickyActiveEmpty.hidden = e.length > 0, refs.stickyActiveList.innerHTML = e.map(e => stickyNoteMarkup(e, !1)).join(""), refs.stickyCompletedTargetCount.textContent = String(s.length), refs.stickyCompletedReminderCount.textContent = String(o.length), refs.stickyCompletedTargetList.innerHTML = s.slice(0, i).map(e => stickyNoteMarkup(e, !0)).join(""), refs.stickyCompletedReminderList.innerHTML = o.slice(0, i).map(e => stickyNoteMarkup(e, !0)).join(""), refs.stickyCompletedTargetEmpty.hidden = s.length > 0, refs.stickyCompletedReminderEmpty.hidden = o.length > 0, renderPinnedStickyNotes()
+    t = state.stickyNotes.filter(e => "Completed" === e.status);
+  refs.stickyActiveCount.textContent = String(e.length), refs.stickyActiveSummary.textContent = `${e.length} active note${1===e.length?"":"s"}`, refs.stickyCompletedCount.textContent = String(t.length), refs.stickyActiveEmpty.hidden = e.length > 0, refs.stickyCompletedEmpty.hidden = t.length > 0, refs.stickySideCount.textContent = String(e.length), refs.stickyActiveList.innerHTML = e.map(e => stickyNoteMarkup(e, !1)).join(""), refs.stickyCompletedList.innerHTML = t.map(e => stickyNoteMarkup(e, !0)).join(""), renderStickyFocusNote()
 }
 
 function stickyNoteMarkup(e, t) {
   const r = ["yellow", "pink", "blue", "green", "purple", "orange"].includes(e.colour) ? e.colour : "yellow",
     s = e.dueDate ? `<span class="sticky-due">Due ${escapeHtml(formatDate(e.dueDate))}</span>` : '<span class="sticky-due no-date">No due date</span>',
     o = t ? `<small>Completed ${escapeHtml(e.completedAt||"")} ${e.completedBy?`by ${escapeHtml(e.completedBy)}`:""}</small>` : "",
-    i = t ? "" : `<button class="sticky-mini-btn pin${isStickyPinned(e.id)?" is-pinned":""}" type="button" data-pin-sticky-note="${escapeAttribute(e.id)}" aria-pressed="${isStickyPinned(e.id)}">${isStickyPinned(e.id)?"📌 Pinned":"📍 Pin"}</button>`,
+    i = t ? "" : `<button class="sticky-mini-btn pin${state.stickyFocusId===e.id?" is-pinned":""}" type="button" data-pin-sticky-note="${escapeAttribute(e.id)}" aria-pressed="${state.stickyFocusId===e.id}">📌 ${state.stickyFocusId===e.id?"Pinned":"Keep open"}</button>`,
     n = "admin" === state.role ? `${t?"":`<button class="sticky-mini-btn edit" type="button" data-edit-sticky-note="${escapeAttribute(e.id)}">Edit</button><button class="sticky-complete-btn" type="button" data-complete-sticky-note="${escapeAttribute(e.id)}">✓ Completed</button>`}<button class="sticky-mini-btn delete" type="button" data-delete-sticky-note="${escapeAttribute(e.id)}">Delete</button>` : "",
     a = i || n ? `<div class="sticky-card-actions">${i}${n}</div>` : "";
   return `<article class="sticky-note-card ${r}${t?" is-completed":""}"><header><span>${escapeHtml(e.type||"Reminder")}</span>${s}</header><h4>${escapeHtml(e.title||"Untitled note")}</h4>${e.details?`<p>${escapeHtml(e.details)}</p>`:""}<footer>${o}${a}</footer></article>`
@@ -2627,258 +2659,296 @@ async function saveStickyNote(e) {
 
 function handleStickyNoteAction(e) {
   const t = e.target.closest("[data-pin-sticky-note]");
-  if (t) return toggleStickyPin(t.dataset.pinStickyNote);
+  if (t) return pinStickyFocus(t.dataset.pinStickyNote);
   const r = e.target.closest("[data-edit-sticky-note]");
-  if (r) return e.target.closest(".pinned-floating") ? void openStickyNotes().then(() => editStickyNote(r.dataset.editStickyNote)).catch(() => {}) : editStickyNote(r.dataset.editStickyNote);
+  if (r) return editStickyNote(r.dataset.editStickyNote);
   const s = e.target.closest("[data-complete-sticky-note]");
   if (s) return completeStickyNote(s);
   const o = e.target.closest("[data-delete-sticky-note]");
-  if (o) return deleteStickyNote(o);
-  const i = e.target.closest("[data-reset-sticky-layout]");
-  return i ? resetPinnedStickyLayout(i.dataset.resetStickyLayout) : void 0
+  return o ? deleteStickyNote(o) : void 0
 }
 
-function loadPinnedStickyIds() {
+function readStickyFocusId() {
   try {
-    const e = JSON.parse(localStorage.getItem(STICKY_PIN_STORAGE_KEY) || "[]");
-    return Array.isArray(e) ? [...new Set(e.map(String).filter(Boolean))] : []
+    return localStorage.getItem(STICKY_FOCUS_ID_STORAGE_KEY) || ""
   } catch {
-    return []
+    return ""
   }
 }
 
-function savePinnedStickyIds(e) {
+function readStickyFocusCollapsed() {
   try {
-    localStorage.setItem(STICKY_PIN_STORAGE_KEY, JSON.stringify([...new Set(e.map(String).filter(Boolean))]))
+    return "1" === localStorage.getItem(STICKY_FOCUS_COLLAPSED_STORAGE_KEY)
+  } catch {
+    return !1
+  }
+}
+
+function readStickyFocusLayout() {
+  try {
+    const e = JSON.parse(localStorage.getItem(STICKY_FOCUS_LAYOUT_STORAGE_KEY) || "{}");
+    return {
+      size: Number.isInteger(e.size) ? Math.max(0, Math.min(STICKY_FOCUS_SIZES.length - 1, e.size)) : 1,
+      x: Number.isFinite(e.x) ? e.x : null,
+      y: Number.isFinite(e.y) ? e.y : null,
+      width: Number.isFinite(e.width) ? e.width : null,
+      height: Number.isFinite(e.height) ? e.height : null
+    }
+  } catch {
+    return {
+      size: 1,
+      x: null,
+      y: null,
+      width: null,
+      height: null
+    }
+  }
+}
+
+function saveStickyFocusPreference() {
+  try {
+    state.stickyFocusId ? localStorage.setItem(STICKY_FOCUS_ID_STORAGE_KEY, state.stickyFocusId) : localStorage.removeItem(STICKY_FOCUS_ID_STORAGE_KEY), localStorage.setItem(STICKY_FOCUS_COLLAPSED_STORAGE_KEY, state.stickyFocusCollapsed ? "1" : "0"), localStorage.setItem(STICKY_FOCUS_LAYOUT_STORAGE_KEY, JSON.stringify(state.stickyFocusLayout))
   } catch {}
 }
 
-function isStickyPinned(e) {
-  return loadPinnedStickyIds().includes(String(e))
-}
-
-function loadStickyCardLayouts() {
+function readStickySideTabLayout() {
   try {
-    const e = JSON.parse(localStorage.getItem(STICKY_CARD_LAYOUT_STORAGE_KEY) || "{}");
-    return e && "object" == typeof e && !Array.isArray(e) ? e : {}
+    const e = JSON.parse(localStorage.getItem(STICKY_SIDE_TAB_LAYOUT_STORAGE_KEY) || "{}");
+    return {
+      x: Number.isFinite(e.x) ? e.x : null,
+      y: Number.isFinite(e.y) ? e.y : null
+    }
   } catch {
-    return {}
+    return {
+      x: null,
+      y: null
+    }
   }
 }
 
-function saveStickyCardLayouts(e) {
+function saveStickySideTabLayout() {
   try {
-    localStorage.setItem(STICKY_CARD_LAYOUT_STORAGE_KEY, JSON.stringify(e || {}))
+    localStorage.setItem(STICKY_SIDE_TAB_LAYOUT_STORAGE_KEY, JSON.stringify(state.stickySideTabLayout))
   } catch {}
 }
 
-function defaultStickyCardLayout(e = 0) {
-  const t = Math.min(320, Math.max(250, window.innerWidth - 24));
-  return {
-    left: Math.max(8, window.innerWidth - t - 18 - e % 3 * 24),
-    top: Math.min(Math.max(72, 86 + e % 5 * 34), Math.max(72, window.innerHeight - 210)),
-    width: t,
-    height: Math.min(320, Math.max(200, window.innerHeight - 150))
-  }
+function applyStickySideTabLayout() {
+  if (!refs.stickySideTab || refs.stickySideTab.hidden) return;
+  const e = Number.isFinite(state.stickySideTabLayout.x) && Number.isFinite(state.stickySideTabLayout.y);
+  if (refs.stickySideTab.classList.toggle("is-dragged", e), !e) return refs.stickySideTab.style.removeProperty("left"), refs.stickySideTab.style.removeProperty("top"), refs.stickySideTab.style.removeProperty("right"), void refs.stickySideTab.style.removeProperty("bottom");
+  const t = refs.stickySideTab.getBoundingClientRect(),
+    r = Math.max(8, window.innerWidth - t.width - 8),
+    s = Math.max(8, window.innerHeight - t.height - 8),
+    o = Math.max(8, Math.min(r, state.stickySideTabLayout.x)),
+    i = Math.max(8, Math.min(s, state.stickySideTabLayout.y));
+  state.stickySideTabLayout.x = o, state.stickySideTabLayout.y = i, refs.stickySideTab.style.left = `${o}px`, refs.stickySideTab.style.top = `${i}px`, refs.stickySideTab.style.right = "auto", refs.stickySideTab.style.bottom = "auto"
 }
 
-function stickyCardLayoutFor(e, t = 0) {
-  const r = loadStickyCardLayouts()[String(e)] || {},
-    s = defaultStickyCardLayout(t);
-  return {
-    left: Number.isFinite(Number(r.left)) ? Number(r.left) : s.left,
-    top: Number.isFinite(Number(r.top)) ? Number(r.top) : s.top,
-    width: Number.isFinite(Number(r.width)) ? Number(r.width) : s.width,
-    height: Number.isFinite(Number(r.height)) ? Number(r.height) : s.height
-  }
-}
-
-function clampStickyCardLayout(e) {
-  const t = Math.max(240, Math.min(Number(e.width) || 300, Math.max(240, window.innerWidth - 12))),
-    r = Math.max(170, Math.min(Number(e.height) || 240, Math.max(170, window.innerHeight - 12)));
-  return {
-    width: t,
-    height: r,
-    left: Math.max(6, Math.min(Number(e.left) || 6, Math.max(6, window.innerWidth - t - 6))),
-    top: Math.max(6, Math.min(Number(e.top) || 72, Math.max(6, window.innerHeight - r - 6)))
-  }
-}
-
-function saveStickyCardLayout(e) {
-  if (!e || !e.dataset.stickyCardId) return;
-  const t = loadStickyCardLayouts(),
-    r = e.getBoundingClientRect();
-  t[e.dataset.stickyCardId] = clampStickyCardLayout({
-    left: r.left,
-    top: r.top,
-    width: r.width,
-    height: r.height
-  }), saveStickyCardLayouts(t)
-}
-
-function clearStickyCardLayout(e) {
-  const t = loadStickyCardLayouts();
-  delete t[String(e)], saveStickyCardLayouts(t)
-}
-
-function prunePinnedStickyIds() {
-  const e = new Set(state.stickyNotes.filter(e => "Completed" !== e.status).map(e => e.id)),
-    t = loadPinnedStickyIds().filter(t => e.has(t));
-  savePinnedStickyIds(t);
-  const r = loadStickyCardLayouts();
-  let s = !1;
-  return Object.keys(r).forEach(t => {
-    e.has(t) || (delete r[t], s = !0)
-  }), s && saveStickyCardLayouts(r), t
-}
-
-function toggleStickyPin(e) {
-  const t = state.stickyNotes.find(t => t.id === e && "Completed" !== t.status);
-  if (!t) return;
-  const r = loadPinnedStickyIds(),
-    s = r.indexOf(e);
-  s >= 0 ? (r.splice(s, 1), showToast(`“${t.title||"Reminder"}” unpinned.`)) : (r.push(e), showToast(`“${t.title||"Reminder"}” pinned above the dashboard.`)), savePinnedStickyIds(r), renderStickyNotes()
-}
-
-function pinnedStickyCardHtml(e, t = 0) {
-  const r = ["yellow", "pink", "blue", "green", "purple", "orange"].includes(e.colour) ? e.colour : "yellow",
-    s = clampStickyCardLayout(stickyCardLayoutFor(e.id, t)),
-    o = e.dueDate ? `Due ${formatDate(e.dueDate)}` : "No due date",
-    i = "admin" === state.role;
-  return `<article class="sticky-note-card pinned-floating ${r}" data-sticky-card-id="${escapeAttribute(e.id)}" style="left:${Math.round(s.left)}px;top:${Math.round(s.top)}px;width:${Math.round(s.width)}px;height:${Math.round(s.height)}px;z-index:${200+t}">
-    <div class="sticky-floating-toolbar" data-sticky-drag-handle title="Drag this bar to move, or use arrow keys">
-      <span class="sticky-move-grip">⠿ Move</span><span class="sticky-pinned-badge">📌 Pinned</span>
-    </div>
-    <header><span>${escapeHtml(e.type||"Reminder")}</span><span class="sticky-due">${escapeHtml(o)}</span></header>
-    <h4>${escapeHtml(e.title||"Untitled note")}</h4>
-    ${e.details?`<p class="sticky-full-text">${escapeHtml(e.details)}</p>`:""}
-    <div class="sticky-card-actions pinned-actions">
-      <button class="sticky-mini-btn pin is-pinned" type="button" data-pin-sticky-note="${escapeAttribute(e.id)}">📌 Unpin</button>
-      ${i?`<button class="sticky-mini-btn edit" type="button" data-edit-sticky-note="${escapeAttribute(e.id)}">Edit</button><button class="sticky-complete-btn" type="button" data-complete-sticky-note="${escapeAttribute(e.id)}">✓ Completed</button>`:""}
-      <button class="sticky-mini-btn reset" type="button" data-reset-sticky-layout="${escapeAttribute(e.id)}">Reset size</button>
-      ${i?`<button class="sticky-mini-btn delete" type="button" data-delete-sticky-note="${escapeAttribute(e.id)}">Delete</button>`:""}
-    </div>
-    <span class="sticky-resize-handle" data-sticky-resize-handle tabindex="0" role="separator" aria-label="Resize this sticky note" title="Drag to resize"></span>
-  </article>`
-}
-
-function startStickyCardPointerAction(e, t, r) {
+function startStickySideTabDrag(e) {
   if ("mouse" === e.pointerType && 0 !== e.button) return;
-  e.preventDefault(), e.stopPropagation(), state.stickyTopZ += 1, t.style.zIndex = String(state.stickyTopZ);
-  const s = t.getBoundingClientRect(),
-    o = e.clientX,
-    i = e.clientY,
-    n = a => {
-      const l = a.clientX - o,
-        d = a.clientY - i;
-      if ("move" === r) {
-        const c = clampStickyCardLayout({
-          left: s.left + l,
-          top: s.top + d,
-          width: s.width,
-          height: s.height
-        });
-        t.style.left = `${c.left}px`, t.style.top = `${c.top}px`
-      } else {
-        const c = clampStickyCardLayout({
-          left: s.left,
-          top: s.top,
-          width: s.width + l,
-          height: s.height + d
-        });
-        t.style.width = `${c.width}px`, t.style.height = `${c.height}px`
-      }
-    },
-    a = () => {
-      window.removeEventListener("pointermove", n), window.removeEventListener("pointerup", a), window.removeEventListener("pointercancel", a), document.body.classList.remove("sticky-pointer-active"), saveStickyCardLayout(t)
-    };
-  document.body.classList.add("sticky-pointer-active"), window.addEventListener("pointermove", n, {
-    passive: !1
-  }), window.addEventListener("pointerup", a, {
-    once: !0
-  }), window.addEventListener("pointercancel", a, {
-    once: !0
-  })
+  const t = refs.stickySideTab.getBoundingClientRect();
+  state.stickySideTabDrag = {
+    pointerId: e.pointerId,
+    startX: e.clientX,
+    startY: e.clientY,
+    originX: t.left,
+    originY: t.top,
+    moved: !1
+  }, state.stickySideTabLayout.x = t.left, state.stickySideTabLayout.y = t.top, refs.stickySideTab.classList.add("is-dragged");
+  try {
+    refs.stickySideTab.setPointerCapture(e.pointerId)
+  } catch {}
+  document.body.classList.add("sticky-focus-dragging"), e.preventDefault()
 }
 
-function moveStickyCardWithKeyboard(e, t) {
-  const r = {
+function moveStickySideTabDrag(e) {
+  const t = state.stickySideTabDrag;
+  if (!t || t.pointerId !== e.pointerId) return;
+  const r = refs.stickySideTab.getBoundingClientRect(),
+    s = Math.max(8, window.innerWidth - r.width - 8),
+    o = Math.max(8, window.innerHeight - r.height - 8),
+    i = Math.max(8, Math.min(s, t.originX + e.clientX - t.startX)),
+    n = Math.max(8, Math.min(o, t.originY + e.clientY - t.startY));
+  (Math.abs(e.clientX - t.startX) > 3 || Math.abs(e.clientY - t.startY) > 3) && (t.moved = !0), state.stickySideTabLayout.x = i, state.stickySideTabLayout.y = n, refs.stickySideTab.style.left = `${i}px`, refs.stickySideTab.style.top = `${n}px`, refs.stickySideTab.style.right = "auto", refs.stickySideTab.style.bottom = "auto", e.preventDefault()
+}
+
+function endStickySideTabDrag(e) {
+  const t = state.stickySideTabDrag;
+  if (t && t.pointerId === e.pointerId) {
+    state.stickySideTabDrag = null, t.moved && (state.stickySideTabMoved = !0);
+    try {
+      refs.stickySideTab.releasePointerCapture(e.pointerId)
+    } catch {}
+    document.body.classList.remove("sticky-focus-dragging"), saveStickySideTabLayout()
+  }
+}
+
+function handleStickySideTabClick(e) {
+  if (state.stickySideTabMoved) return void(state.stickySideTabMoved = !1);
+  openStickyNotes(e)
+}
+
+function pinStickyFocus(e) {
+  const t = state.stickyNotes.find(t => t.id === e && "Completed" !== t.status);
+  t && (state.stickyFocusId = e, state.stickyFocusCollapsed = !1, saveStickyFocusPreference(), renderStickyNotes(), showToast(`“${t.title||"Reminder"}” will remain open over the dashboard.`))
+}
+
+function unpinStickyFocus() {
+  state.stickyFocusId = "", state.stickyFocusCollapsed = !1, saveStickyFocusPreference(), renderStickyNotes(), showToast("The sticky note was unpinned and collapsed to the side tab.")
+}
+
+function toggleStickyFocus() {
+  if (state.stickyFocusToggleMoved) return void(state.stickyFocusToggleMoved = !1);
+  state.stickyFocusId && (state.stickyFocusCollapsed = !state.stickyFocusCollapsed, saveStickyFocusPreference(), renderStickyFocusNote())
+}
+
+function changeStickyFocusSize(e) {
+  const t = Math.max(0, Math.min(STICKY_FOCUS_SIZES.length - 1, state.stickyFocusLayout.size + e));
+  t !== state.stickyFocusLayout.size && (state.stickyFocusLayout.size = t, state.stickyFocusLayout.width = STICKY_FOCUS_SIZES[t].width, state.stickyFocusLayout.height = STICKY_FOCUS_SIZES[t].height, saveStickyFocusPreference(), renderStickyFocusNote())
+}
+
+function resetStickyFocusLayout() {
+  state.stickyFocusLayout = {
+    size: 1,
+    x: null,
+    y: null,
+    width: null,
+    height: null
+  }, saveStickyFocusPreference(), renderStickyFocusNote(), showToast("Sticky note returned to automatic fit and its original position.")
+}
+
+function startStickyFocusDrag(e) {
+  if ("mouse" === e.pointerType && 0 !== e.button) return;
+  const t = refs.stickyFocusNote.getBoundingClientRect();
+  state.stickyFocusDrag = {
+    pointerId: e.pointerId,
+    startX: e.clientX,
+    startY: e.clientY,
+    originX: t.left,
+    originY: t.top,
+    el: e.currentTarget,
+    moved: !1
+  }, state.stickyFocusLayout.x = t.left, state.stickyFocusLayout.y = t.top;
+  try {
+    e.currentTarget.setPointerCapture(e.pointerId)
+  } catch {}
+  document.body.classList.add("sticky-focus-dragging"), e.preventDefault()
+}
+
+function startStickyFocusToggleDrag(e) {
+  state.stickyFocusCollapsed && startStickyFocusDrag(e)
+}
+
+function moveStickyFocusDrag(e) {
+  const t = state.stickyFocusDrag;
+  if (!t || t.pointerId !== e.pointerId) return;
+  const r = refs.stickyFocusNote.getBoundingClientRect(),
+    s = Math.max(8, window.innerWidth - r.width - 8),
+    o = Math.max(8, window.innerHeight - r.height - 8),
+    i = Math.max(8, Math.min(s, t.originX + e.clientX - t.startX)),
+    n = Math.max(8, Math.min(o, t.originY + e.clientY - t.startY));
+  (Math.abs(e.clientX - t.startX) > 3 || Math.abs(e.clientY - t.startY) > 3) && (t.moved = !0), state.stickyFocusLayout.x = i, state.stickyFocusLayout.y = n, refs.stickyFocusNote.style.left = `${i}px`, refs.stickyFocusNote.style.top = `${n}px`, refs.stickyFocusNote.style.right = "auto", refs.stickyFocusNote.style.bottom = "auto", e.preventDefault()
+}
+
+function endStickyFocusDrag(e) {
+  const t = state.stickyFocusDrag;
+  if (t && t.pointerId === e.pointerId) {
+    state.stickyFocusDrag = null, t.moved && t.el === refs.stickyFocusToggle && (state.stickyFocusToggleMoved = !0);
+    try {
+      (t.el || refs.stickyFocusDragHandle).releasePointerCapture(e.pointerId)
+    } catch {}
+    document.body.classList.remove("sticky-focus-dragging"), saveStickyFocusPreference()
+  }
+}
+
+function startStickyFocusResize(e) {
+  if ("mouse" === e.pointerType && 0 !== e.button) return;
+  if (state.stickyFocusCollapsed) return;
+  const t = refs.stickyFocusNote.getBoundingClientRect();
+  state.stickyFocusResize = {
+    pointerId: e.pointerId,
+    startX: e.clientX,
+    startY: e.clientY,
+    startWidth: t.width,
+    startHeight: t.height
+  }, state.stickyFocusLayout.x = t.left, state.stickyFocusLayout.y = t.top;
+  try {
+    refs.stickyFocusResizeGrip.setPointerCapture(e.pointerId)
+  } catch {}
+  document.body.classList.add("sticky-focus-resizing"), e.preventDefault()
+}
+
+function moveStickyFocusResize(e) {
+  const t = state.stickyFocusResize;
+  if (!t || t.pointerId !== e.pointerId) return;
+  const r = Math.max(240, window.innerWidth - (Number(state.stickyFocusLayout.x) || 8) - 8),
+    s = Math.max(150, window.innerHeight - (Number(state.stickyFocusLayout.y) || 8) - 8),
+    o = Math.max(240, Math.min(r, t.startWidth + e.clientX - t.startX)),
+    i = Math.max(150, Math.min(s, t.startHeight + e.clientY - t.startY));
+  state.stickyFocusLayout.width = o, state.stickyFocusLayout.height = i, refs.stickyFocusNote.style.width = `${o}px`, refs.stickyFocusNote.style.height = `${i}px`, e.preventDefault()
+}
+
+function endStickyFocusResize(e) {
+  const t = state.stickyFocusResize;
+  if (t && t.pointerId === e.pointerId) {
+    state.stickyFocusResize = null;
+    try {
+      refs.stickyFocusResizeGrip.releasePointerCapture(e.pointerId)
+    } catch {}
+    document.body.classList.remove("sticky-focus-resizing"), saveStickyFocusPreference()
+  }
+}
+
+function resizeStickyFocusWithKeyboard(e) {
+  const t = {
     ArrowLeft: [-20, 0],
     ArrowRight: [20, 0],
     ArrowUp: [0, -20],
     ArrowDown: [0, 20]
   } [e.key];
-  if (!r) return;
-  const s = t.getBoundingClientRect(),
-    o = clampStickyCardLayout({
-      left: s.left + r[0],
-      top: s.top + r[1],
-      width: s.width,
-      height: s.height
-    });
-  t.style.left = `${o.left}px`, t.style.top = `${o.top}px`, saveStickyCardLayout(t), e.preventDefault()
+  if (!t || state.stickyFocusCollapsed) return;
+  const r = refs.stickyFocusNote.getBoundingClientRect();
+  state.stickyFocusLayout.width = Math.max(240, r.width + t[0]), state.stickyFocusLayout.height = Math.max(150, r.height + t[1]), applyStickyFocusLayout(), saveStickyFocusPreference(), e.preventDefault()
 }
 
-function resizeStickyCardWithKeyboard(e, t) {
-  const r = {
+function moveStickyFocusWithKeyboard(e) {
+  const t = {
     ArrowLeft: [-20, 0],
     ArrowRight: [20, 0],
     ArrowUp: [0, -20],
     ArrowDown: [0, 20]
   } [e.key];
-  if (!r) return;
-  const s = t.getBoundingClientRect(),
-    o = clampStickyCardLayout({
-      left: s.left,
-      top: s.top,
-      width: s.width + r[0],
-      height: s.height + r[1]
-    });
-  t.style.width = `${o.width}px`, t.style.height = `${o.height}px`, saveStickyCardLayout(t), e.preventDefault()
+  if (!t) return;
+  const r = refs.stickyFocusNote.getBoundingClientRect();
+  state.stickyFocusLayout.x = (Number.isFinite(state.stickyFocusLayout.x) ? state.stickyFocusLayout.x : r.left) + t[0], state.stickyFocusLayout.y = (Number.isFinite(state.stickyFocusLayout.y) ? state.stickyFocusLayout.y : r.top) + t[1], applyStickyFocusLayout(), saveStickyFocusPreference(), e.preventDefault()
 }
 
-function installPinnedStickyInteractions() {
-  refs.pinnedStickyLayer && refs.pinnedStickyLayer.querySelectorAll("[data-sticky-card-id]").forEach(e => {
-    e.addEventListener("pointerdown", () => {
-      state.stickyTopZ += 1, e.style.zIndex = String(state.stickyTopZ)
-    }, {
-      passive: !0
-    });
-    const t = e.querySelector("[data-sticky-drag-handle]"),
-      r = e.querySelector("[data-sticky-resize-handle]");
-    t && (t.addEventListener("pointerdown", t => startStickyCardPointerAction(t, e, "move")), t.addEventListener("keydown", t => moveStickyCardWithKeyboard(t, e))), r && (r.addEventListener("pointerdown", t => startStickyCardPointerAction(t, e, "resize")), r.addEventListener("keydown", t => resizeStickyCardWithKeyboard(t, e)))
-  })
+function applyStickyFocusLayout() {
+  if (!refs.stickyFocusNote || refs.stickyFocusNote.hidden) return;
+  const e = Math.max(0, Math.min(STICKY_FOCUS_SIZES.length - 1, state.stickyFocusLayout.size));
+  state.stickyFocusLayout.size = e, refs.stickyFocusSizeLabel.textContent = STICKY_FOCUS_SIZES[e].label, refs.stickyFocusSizeDown.disabled = 0 === e, refs.stickyFocusSizeUp.disabled = e === STICKY_FOCUS_SIZES.length - 1;
+  const t = Math.max(240, window.innerWidth - 16),
+    r = Math.max(150, window.innerHeight - 16);
+  if (!state.stickyFocusCollapsed && Number.isFinite(state.stickyFocusLayout.width) ? (state.stickyFocusLayout.width = Math.max(240, Math.min(t, state.stickyFocusLayout.width)), refs.stickyFocusNote.style.width = `${state.stickyFocusLayout.width}px`) : refs.stickyFocusNote.style.removeProperty("width"), !state.stickyFocusCollapsed && Number.isFinite(state.stickyFocusLayout.height) ? (state.stickyFocusLayout.height = Math.max(150, Math.min(r, state.stickyFocusLayout.height)), refs.stickyFocusNote.style.height = `${state.stickyFocusLayout.height}px`) : refs.stickyFocusNote.style.removeProperty("height"), !Number.isFinite(state.stickyFocusLayout.x) || !Number.isFinite(state.stickyFocusLayout.y)) return refs.stickyFocusNote.style.removeProperty("left"), refs.stickyFocusNote.style.removeProperty("top"), refs.stickyFocusNote.style.removeProperty("right"), void refs.stickyFocusNote.style.removeProperty("bottom");
+  const s = refs.stickyFocusNote.getBoundingClientRect(),
+    o = Math.max(8, window.innerWidth - s.width - 8),
+    i = Math.max(8, window.innerHeight - s.height - 8),
+    n = Math.max(8, Math.min(o, state.stickyFocusLayout.x)),
+    a = Math.max(8, Math.min(i, state.stickyFocusLayout.y));
+  state.stickyFocusLayout.x = n, state.stickyFocusLayout.y = a, refs.stickyFocusNote.style.left = `${n}px`, refs.stickyFocusNote.style.top = `${a}px`, refs.stickyFocusNote.style.right = "auto", refs.stickyFocusNote.style.bottom = "auto"
 }
 
-function resetPinnedStickyLayout(e) {
-  clearStickyCardLayout(e), renderPinnedStickyNotes(), showToast("Sticky note size and position reset.")
+function renderStickyFocusNote() {
+  const e = state.stickyNotes.find(e => e.id === state.stickyFocusId && "Completed" !== e.status);
+  if (!e || refs.dashboardView.hidden) return state.stickyFocusId && !e && (state.stickyFocusId = "", state.stickyFocusCollapsed = !1, saveStickyFocusPreference()), refs.stickyFocusNote.hidden = !0, refs.stickySideTab.hidden = refs.dashboardView.hidden, void applyStickySideTabLayout();
+  const t = ["yellow", "pink", "blue", "green", "purple", "orange"].includes(e.colour) ? e.colour : "yellow",
+    r = Math.max(0, Math.min(STICKY_FOCUS_SIZES.length - 1, state.stickyFocusLayout.size));
+  refs.stickyFocusNote.className = `sticky-focus-note ${t} ${STICKY_FOCUS_SIZES[r].className}${state.stickyFocusCollapsed?" is-collapsed":""}`, refs.stickyFocusType.textContent = e.type || "Reminder", refs.stickyFocusTitle.textContent = e.title || "Untitled note", refs.stickyFocusDetails.textContent = e.details || "No additional details.", refs.stickyFocusDue.textContent = e.dueDate ? `Due ${formatDate(e.dueDate)}` : "No due date", refs.stickyFocusEdit.dataset.stickyNoteId = e.id, refs.stickyFocusComplete.dataset.completeStickyNote = e.id, refs.stickyFocusToggle.setAttribute("aria-expanded", String(!state.stickyFocusCollapsed)), refs.stickyFocusChevron.textContent = state.stickyFocusCollapsed ? "+" : "−", refs.stickyFocusNote.hidden = !1, refs.stickySideTab.hidden = !0, applyStickyFocusLayout()
 }
 
-function clampAllPinnedStickyCards() {
-  refs.pinnedStickyLayer && refs.pinnedStickyLayer.querySelectorAll("[data-sticky-card-id]").forEach(e => {
-    const t = e.getBoundingClientRect(),
-      r = clampStickyCardLayout({
-        left: t.left,
-        top: t.top,
-        width: t.width,
-        height: t.height
-      });
-    Object.assign(e.style, {
-      left: `${r.left}px`,
-      top: `${r.top}px`,
-      width: `${r.width}px`,
-      height: `${r.height}px`
-    }), saveStickyCardLayout(e)
-  })
-}
-
-function renderPinnedStickyNotes() {
-  if (!refs.pinnedStickyLayer) return;
-  if (refs.dashboardView.hidden) return refs.pinnedStickyLayer.hidden = !0, void(refs.pinnedStickyLayer.innerHTML = "");
-  const e = prunePinnedStickyIds(),
-    t = new Map(state.stickyNotes.map(e => [e.id, e])),
-    r = e.map(e => t.get(e)).filter(Boolean);
-  refs.pinnedStickyLayer.innerHTML = r.map((e, t) => pinnedStickyCardHtml(e, t)).join(""), refs.pinnedStickyLayer.hidden = 0 === r.length, installPinnedStickyInteractions()
+function editPinnedStickyNote() {
+  const e = refs.stickyFocusEdit.dataset.stickyNoteId || state.stickyFocusId;
+  e && openStickyNotes().then(() => editStickyNote(e)).catch(() => {})
 }
 
 function autoFitStickyDetailsInput() {
