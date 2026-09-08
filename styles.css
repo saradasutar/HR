@@ -55,3 +55,32 @@ body.printing-report .report-signature-line{border-top-color:#000;color:#000}
 .report-page-size-field{display:inline-flex;align-items:center;gap:6px;color:#173f52;font-size:12px;font-weight:900}
 .report-page-size-field select{min-height:34px;padding:0 9px;border:2px solid #8ebbc0;border-radius:9px;outline:0;color:#102f3f;background:#fff;font-size:12px;font-weight:800}
 .report-page-size-field select:focus{border-color:#0c8ba0;box-shadow:0 0 0 3px rgba(12,139,160,.13)}
+/* v1.8.0 — multi-pin floating sticky notes (ported from SarNi's model) */
+.pinned-sticky-layer{position:fixed;inset:0;z-index:150;width:100vw;height:100dvh;overflow:hidden;pointer-events:none}
+.pinned-sticky-layer[hidden]{display:none!important}
+.pinned-sticky-layer .sticky-note-card{pointer-events:auto}
+.sticky-note-card.pinned-floating{position:absolute;min-height:0;transform:none;display:flex;flex-direction:column;padding:0 13px 13px;box-shadow:0 14px 36px rgba(24,31,69,.24),0 0 0 1px rgba(255,255,255,.5) inset;overflow:hidden}
+.sticky-floating-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px;margin:0 -13px 8px;padding:6px 9px;border-bottom:1px solid rgba(74,55,20,.14);border-radius:5px 5px 0 0;background:rgba(255,255,255,.5);cursor:grab;user-select:none;touch-action:none}
+.sticky-floating-toolbar:active{cursor:grabbing}
+.sticky-move-grip{color:#6c5134;font-size:9px;font-weight:950;letter-spacing:.03em;text-transform:uppercase}
+.sticky-pinned-badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;color:#6c5134;background:rgba(255,255,255,.75);font-size:8px;font-weight:950}
+.pinned-floating h4{font-size:13px}
+.pinned-floating p{font-size:10.5px}
+.sticky-full-text{flex:1;min-height:36px;overflow:auto;padding-right:2px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.pinned-actions{margin-top:auto;padding-top:7px;border-top:1px solid rgba(74,55,20,.12)}
+.sticky-mini-btn.reset{border:1px solid rgba(74,55,20,.22)}
+.sticky-resize-handle{position:absolute;right:2px;bottom:2px;width:22px;height:22px;border-radius:8px 0 10px 0;cursor:nwse-resize;touch-action:none}
+.sticky-resize-handle::before,.sticky-resize-handle::after{content:"";position:absolute;right:5px;bottom:5px;border-right:2px solid rgba(108,81,52,.55);border-bottom:2px solid rgba(108,81,52,.55)}
+.sticky-resize-handle::before{width:11px;height:11px}
+.sticky-resize-handle::after{width:5px;height:5px}
+body.sticky-pointer-active{user-select:none!important;cursor:grabbing!important}
+@media (max-width:760px){.sticky-note-card.pinned-floating{min-width:230px!important}}
+.sticky-pin-help,.sticky-history-help{margin:2px 0 8px;color:#5b7182;font-size:10.5px;font-weight:750}
+.sticky-history-columns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sticky-history-column{min-width:0;padding:10px;border:1px solid #d3e5ea;border-radius:12px;background:#fff}
+.sticky-history-column.target-history{background:linear-gradient(145deg,#f0fff8,#f8fffc);border-color:#bfe9d4}
+.sticky-history-column.reminder-history{background:linear-gradient(145deg,#fff8e8,#fffdf6);border-color:#f2d99a}
+.sticky-history-column>h4{display:flex;justify-content:space-between;gap:8px;margin:0 0 8px;color:#28334f;font-size:12px}
+.sticky-history-column>h4 span{min-width:22px;padding:2px 6px;border-radius:999px;background:#fff;text-align:center}
+.sticky-history-column .sticky-note-grid{grid-template-columns:1fr}
+@media (max-width:700px){.sticky-history-columns{grid-template-columns:1fr}}

@@ -195,27 +195,7 @@
     </main>
   </div>
 
-  <button id="stickySideTab" class="sticky-side-tab" type="button" aria-label="Open collapsed targets and reminders" hidden><span aria-hidden="true">📌</span><strong>Targets / Reminders</strong><b id="stickySideCount">0</b></button>
-
-  <aside id="stickyFocusNote" class="sticky-focus-note yellow" aria-label="Pinned target or reminder" hidden>
-    <button id="stickyFocusDragHandle" class="sticky-focus-drag-handle" type="button" title="Drag to move, or use keyboard arrow keys">⠿ Move note</button>
-    <button id="stickyFocusToggle" class="sticky-focus-toggle" type="button" aria-expanded="true" title="Collapse or open this sticky note">
-      <span class="sticky-focus-kicker">📌 <span id="stickyFocusType">Reminder</span></span>
-      <strong id="stickyFocusTitle">Target or reminder</strong>
-      <span id="stickyFocusChevron" class="sticky-focus-chevron" aria-hidden="true">−</span>
-    </button>
-    <div id="stickyFocusBody" class="sticky-focus-body">
-      <p id="stickyFocusDetails"></p>
-      <div class="sticky-focus-footer">
-        <span id="stickyFocusDue">No due date</span>
-        <div class="sticky-focus-tools">
-          <div class="sticky-focus-size-controls" aria-label="Sticky note size"><button id="stickyFocusSizeDown" type="button" title="Decrease sticky note size">A−</button><span id="stickyFocusSizeLabel">Medium</span><button id="stickyFocusSizeUp" type="button" title="Increase sticky note size">A+</button></div>
-          <div class="sticky-focus-actions"><button id="stickyFocusEdit" type="button">Edit</button><button id="stickyFocusComplete" type="button">✓ Complete</button><button id="stickyFocusResetLayout" type="button" title="Restore automatic size and original position">Auto-fit</button><button id="stickyFocusManage" type="button">Open all</button><button id="stickyFocusUnpin" type="button">Unpin to side</button></div>
-        </div>
-      </div>
-    </div>
-    <span id="stickyFocusResizeGrip" class="sticky-focus-resize-grip" role="separator" tabindex="0" aria-label="Drag to resize sticky note" title="Drag this corner to resize"></span>
-  </aside>
+  <div id="pinnedStickyLayer" class="pinned-sticky-layer" aria-label="Pinned targets and reminders" hidden></div>
 
   <dialog id="employeeDetailsDialog" class="modal details-modal">
     <div class="profile-sheet">
@@ -269,13 +249,17 @@
         </form>
         <section class="sticky-active-section">
           <div class="sticky-section-heading"><h3>Active</h3><span id="stickyActiveSummary">0 notes</span></div>
+          <p class="sticky-pin-help">📌 Pin a note to keep it floating above the dashboard — pin as many as you like, each moves and resizes on its own.</p>
           <div id="stickyActiveList" class="sticky-note-grid"></div>
           <p id="stickyActiveEmpty" class="sticky-empty">No active targets or reminders.</p>
         </section>
         <details class="sticky-completed-section">
           <summary><span>Completed diary</span><b id="stickyCompletedCount">0</b></summary>
-          <div id="stickyCompletedList" class="sticky-note-grid completed"></div>
-          <p id="stickyCompletedEmpty" class="sticky-empty">No completed notes yet.</p>
+          <p class="sticky-history-help">Showing the last 10 completed of each type. Completed notes move safely into the searchable Work Diary.</p>
+          <div class="sticky-history-columns">
+            <section class="sticky-history-column target-history"><h4>✓ Completed targets <span id="stickyCompletedTargetCount">0</span></h4><div id="stickyCompletedTargetList" class="sticky-note-grid completed"></div><p id="stickyCompletedTargetEmpty" class="sticky-empty">No completed targets yet.</p></section>
+            <section class="sticky-history-column reminder-history"><h4>✓ Completed reminders <span id="stickyCompletedReminderCount">0</span></h4><div id="stickyCompletedReminderList" class="sticky-note-grid completed"></div><p id="stickyCompletedReminderEmpty" class="sticky-empty">No completed reminders yet.</p></section>
+          </div>
         </details>
       </div>
       <footer class="modal-footer"><button class="soft-btn" type="button" data-close-dialog="stickyNotesDialog">Close</button></footer>
