@@ -1,0 +1,35 @@
+/* The Vertical Tab */
+#admin-sticky-tab {
+    position: fixed;
+    right: 0;
+    top: 50%; /* Starting position */
+    transform: translateY(-50%);
+    background-color: #6366f1; /* Adjust to match your theme */
+    color: white;
+    padding: 15px 5px;
+    border-radius: 8px 0 0 8px;
+    writing-mode: vertical-rl;
+    cursor: grab;
+    z-index: 9999;
+    user-select: none; /* Prevents text highlighting while dragging */
+}
+
+/* The Slide-out Panel */
+#admin-sticky-panel {
+    position: fixed;
+    right: -400px; /* Hidden off-screen */
+    top: 0;
+    width: 350px;
+    height: 100vh;
+    background-color: #ffffff;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    transition: right 0.3s ease;
+    z-index: 10000;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* Class to open the panel */
+#admin-sticky-panel.open {
+    right: 0;
+}
