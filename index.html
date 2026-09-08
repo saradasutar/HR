@@ -602,32 +602,30 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="app.js?v=20260901-row-edit-restored-1659"></script>
- <script>
+<script>
 document.addEventListener('DOMContentLoaded', () => {
     const dragTab = document.getElementById('stickySideTab');
     if (!dragTab) return;
 
     let isDragging = false;
     let startX, startY, initialLeft, initialTop;
-    let hasMoved = false; // To distinguish between a click and a drag
+    let hasMoved = false;
 
     const startDrag = (e) => {
         isDragging = true;
         hasMoved = false;
         
-        // Get initial coordinates
         startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
         startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
         
-        // Convert 'right' positioning to 'left' so it can move freely across the screen
         const rect = dragTab.getBoundingClientRect();
         initialLeft = rect.left;
         initialTop = rect.top;
         
-        dragTab.style.left = `${initialLeft}px`;
-        dragTab.style.right = 'auto'; // Release the right-side lock
-        dragTab.style.transition = 'none'; // Disable transition for smooth dragging
+        // Force override styles using setProperty to bypass CSS conflicts
+        dragTab.style.setProperty('left', `${initialLeft}px`, 'important');
+        dragTab.style.setProperty('top', `${initialTop}px`, 'important');
+        dragTab.style.setProperty('right', 'auto', 'important');
     };
 
     const drag = (e) => {
@@ -639,25 +637,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const dx = currentX - startX;
         const dy = currentY - startY;
         
-        // If moved more than 3 pixels, treat it as a drag
         if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
 
-        dragTab.style.left = `${initialLeft + dx}px`;
-        dragTab.style.top = `${initialTop + dy}px`;
+        dragTab.style.setProperty('left', `${initialLeft + dx}px`, 'important');
+        dragTab.style.setProperty('top', `${initialTop + dy}px`, 'important');
     };
 
-    const stopDrag = (e) => {
-        if (!isDragging) return;
+    const stopDrag = () => {
         isDragging = false;
-        
-        // If it was just a click and didn't move, manually open the dialog
-        if (!hasMoved) {
-            const dialog = document.getElementById('stickyNotesDialog');
-            if (dialog && typeof dialog.showModal === 'function') {
-                dialog.showModal();
-            }
-        }
     };
+
+    // Prevent the modal from opening if the user was just dragging the button
+    dragTab.addEventListener('click', (e) => {
+        if (hasMoved) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    });
 
     // Mouse Events
     dragTab.addEventListener('mousedown', startDrag);
