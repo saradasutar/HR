@@ -195,9 +195,7 @@
     </main>
   </div>
 
-  <button id="stickySideTab" class="sticky-side-tab" type="button" aria-label="Open collapsed targets and reminders" hidden>
-    <span aria-hidden="true">📌</span> Targets & Reminders <b id="stickySideCount">0</b>
-</button>
+  <button id="stickySideTab" class="sticky-side-tab" type="button" aria-label="Open collapsed targets and reminders" hidden><span aria-hidden="true">📌</span><strong>Targets / Reminders</strong><b id="stickySideCount">0</b></button>
 
   <aside id="stickyFocusNote" class="sticky-focus-note yellow" aria-label="Pinned target or reminder" hidden>
     <button id="stickyFocusDragHandle" class="sticky-focus-drag-handle" type="button" title="Drag to move, or use keyboard arrow keys">⠿ Move note</button>
@@ -602,69 +600,6 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const dragTab = document.getElementById('stickySideTab');
-    if (!dragTab) return;
-
-    let isDragging = false;
-    let startX, startY, initialLeft, initialTop;
-    let hasMoved = false;
-
-    const startDrag = (e) => {
-        isDragging = true;
-        hasMoved = false;
-        
-        startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-        startY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-        
-        const rect = dragTab.getBoundingClientRect();
-        initialLeft = rect.left;
-        initialTop = rect.top;
-        
-        // Force override styles using setProperty to bypass CSS conflicts
-        dragTab.style.setProperty('left', `${initialLeft}px`, 'important');
-        dragTab.style.setProperty('top', `${initialTop}px`, 'important');
-        dragTab.style.setProperty('right', 'auto', 'important');
-    };
-
-    const drag = (e) => {
-        if (!isDragging) return;
-        
-        const currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-        const currentY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-        
-        const dx = currentX - startX;
-        const dy = currentY - startY;
-        
-        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
-
-        dragTab.style.setProperty('left', `${initialLeft + dx}px`, 'important');
-        dragTab.style.setProperty('top', `${initialTop + dy}px`, 'important');
-    };
-
-    const stopDrag = () => {
-        isDragging = false;
-    };
-
-    // Prevent the modal from opening if the user was just dragging the button
-    dragTab.addEventListener('click', (e) => {
-        if (hasMoved) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-    });
-
-    // Mouse Events
-    dragTab.addEventListener('mousedown', startDrag);
-    window.addEventListener('mousemove', drag);
-    window.addEventListener('mouseup', stopDrag);
-
-    // Touch Events for Mobile
-    dragTab.addEventListener('touchstart', startDrag, { passive: false });
-    window.addEventListener('touchmove', drag, { passive: false });
-    window.addEventListener('touchend', stopDrag);
-});
-</script>
+  <script src="app.js?v=20260901-row-edit-restored-1659"></script>
 </body>
 </html>
