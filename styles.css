@@ -55,53 +55,14 @@ body.printing-report .report-signature-line{border-top-color:#000;color:#000}
 .report-page-size-field{display:inline-flex;align-items:center;gap:6px;color:#173f52;font-size:12px;font-weight:900}
 .report-page-size-field select{min-height:34px;padding:0 9px;border:2px solid #8ebbc0;border-radius:9px;outline:0;color:#102f3f;background:#fff;font-size:12px;font-weight:800}
 .report-page-size-field select:focus{border-color:#0c8ba0;box-shadow:0 0 0 3px rgba(12,139,160,.13)}
-/* Transform the existing small side button into a large vertical tab */
+/* --- 1. Free-Floating Vertical Tab --- */
 #stickySideTab {
     position: fixed !important;
-    right: 0 !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    width: auto !important;
-    height: auto !important;
-    min-height: 120px !important;
-    background-color: #8b5cf6 !important; /* Matches the purple in your screenshot */
-    color: white !important;
-    padding: 15px 6px !important;
-    border-radius: 8px 0 0 8px !important; /* Flat on the right, rounded on the left */
-    writing-mode: vertical-rl !important;
-    text-orientation: mixed !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 8px !important;
-    border: none !important;
-    box-shadow: -2px 0 8px rgba(0,0,0,0.15) !important;
-    cursor: pointer !important;
-    z-index: 9999 !important;
-    font-size: 14px !important;
-    letter-spacing: 0.5px !important;
-}
-
-/* Keeps the pin icon and counter badge looking neat sideways */
-#stickySideTab span, 
-#stickySideTab b {
-    writing-mode: horizontal-tb !important;
-    transform: rotate(90deg) !important;
-}
-
-#stickySideTab b {
-    background: rgba(255,255,255,0.2) !important;
-    padding: 2px 6px !important;
-    border-radius: 12px !important;
-}
-/* --- 1. Free-Floating Button --- */
-#stickySideTab {
-    position: fixed !important;
-    top: 20% !important; /* Default starting position */
-    right: 0px !important; 
-    left: auto; /* Cleared for JS control */
-    transform: none !important; /* Removed the Y-axis lock */
-    background-color: #6366f1 !important; 
+    top: 20% !important;
+    right: 0px; /* Removed !important so JS can override it when dragging */
+    width: max-content !important; /* STRICT LOCK: Prevents horizontal stretching */
+    height: max-content !important;
+    background-color: #8b5cf6 !important; 
     color: white !important;
     padding: 15px 5px !important;
     border-radius: 8px 0 0 8px !important;
@@ -111,16 +72,27 @@ body.printing-report .report-signature-line{border-top-color:#000;color:#000}
     z-index: 9999 !important;
     border: none !important;
     box-shadow: -2px 2px 10px rgba(0,0,0,0.2) !important;
-    touch-action: none; /* Prevents screen scrolling while dragging on mobile */
+    touch-action: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
 }
 
 #stickySideTab:active {
     cursor: grabbing !important;
 }
 
+/* Keeps the pin icon and counter badge looking neat sideways */
 #stickySideTab span, #stickySideTab b {
     writing-mode: horizontal-tb !important;
     transform: rotate(90deg) !important;
+}
+
+#stickySideTab b {
+    background: rgba(255,255,255,0.2) !important;
+    padding: 2px 6px !important;
+    border-radius: 12px !important;
 }
 
 /* --- 2. SarNi-Style Right Slide-out Panel --- */
@@ -136,11 +108,6 @@ body.printing-report .report-signature-line{border-top-color:#000;color:#000}
     width: 400px !important; /* Adjust width to match SarNi */
     border-radius: 12px 0 0 12px !important;
     animation: slideInRight 0.3s ease-out forwards !important;
-}
-
-/* Optional backdrop styling if your modal uses ::backdrop */
-#stickyNotesDialog::backdrop {
-    background: rgba(0, 0, 0, 0.4) !important;
 }
 
 @keyframes slideInRight {
