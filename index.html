@@ -549,8 +549,8 @@
         </form>
         <section class="diary-browser">
           <div class="diary-view-tabs" role="tablist"><button type="button" data-diary-view="recent" class="active">Recent</button><button type="button" data-diary-view="daily">Daily</button><button type="button" data-diary-view="monthly">Monthly</button><button type="button" data-diary-view="learning">💡 Learnings</button></div>
-          <div class="diary-search-row"><label class="diary-search"><span>⌕</span><input id="diarySearch" type="search" placeholder="Search title, details, tags, employee…"></label><select id="diaryMonthFilter" aria-label="Filter diary by month"><option value="">All months</option></select><select id="diaryCategoryFilter" aria-label="Filter diary by category"><option value="">All categories</option></select><select id="diarySourceFilter" aria-label="Filter diary by source"><option value="">All sources</option></select><label class="diary-limit-label">Show <select id="diaryRecentLimit"><option>5</option><option>10</option><option>20</option></select></label><button id="clearDiaryFiltersButton" class="soft-btn" type="button">Clear</button></div>
-          <div class="diary-browser-summary"><strong id="diaryResultSummary">Latest entries</strong><span id="diaryLearningCount">0 learnings</span></div>
+          <div class="diary-search-row"><label class="diary-search"><span>⌕</span><input id="diarySearch" type="search" placeholder="Search title, details, tags, employee…"></label><select id="diaryMonthFilter" aria-label="Filter diary by month"><option value="">All months</option></select><select id="diaryYearFilter" aria-label="Filter diary by year"><option value="">All years</option></select><select id="diaryCategoryFilter" aria-label="Filter diary by category"><option value="">All categories</option></select><select id="diarySourceFilter" aria-label="Filter diary by source"><option value="">All sources</option></select><label class="diary-limit-label">Show <select id="diaryRecentLimit"><option>5</option><option>10</option><option>20</option></select></label><button id="clearDiaryFiltersButton" class="soft-btn" type="button">Clear</button></div>
+          <div class="diary-browser-summary"><strong id="diaryResultSummary">Latest entries</strong><span id="diaryLearningCount">0 learnings</span><button id="printDiaryButton" class="soft-btn diary-print-btn" type="button">🖨 Print this list</button></div>
           <div id="diaryEntryList" class="diary-entry-list"></div>
           <p id="diaryEmptyState" class="sticky-empty">No diary entries match this view.</p>
         </section>
@@ -558,6 +558,24 @@
       <footer class="modal-footer"><span>Completed targets and reminders are saved here automatically.</span><button class="soft-btn" type="button" data-close-dialog="workDiaryDialog">Close</button></footer>
     </div>
   </dialog>
+
+  <div id="diaryPrintArea" class="diary-print-area" hidden>
+    <header class="diary-print-heading"><p>O/o ADG(B), CPWD, Bengaluru</p><h2 id="diaryPrintTitle">Work Diary</h2><p id="diaryPrintMeta"></p></header>
+    <div id="diaryPrintList"></div>
+  </div>
+
+  <div id="quickDiaryPanel" class="quick-diary-panel" hidden>
+    <button id="quickDiaryToggle" class="quick-diary-toggle" type="button" aria-expanded="false"><span aria-hidden="true">📔</span><strong>Quick Diary</strong><b id="quickDiaryCount">0</b></button>
+    <div id="quickDiaryBody" class="quick-diary-body" hidden>
+      <div class="quick-diary-header"><span>📔 Quick Diary</span><button id="quickDiaryCollapse" type="button" aria-label="Collapse Quick Diary">−</button></div>
+      <form id="quickDiaryForm" class="quick-diary-form"><input id="quickDiaryInput" type="text" maxlength="200" placeholder="Type a quick note and press Enter…" required><button type="submit">Add</button></form>
+      <p id="quickDiaryError" class="form-error" role="alert"></p>
+      <div class="quick-diary-list-label">Last 10 entries</div>
+      <div id="quickDiaryList" class="quick-diary-list"></div>
+      <p id="quickDiaryEmpty" class="sticky-empty">No diary entries yet.</p>
+      <button id="quickDiaryViewAll" class="soft-btn" type="button">Open full Work Diary →</button>
+    </div>
+  </div>
 
   <dialog id="fileRegisterDialog" class="modal file-register-modal">
     <div class="file-register-sheet"><header class="modal-header file-register-header"><div><p class="eyebrow accent">Office file index</p><h2>📁 File Register</h2><p>Add, edit, delete and instantly search File Numbers and subjects.</p></div><button class="modal-close" type="button" data-close-dialog="fileRegisterDialog" aria-label="Close File Register">×</button></header>
@@ -576,7 +594,7 @@
           <div class="security-setting-icon" aria-hidden="true">⏱</div>
           <div><span>Current automatic sign-out</span><strong id="currentSessionTimeout">30 minutes</strong><small>Applies to administrators and view-only users.</small></div>
         </section>
-        <label class="security-timeout-field"><span>Sign out after inactivity</span><select id="sessionTimeoutMinutes" required><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30" selected>30 minutes</option></select><small>A warning appears one minute before sign-out. Clicking, typing, scrolling or touching resets the timer.</small></label>
+        <label class="security-timeout-field"><span>Sign out after inactivity</span><select id="sessionTimeoutMinutes" required><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30" selected>30 minutes</option><option value="60">1 hour</option><option value="120">2 hours</option></select><small>A warning appears one minute before sign-out. Clicking, typing, scrolling or touching resets the timer.</small></label>
         <div class="security-behaviour-note"><strong>Closing protection remains active</strong><span>Leaving or closing this dashboard ends the session. Reopening always requires login.</span></div>
         <label class="security-timeout-field"><span>File Register Google Sheet link</span><input id="fileRegisterSpreadsheetUrl" type="url" placeholder="Paste Google Sheet link; leave blank to use HR spreadsheet"><small>The Apps Script owner must have Editor access. A tab named File Register is created automatically.</small></label>
       </div>
