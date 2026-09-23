@@ -123,7 +123,14 @@
     <main class="page-shell">
       <section class="data-panel">
         <div class="panel-heading">
-          <div><h2>Employee directory <span class="feature-version">v1.6.59 · Resizable wrapped columns</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+          <div class="panel-heading-top">
+            <div><h2>Employee directory <span class="feature-version">v1.6.59 · Resizable wrapped columns</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
+            <div id="quickAccessInline" class="quick-access-inline" hidden>
+              <button id="stickyNotesButton" class="quick-access-btn sticky-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📌</span><em>Target / Reminder</em><b id="stickyActiveCount">0</b></button>
+              <button id="workDiaryButton" class="quick-access-btn diary-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📔</span><em>Work Diary</em><b id="workDiaryCount">0</b></button>
+              <button id="fileRegisterButton" class="quick-access-btn file-register-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📁</span><em>File Register</em><b id="fileRegisterCount">0</b></button>
+            </div>
+          </div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
             <input id="replaceCsvFileInput" type="file" accept=".csv,text/csv" hidden>
@@ -533,12 +540,16 @@
           <input id="diaryEntryId" type="hidden">
           <div class="diary-form-title"><strong id="diaryFormHeading">New diary entry</strong><div class="form-heading-actions"><button id="cancelDiaryEditButton" type="button" class="soft-btn" hidden>Cancel edit</button><button class="primary-btn quick-form-save" type="submit">Save</button></div></div>
           <label><span>Date</span><input id="diaryEntryDate" type="date" required></label>
-          <label class="diary-title-field"><span>Title *</span><input id="diaryEntryTitle" maxlength="140" required placeholder="Short, clear heading"></label>
-          <label class="diary-details-field"><span>Details *</span><textarea id="diaryEntryDetails" maxlength="10000" rows="5" required placeholder="Write any number of lines…"></textarea></label>
-          <label><span>Category</span><select id="diaryEntryCategory"><option>Work</option><option>Meeting</option><option>Follow-up</option><option>Decision</option><option>Personal note</option><option>Learning</option></select></label>
-          <label><span>Tags</span><input id="diaryEntryTags" maxlength="300" placeholder="RTI, Training, Administration"></label>
-          <label><span>Related employee</span><input id="diaryEntryEmployee" maxlength="160" list="diaryEmployeeSuggestions" placeholder="Optional"><datalist id="diaryEmployeeSuggestions"></datalist></label>
-          <label><span>Link</span><input id="diaryEntryLink" type="url" maxlength="1000" placeholder="Optional document or webpage link"></label>
+          <label class="diary-title-field"><span>Title * <b id="diaryTitleCounter" class="field-counter">0/140</b></span><input id="diaryEntryTitle" maxlength="140" required placeholder="Short, clear heading" autocomplete="off"></label>
+          <label class="diary-details-field"><span>Details *</span><textarea id="diaryEntryDetails" maxlength="10000" rows="4" required placeholder="Write any number of lines… (Ctrl+Enter to save)"></textarea></label>
+          <div class="diary-field-row">
+            <label><span>Category</span><select id="diaryEntryCategory"><option>Work</option><option>Meeting</option><option>Follow-up</option><option>Decision</option><option>Personal note</option><option>Learning</option></select></label>
+            <label><span>Tags</span><input id="diaryEntryTags" maxlength="300" placeholder="RTI, Training, Administration"></label>
+          </div>
+          <div class="diary-field-row">
+            <label><span>Related employee</span><input id="diaryEntryEmployee" maxlength="160" list="diaryEmployeeSuggestions" placeholder="Optional"><datalist id="diaryEmployeeSuggestions"></datalist></label>
+            <label><span>Link</span><input id="diaryEntryLink" type="url" maxlength="1000" placeholder="Optional link"></label>
+          </div>
           <label><span>Visibility</span><select id="diaryEntryVisibility"><option>Private</option><option>Administrators</option><option>All signed-in users</option></select></label>
           <div class="diary-marker-options"><label><input id="diaryEntryLearning" type="checkbox"> <span>💡 Mark as Learning</span></label><label><input id="diaryEntryImportant" type="checkbox"> <span>★ Mark Important</span></label></div>
           <p id="diaryEntryError" class="form-error" role="alert"></p>
@@ -546,7 +557,7 @@
         </form>
         <section class="diary-browser">
           <div class="diary-view-tabs" role="tablist"><button type="button" data-diary-view="recent" class="active">Recent</button><button type="button" data-diary-view="daily">Daily</button><button type="button" data-diary-view="monthly">Monthly</button><button type="button" data-diary-view="learning">💡 Learnings</button></div>
-          <div class="diary-search-row"><label class="diary-search"><span>⌕</span><input id="diarySearch" type="search" placeholder="Search title, details, tags, employee…"></label><select id="diaryMonthFilter" aria-label="Filter diary by month"><option value="">All months</option></select><select id="diaryYearFilter" aria-label="Filter diary by year"><option value="">All years</option></select><select id="diaryCategoryFilter" aria-label="Filter diary by category"><option value="">All categories</option></select><select id="diarySourceFilter" aria-label="Filter diary by source"><option value="">All sources</option></select><label class="diary-limit-label">Show <select id="diaryRecentLimit"><option>5</option><option>10</option><option>20</option></select></label><button id="clearDiaryFiltersButton" class="soft-btn" type="button">Clear</button></div>
+          <div class="diary-search-row"><label class="diary-search"><span>⌕</span><input id="diarySearch" type="search" placeholder="Search title, details, tags, employee…"><button id="diarySearchClear" type="button" class="diary-search-clear" hidden aria-label="Clear search">×</button></label><select id="diaryMonthFilter" aria-label="Filter diary by month"><option value="">All months</option></select><select id="diaryYearFilter" aria-label="Filter diary by year"><option value="">All years</option></select><select id="diaryCategoryFilter" aria-label="Filter diary by category"><option value="">All categories</option></select><select id="diarySourceFilter" aria-label="Filter diary by source"><option value="">All sources</option></select><label class="diary-limit-label">Show <select id="diaryRecentLimit"><option>5</option><option>10</option><option>20</option></select></label><button id="clearDiaryFiltersButton" class="soft-btn" type="button">Clear</button></div>
           <div class="diary-browser-summary"><strong id="diaryResultSummary">Latest entries</strong><span id="diaryLearningCount">0 learnings</span><button id="printDiaryButton" class="soft-btn diary-print-btn" type="button">🖨 Print this list</button></div>
           <div id="diaryEntryList" class="diary-entry-list"></div>
           <p id="diaryEmptyState" class="sticky-empty">No diary entries match this view.</p>
@@ -555,12 +566,6 @@
       <footer class="modal-footer"><span>Completed targets and reminders are saved here automatically.</span><button class="soft-btn" type="button" data-close-dialog="workDiaryDialog">Close</button></footer>
     </div>
   </dialog>
-
-  <nav id="leftActionPanel" class="left-action-panel" aria-label="Quick access" hidden>
-    <button id="stickyNotesButton" class="left-panel-btn sticky-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📌</span><em>Target / Reminder</em><b id="stickyActiveCount">0</b></button>
-    <button id="workDiaryButton" class="left-panel-btn diary-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📔</span><em>Work Diary</em><b id="workDiaryCount">0</b></button>
-    <button id="fileRegisterButton" class="left-panel-btn file-register-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📁</span><em>File Register</em><b id="fileRegisterCount">0</b></button>
-  </nav>
 
   <div id="diaryPrintArea" class="diary-print-area" hidden>
     <header class="diary-print-heading"><p>O/o ADG(B), CPWD, Bengaluru</p><h2 id="diaryPrintTitle">Work Diary</h2><p id="diaryPrintMeta"></p></header>
