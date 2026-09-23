@@ -55,26 +55,18 @@ body.printing-report .report-signature-line{border-top-color:#000;color:#000}
 .report-page-size-field{display:inline-flex;align-items:center;gap:6px;color:#173f52;font-size:12px;font-weight:900}
 .report-page-size-field select{min-height:34px;padding:0 9px;border:2px solid #8ebbc0;border-radius:9px;outline:0;color:#102f3f;background:#fff;font-size:12px;font-weight:800}
 .report-page-size-field select:focus{border-color:#0c8ba0;box-shadow:0 0 0 3px rgba(12,139,160,.13)}
-/* v1.6.77 — Quick Diary left-docked panel + diary printing + year filter */
-.quick-diary-panel{position:fixed;z-index:140;left:0;top:50%;transform:translateY(-50%)}
-.quick-diary-toggle{display:grid;grid-template-columns:auto auto;align-items:center;gap:1px 3px;padding:6px 5px 6px 4px;border:1px solid #7fd9c4;border-left:0;border-radius:0 8px 8px 0;color:#fff;background:linear-gradient(150deg,#0f766e,#14b892 58%,#0369a1);box-shadow:0 8px 18px rgba(6,95,70,.24);writing-mode:vertical-rl;font-size:7.5px;font-weight:950;letter-spacing:.01em;cursor:pointer}
-.quick-diary-toggle span{font-size:9px}
-.quick-diary-toggle b{display:grid;place-items:center;min-width:13px;min-height:13px;padding:0 1px;border-radius:999px;color:#0f766e;background:#fff;font-size:8px;writing-mode:horizontal-tb;transform:rotate(180deg)}
-.quick-diary-body{position:fixed;left:0;top:50%;transform:translateY(-50%);width:min(290px,calc(100vw - 24px));max-height:min(72vh,560px);display:flex;flex-direction:column;overflow:hidden;border:1px solid #7fd9c4;border-left:0;border-radius:0 16px 16px 0;background:#f4fffb;box-shadow:0 18px 40px rgba(6,95,70,.22)}
-.quick-diary-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;color:#fff;background:linear-gradient(120deg,#0f766e,#14b892);font-size:12px;font-weight:950}
-.quick-diary-header button{width:24px;height:24px;border:0;border-radius:8px;color:#0f766e;background:#fff;font-size:15px;font-weight:900;cursor:pointer;line-height:1}
-.quick-diary-form{display:flex;gap:6px;padding:10px 12px 6px}
-.quick-diary-form input{flex:1;min-width:0;min-height:34px;padding:0 10px;border:1px solid #a7e6d4;border-radius:9px;font-size:12px}
-.quick-diary-form button{padding:0 12px;border:0;border-radius:9px;color:#fff;background:#0f766e;font-size:12px;font-weight:900;cursor:pointer}
-.quick-diary-list-label{margin:4px 12px 2px;color:#0f766e;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.03em}
-.quick-diary-list{flex:1;min-height:0;overflow:auto;padding:0 8px 8px;display:grid;gap:4px}
-.quick-diary-item{display:flex;flex-direction:column;gap:1px;padding:7px 9px;border:1px solid #d7f3ea;border-radius:9px;background:#fff;text-align:left;cursor:pointer}
-.quick-diary-item:hover{border-color:#7fd9c4;background:#f0fffa}
-.quick-diary-item-date{color:#0f766e;font-size:9px;font-weight:900}
-.quick-diary-item-title{overflow:hidden;color:#173f52;font-size:11.5px;font-weight:800;text-overflow:ellipsis;white-space:nowrap}
-.quick-diary-panel #quickDiaryEmpty{margin:0 12px 8px;font-size:11px}
-#quickDiaryViewAll{margin:0 12px 12px}
-@media (max-width:620px){.quick-diary-body{max-height:66vh}}
+/* v1.6.79 — Left action panel (Target/Reminder, Work Diary, File Register) */
+.left-action-panel{position:fixed;z-index:120;left:0;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:1px;border:1px solid #bcd8de;border-left:0;border-radius:0 14px 14px 0;background:#fff;box-shadow:0 12px 28px rgba(15,60,75,.16);overflow:hidden}
+.left-panel-btn{display:flex;align-items:center;gap:9px;min-width:150px;padding:11px 14px 11px 11px;border:0;border-left:3px solid transparent;border-bottom:1px solid #eaf2f4;color:#173f52;background:#fff;font-size:12px;font-weight:900;text-align:left;cursor:pointer}
+.left-panel-btn.sticky-launch-btn{border-left-color:#7c3aed}
+.left-panel-btn.diary-launch-btn{border-left-color:#0f766e}
+.left-panel-btn.file-register-launch-btn{border-left-color:#1d4ed8}
+.left-action-panel .left-panel-btn:last-child{border-bottom:0}
+.left-panel-btn:hover{background:#f0f9fb}
+.left-panel-btn span{font-size:16px}
+.left-panel-btn em{flex:1;min-width:0;font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.left-panel-btn b{display:grid;place-items:center;min-width:19px;height:19px;padding:0 4px;border-radius:999px;color:#fff;background:#0f766e;font-size:10px;font-weight:950}
+@media (max-width:900px){.left-action-panel{top:auto;bottom:14px;transform:none;flex-direction:row;border-left:1px solid #bcd8de;border-top:0;border-radius:0 14px 14px 0}.left-panel-btn{min-width:0;flex-direction:column;gap:3px;padding:10px 10px 8px;text-align:center;border-bottom:0;border-left:0;border-top:3px solid transparent;border-right:1px solid #eaf2f4}.left-panel-btn.sticky-launch-btn{border-top-color:#7c3aed}.left-panel-btn.diary-launch-btn{border-top-color:#0f766e}.left-panel-btn.file-register-launch-btn{border-top-color:#1d4ed8}.left-action-panel .left-panel-btn:last-child{border-right:0}.left-panel-btn em{font-size:9.5px;white-space:normal;line-height:1.15}}
 .diary-print-area{display:none}
 @media print{
 body.printing-diary{color:#000;background:#fff}

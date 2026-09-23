@@ -85,9 +85,6 @@
             <button id="backupButton" class="soft-btn admin-only" type="button">Create backup</button>
             <button id="administrationButton" class="soft-btn admin-only admin-settings-btn" type="button" title="Administration and security settings" aria-label="Open Administration and security settings"><span aria-hidden="true">⚙</span><span class="admin-settings-label">Administration</span></button>
             <button id="addEmployeeButton" class="primary-btn admin-only" type="button"><span aria-hidden="true">＋</span> Add employee</button>
-            <button id="stickyNotesButton" class="soft-btn sticky-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📌</span> Target / Reminder <b id="stickyActiveCount">0</b></button>
-            <button id="workDiaryButton" class="soft-btn diary-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📔</span> Work Diary</button>
-            <button id="fileRegisterButton" class="soft-btn file-register-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📁</span> File Register</button>
           </div>
           <span id="lastUpdated" class="last-updated">Not yet refreshed</span>
           <div class="version-pair dashboard-version-pair" aria-label="Application versions">
@@ -559,22 +556,15 @@
     </div>
   </dialog>
 
+  <nav id="leftActionPanel" class="left-action-panel" aria-label="Quick access" hidden>
+    <button id="stickyNotesButton" class="left-panel-btn sticky-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📌</span><em>Target / Reminder</em><b id="stickyActiveCount">0</b></button>
+    <button id="workDiaryButton" class="left-panel-btn diary-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📔</span><em>Work Diary</em><b id="workDiaryCount">0</b></button>
+    <button id="fileRegisterButton" class="left-panel-btn file-register-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📁</span><em>File Register</em><b id="fileRegisterCount">0</b></button>
+  </nav>
+
   <div id="diaryPrintArea" class="diary-print-area" hidden>
     <header class="diary-print-heading"><p>O/o ADG(B), CPWD, Bengaluru</p><h2 id="diaryPrintTitle">Work Diary</h2><p id="diaryPrintMeta"></p></header>
     <div id="diaryPrintList"></div>
-  </div>
-
-  <div id="quickDiaryPanel" class="quick-diary-panel" hidden>
-    <button id="quickDiaryToggle" class="quick-diary-toggle" type="button" aria-expanded="false"><span aria-hidden="true">📔</span><strong>Quick Diary</strong><b id="quickDiaryCount">0</b></button>
-    <div id="quickDiaryBody" class="quick-diary-body" hidden>
-      <div class="quick-diary-header"><span>📔 Quick Diary</span><button id="quickDiaryCollapse" type="button" aria-label="Collapse Quick Diary">−</button></div>
-      <form id="quickDiaryForm" class="quick-diary-form"><input id="quickDiaryInput" type="text" maxlength="200" placeholder="Type a quick note and press Enter…" required><button type="submit">Add</button></form>
-      <p id="quickDiaryError" class="form-error" role="alert"></p>
-      <div class="quick-diary-list-label">Last 10 entries</div>
-      <div id="quickDiaryList" class="quick-diary-list"></div>
-      <p id="quickDiaryEmpty" class="sticky-empty">No diary entries yet.</p>
-      <button id="quickDiaryViewAll" class="soft-btn" type="button">Open full Work Diary →</button>
-    </div>
   </div>
 
   <dialog id="fileRegisterDialog" class="modal file-register-modal">
