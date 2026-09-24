@@ -2,7 +2,7 @@
 const CONFIG = Object.freeze({
     API_URL: "https://script.google.com/macros/s/AKfycbyc13F44x6wvxRVxO3zWo6JVaom2kS-AzrGZopnF7fXb1-l55hZuPyXbY7hA-sum25G/exec",
     CHANNEL: "ADG_HR_API_V1",
-    FRONTEND_VERSION: "1.6.86",
+    FRONTEND_VERSION: "1.6.87",
     REQUIRED_BACKEND_VERSION: "1.6.4",
     REQUEST_TIMEOUT_MS: 45e3
   }),
@@ -134,7 +134,6 @@ const CONFIG = Object.freeze({
     savedManualOrders: readSavedManualOrders(),
     namedFilterViews: [],
     filterViewsLoadTimer: 0,
-    quickDiaryInlineConfirmTimer: 0,
     leftPanelCountsLoadTimer: 0,
     activeFilterViewId: "",
     activeFilterViewName: "",
@@ -195,7 +194,7 @@ const CONFIG = Object.freeze({
   refs = {};
 
 function init() {
-  ["loginView", "dashboardView", "loginForm", "username", "password", "togglePassword", "rememberUsername", "loginButton", "loginError", "loginFrontendVersion", "loginBackendVersion", "dashboardFrontendVersion", "dashboardBackendVersion", "logoutButton", "refreshButton", "lastUpdated", "displayName", "roleLabel", "userInitial", "statCardGrid", "customizeStatsButton", "statCardDialog", "statCardPickerSummary", "statCardOptions", "resetStatCardsButton", "resultSummary", "globalSearch", "groupFilter", "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTableWrap", "employeeTable", "tableHead", "tableBody", "emptyState", "tableScrollUp", "tableScrollDown", "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "resetColumnWidthsButton", "chooseFiltersButton", "savedViewsButton", "saveOrderButton", "resetOrderButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton", "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterPicker", "fieldFilterPickerSummary", "fieldFilterOptions", "applyFieldFilter", "clearFieldFilter", "dataLoadStatus", "dataLoadStatusTitle", "dataLoadStatusMessage", "retryEmployeeLoadButton", "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm", "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton", "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks", "fieldDoB", "fieldDoR", "fieldCategory", "fieldDoJGovt", "fieldDoJOfficeLabel", "fieldDoJOffice", "fieldAddress", "fieldPostSensitivity", "fieldStrengthStatus", "fieldRelievingDate", "relievingDateHint", "fieldMobile", "fieldEmail", "fieldAge", "customEmployeeFields", "pendingWorkArchiveToolbar", "pendingWorkArchiveToolbarNote", "pendingWorkArchiveButton", "pendingWorkArchiveSection", "pendingWorkArchiveSummary", "pendingWorkArchiveNote", "pendingWorkItemList", "moveCompletedWorkButton", "completedWorkHistoryDetails", "completedWorkHistoryCount", "completedWorkHistoryList", "inlineWorkDialog", "inlineWorkEmployeeName", "inlineWorkNote", "inlineWorkItemList", "inlineWorkHistoryCount", "inlineWorkHistoryList", "inlineWorkError", "inlineMoveWorkButton", "loadingOverlay", "loadingText", "toastRegion", "employeeDetailsDialog", "detailsAvatar", "detailsEmployeeName", "detailsEmployeeSubtitle", "detailsStrengthStatus", "detailsPostSensitivity", "employeeDetailsContent", "detailsEditButton", "reportsButton", "reportDialog", "reportForm", "reportType", "reportReferenceField", "reportReferenceDate", "reportAgeMinField", "reportAgeMin", "reportAgeMaxField", "reportAgeMax", "reportFromField", "reportFromDate", "reportToField", "reportToDate", "reportValueField", "reportValueLabel", "reportValue", "reportTextField", "reportTextValue", "reportResetButton", "reportTitle", "reportCriteria", "reportCount", "reportGeneratedAt", "reportTableWrap", "reportTable", "reportTableHead", "reportTableBody", "reportEmptyState", "reportEmptyTitle", "reportEmptyHint", "reportFooterSummary", "reportExportButton", "reportPrintButton", "reportPrintColumnsField", "reportPrintColumnsPicker", "reportPrintColumnsSummary", "reportPrintColumnsOptions", "reportPrintColumnsSelectAll", "reportPrintColumnsDeselectAll", "reportPrintColumnsReset", "resetReportColumnWidthsButton", "reportHeaderNote", "reportFooterNote", "reportFooterSignatures", "reportFooterRepeat", "reportHeaderNoteDisplay", "reportPrintFooter", "reportFooterNoteDisplay", "reportSignatureBlock", "reportOrientationLandscape", "reportOrientationPortrait", "reportPageSize", "reportAlignmentField", "reportColumnAlignment", "reportShowHeading", "reportPrintHeading", "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword", "confirmPassword", "passwordFormError", "administrationButton", "administrationDialog", "securitySettingsForm", "sessionTimeoutMinutes", "currentSessionTimeout", "securitySettingsError", "saveSecuritySettingsButton", "loginSessionSecurityNote", "sessionWarningDialog", "sessionWarningCountdown", "sessionWarningMessage", "staySignedInButton", "warningSignOutButton", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton", "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewSortColumn", "filterViewSortDirection", "filterScrollUp", "filterScrollDown", "savedFilterViewsPanel", "savedFilterViewCount", "savedFilterViewList", "savedFilterViewEmpty", "savedFilterViewName", "saveNamedFilterViewButton", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm", "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError", "stickyNotesButton", "stickyActiveCount", "stickyNotesDialog", "stickyNoteForm", "stickyNoteType", "stickyNoteTitle", "stickyNoteDueDate", "stickyNoteDetails", "saveStickyNoteButton", "cancelStickyEditButton", "stickyNoteError", "stickyActiveSummary", "stickyActiveList", "stickyActiveEmpty", "stickyCompletedCount", "stickyCompletedList", "stickyCompletedEmpty", "stickySideTab", "stickySideCount", "stickyFocusNote", "stickyFocusDragHandle", "stickyFocusToggle", "stickyFocusType", "stickyFocusTitle", "stickyFocusChevron", "stickyFocusBody", "stickyFocusDetails", "stickyFocusDue", "stickyFocusSizeDown", "stickyFocusSizeLabel", "stickyFocusSizeUp", "stickyFocusEdit", "stickyFocusComplete", "stickyFocusResetLayout", "stickyFocusManage", "stickyFocusUnpin", "stickyFocusResizeGrip", "workDiaryButton", "workDiaryDialog", "diaryEntryForm", "diaryEntryId", "diaryEntryDate", "diaryEntryTitle", "diaryEntryDetails", "diaryEntryCategory", "diaryEntryTags", "diaryEntryEmployee", "diaryEmployeeSuggestions", "diaryEntryLink", "diaryEntryVisibility", "diaryEntryLearning", "diaryEntryImportant", "diaryEntryError", "saveDiaryEntryButton", "cancelDiaryEditButton", "diaryFormHeading", "diarySearch", "diarySearchClear", "diaryMonthFilter", "diaryYearFilter", "diaryCategoryFilter", "diarySourceFilter", "diaryRecentLimit", "clearDiaryFiltersButton", "printDiaryButton", "diaryPrintArea", "diaryPrintTitle", "diaryPrintMeta", "diaryPrintList", "diaryResultSummary", "diaryLearningCount", "diaryEntryList", "diaryEmptyState", "diaryTitleCounter", "quickDiaryButton", "quickDiaryInlineLimit", "quickDiaryInlineRecentList", "quickDiaryInlineRecentEmpty", "diaryCalendarWrap", "diaryCalPrevMonth", "diaryCalNextMonth", "diaryCalMonthLabel", "diaryCalendarGrid", "diaryCalendarDayEntries", "diaryOnThisDay", "diaryOnThisDayList", "quickDiaryInline", "quickDiaryInlineForm", "quickDiaryInlineInput", "quickDiaryInlineExpandBtn", "quickDiaryInlineOpenFull", "quickDiaryInlineExtra", "quickDiaryInlineDate", "quickDiaryInlineCategory", "quickDiaryInlineTags", "quickDiaryInlineEmployee", "quickDiaryInlineLearning", "quickDiaryInlineImportant", "quickDiaryInlineError", "quickDiaryInlineConfirm", "dashboardSidebar", "sidebarToggle", "sidebarBackdrop", "sidebarHomeButton", "workDiaryCount", "fileRegisterCount", "fileRegisterButton", "fileRegisterDialog", "fileRecordForm", "fileRecordId", "fileRecordFormHeading", "fileRecordNo", "fileRecordSubject", "fileRecordCategory", "fileRecordSection", "fileRecordStatus", "fileRecordRemarks", "fileRecordLink", "fileRecordError", "saveFileRecordButton", "cancelFileRecordEditButton", "fileRecordSearch", "fileRecordStatusFilter", "clearFileRecordSearchButton", "fileRecordSummary", "fileRecordList", "fileRecordEmpty", "fileRegisterStorageNote", "fileRegisterSpreadsheetUrl"].forEach(e => {
+  ["loginView", "dashboardView", "loginForm", "username", "password", "togglePassword", "rememberUsername", "loginButton", "loginError", "loginFrontendVersion", "loginBackendVersion", "dashboardFrontendVersion", "dashboardBackendVersion", "logoutButton", "refreshButton", "lastUpdated", "displayName", "roleLabel", "userInitial", "statCardGrid", "customizeStatsButton", "statCardDialog", "statCardPickerSummary", "statCardOptions", "resetStatCardsButton", "resultSummary", "globalSearch", "groupFilter", "categoryFilter", "statusFilter", "sensitivityFilter", "clearFilters", "employeeTableWrap", "employeeTable", "tableHead", "tableBody", "emptyState", "tableScrollUp", "tableScrollDown", "pageInfo", "exportButton", "importButton", "replaceAllButton", "printFilteredButton", "chooseColumnsButton", "resetColumnWidthsButton", "chooseFiltersButton", "savedViewsButton", "saveOrderButton", "resetOrderButton", "directEditToggle", "editHeadersButton", "saveHeadersButton", "resetHeadersButton", "fieldFilterEditBar", "fieldFilterSummary", "fieldFilterPicker", "fieldFilterPickerSummary", "fieldFilterOptions", "applyFieldFilter", "clearFieldFilter", "dataLoadStatus", "dataLoadStatusTitle", "dataLoadStatusMessage", "retryEmployeeLoadButton", "csvFileInput", "replaceCsvFileInput", "backupButton", "addEmployeeButton", "manageColumnsButton", "employeeDialog", "employeeForm", "employeeDialogTitle", "originalEmployeeCode", "employeeFormError", "saveEmployeeButton", "fieldEmployeeName", "fieldEmployeeCode", "fieldDesignation", "fieldGroup", "fieldRemarks", "fieldDoB", "fieldDoR", "fieldCategory", "fieldDoJGovt", "fieldDoJOfficeLabel", "fieldDoJOffice", "fieldAddress", "fieldPostSensitivity", "fieldStrengthStatus", "fieldRelievingDate", "relievingDateHint", "fieldMobile", "fieldEmail", "fieldAge", "customEmployeeFields", "pendingWorkArchiveToolbar", "pendingWorkArchiveToolbarNote", "pendingWorkArchiveButton", "pendingWorkArchiveSection", "pendingWorkArchiveSummary", "pendingWorkArchiveNote", "pendingWorkItemList", "moveCompletedWorkButton", "completedWorkHistoryDetails", "completedWorkHistoryCount", "completedWorkHistoryList", "inlineWorkDialog", "inlineWorkEmployeeName", "inlineWorkNote", "inlineWorkItemList", "inlineWorkHistoryCount", "inlineWorkHistoryList", "inlineWorkError", "inlineMoveWorkButton", "loadingOverlay", "loadingText", "toastRegion", "employeeDetailsDialog", "detailsAvatar", "detailsEmployeeName", "detailsEmployeeSubtitle", "detailsStrengthStatus", "detailsPostSensitivity", "employeeDetailsContent", "detailsEditButton", "reportsButton", "reportDialog", "reportForm", "reportType", "reportReferenceField", "reportReferenceDate", "reportAgeMinField", "reportAgeMin", "reportAgeMaxField", "reportAgeMax", "reportFromField", "reportFromDate", "reportToField", "reportToDate", "reportValueField", "reportValueLabel", "reportValue", "reportTextField", "reportTextValue", "reportResetButton", "reportTitle", "reportCriteria", "reportCount", "reportGeneratedAt", "reportTableWrap", "reportTable", "reportTableHead", "reportTableBody", "reportEmptyState", "reportEmptyTitle", "reportEmptyHint", "reportFooterSummary", "reportExportButton", "reportPrintButton", "reportPrintColumnsField", "reportPrintColumnsPicker", "reportPrintColumnsSummary", "reportPrintColumnsOptions", "reportPrintColumnsSelectAll", "reportPrintColumnsDeselectAll", "reportPrintColumnsReset", "resetReportColumnWidthsButton", "reportHeaderNote", "reportFooterNote", "reportFooterSignatures", "reportFooterRepeat", "reportHeaderNoteDisplay", "reportPrintFooter", "reportFooterNoteDisplay", "reportSignatureBlock", "reportOrientationLandscape", "reportOrientationPortrait", "reportPageSize", "reportAlignmentField", "reportColumnAlignment", "reportShowHeading", "reportPrintHeading", "changePasswordButton", "passwordDialog", "passwordForm", "currentPassword", "newPassword", "confirmPassword", "passwordFormError", "administrationButton", "administrationDialog", "securitySettingsForm", "sessionTimeoutMinutes", "currentSessionTimeout", "securitySettingsError", "saveSecuritySettingsButton", "loginSessionSecurityNote", "sessionWarningDialog", "sessionWarningCountdown", "sessionWarningMessage", "staySignedInButton", "warningSignOutButton", "columnViewDialog", "columnViewList", "columnViewCount", "applyColumnViewButton", "restoreAllColumnsButton", "filterViewDialog", "filterViewSummary", "filterViewSearch", "filterViewGroup", "filterViewCategory", "filterViewStatus", "filterViewSensitivity", "filterViewSortColumn", "filterViewSortDirection", "filterScrollUp", "filterScrollDown", "savedFilterViewsPanel", "savedFilterViewCount", "savedFilterViewList", "savedFilterViewEmpty", "savedFilterViewName", "saveNamedFilterViewButton", "columnFilterRuleList", "columnFilterRuleEmpty", "filterViewError", "addColumnFilterRuleButton", "applyFilterViewButton", "clearFilterViewButton", "columnManagerDialog", "columnManagerForm", "newColumnName", "customColumnList", "customColumnEmpty", "columnManagerError", "stickyNotesButton", "stickyActiveCount", "stickyNotesDialog", "stickyNoteForm", "stickyNoteType", "stickyNoteTitle", "stickyNoteDueDate", "stickyNoteDetails", "saveStickyNoteButton", "cancelStickyEditButton", "stickyNoteError", "stickyActiveSummary", "stickyActiveList", "stickyActiveEmpty", "stickyCompletedCount", "stickyCompletedList", "stickyCompletedEmpty", "stickySideTab", "stickySideCount", "stickyFocusNote", "stickyFocusDragHandle", "stickyFocusToggle", "stickyFocusType", "stickyFocusTitle", "stickyFocusChevron", "stickyFocusBody", "stickyFocusDetails", "stickyFocusDue", "stickyFocusSizeDown", "stickyFocusSizeLabel", "stickyFocusSizeUp", "stickyFocusEdit", "stickyFocusComplete", "stickyFocusResetLayout", "stickyFocusManage", "stickyFocusUnpin", "stickyFocusResizeGrip", "workDiaryButton", "workDiaryDialog", "diaryEntryForm", "diaryEntryId", "diaryEntryDate", "diaryEntryTitle", "diaryEntryDetails", "diaryEntryCategory", "diaryEntryTags", "diaryEntryEmployee", "diaryEmployeeSuggestions", "diaryEntryLink", "diaryEntryVisibility", "diaryEntryLearning", "diaryEntryImportant", "diaryEntryError", "saveDiaryEntryButton", "cancelDiaryEditButton", "diaryFormHeading", "diarySearch", "diarySearchClear", "diaryMonthFilter", "diaryYearFilter", "diaryCategoryFilter", "diarySourceFilter", "diaryRecentLimit", "clearDiaryFiltersButton", "printDiaryButton", "diaryPrintArea", "diaryPrintTitle", "diaryPrintMeta", "diaryPrintList", "diaryResultSummary", "diaryLearningCount", "diaryEntryList", "diaryEmptyState", "diaryTitleCounter", "diaryCalendarWrap", "diaryCalPrevMonth", "diaryCalNextMonth", "diaryCalMonthLabel", "diaryCalendarGrid", "diaryCalendarDayEntries", "dashboardSidebar", "sidebarToggle", "sidebarBackdrop", "sidebarHomeButton", "workDiaryCount", "fileRegisterCount", "sidebarQuickDiaryForm", "sidebarQuickDiaryInput", "sidebarQuickDiaryError", "sidebarQuickDiarySearch", "sidebarQuickDiaryPrint", "sidebarQuickDiaryList", "sidebarQuickDiaryEmpty", "sidebarQuickDiaryOpenFull", "fileRegisterButton", "fileRegisterDialog", "fileRecordForm", "fileRecordId", "fileRecordFormHeading", "fileRecordNo", "fileRecordSubject", "fileRecordCategory", "fileRecordSection", "fileRecordStatus", "fileRecordRemarks", "fileRecordLink", "fileRecordError", "saveFileRecordButton", "cancelFileRecordEditButton", "fileRecordSearch", "fileRecordStatusFilter", "clearFileRecordSearchButton", "fileRecordSummary", "fileRecordList", "fileRecordEmpty", "fileRegisterStorageNote", "fileRegisterSpreadsheetUrl"].forEach(e => {
     refs[e] = $(e)
   });
   initialiseSessionSecurity(repairStoredSession());
@@ -214,9 +213,7 @@ function init() {
     isMobileSidebarWidth() && closeMobileSidebar()
   })), window.addEventListener("resize", debounce(() => {
     isMobileSidebarWidth() || (refs.dashboardSidebar.classList.remove("mobile-open"), refs.sidebarBackdrop.hidden = !0, refs.sidebarToggle.setAttribute("aria-expanded", String(!refs.dashboardSidebar.classList.contains("collapsed"))))
-  }, 150)), refs.workDiaryButton.addEventListener("click", openWorkDiary), refs.quickDiaryButton.addEventListener("click", toggleQuickDiaryInline), refs.quickDiaryInlineForm.addEventListener("submit", saveQuickDiaryInlineEntry), refs.quickDiaryInlineExpandBtn.addEventListener("click", toggleQuickDiaryInlineExtra), refs.quickDiaryInlineLimit.addEventListener("change", renderQuickDiaryInlineRecent), refs.quickDiaryInlineRecentList.addEventListener("click", handleQuickDiaryInlineRecentClick), refs.quickDiaryInlineOpenFull.addEventListener("click", () => {
-    refs.quickDiaryInline.hidden = !0, openWorkDiary()
-  }), refs.diaryEntryForm.addEventListener("submit", saveDiaryEntry), refs.diaryEntryForm.addEventListener("keydown", handleDiaryFormShortcut), refs.diaryEntryTitle.addEventListener("input", updateDiaryTitleCounter), refs.diaryEntryDetails.addEventListener("input", autoGrowDiaryDetails), refs.cancelDiaryEditButton.addEventListener("click", resetDiaryForm), refs.diaryEntryList.addEventListener("click", handleDiaryAction), refs.diaryCalendarDayEntries && refs.diaryCalendarDayEntries.addEventListener("click", handleDiaryAction), refs.diarySearch.addEventListener("input", handleDiarySearchInput), refs.diarySearch.addEventListener("input", debounce(renderDiaryEntries, 120)), refs.diarySearchClear.addEventListener("click", clearDiarySearchOnly), [refs.diaryMonthFilter, refs.diaryYearFilter, refs.diaryCategoryFilter, refs.diarySourceFilter, refs.diaryRecentLimit].forEach(e => e.addEventListener("change", renderDiaryEntries)), refs.clearDiaryFiltersButton.addEventListener("click", clearDiaryFilters), refs.printDiaryButton.addEventListener("click", printDiaryEntries), refs.diaryCalPrevMonth && refs.diaryCalPrevMonth.addEventListener("click", () => changeDiaryCalendarMonth(-1)), refs.diaryCalNextMonth && refs.diaryCalNextMonth.addEventListener("click", () => changeDiaryCalendarMonth(1)), refs.diaryCalendarGrid && refs.diaryCalendarGrid.addEventListener("click", handleDiaryCalendarClick), document.querySelectorAll("[data-diary-view]").forEach(e => e.addEventListener("click", () => {
+  }, 150)), refs.workDiaryButton.addEventListener("click", openWorkDiary), refs.sidebarQuickDiaryForm.addEventListener("submit", saveSidebarQuickDiaryEntry), refs.sidebarQuickDiarySearch.addEventListener("input", debounce(renderSidebarQuickDiaryList, 120)), refs.sidebarQuickDiaryList.addEventListener("click", handleSidebarQuickDiaryListClick), refs.sidebarQuickDiaryPrint.addEventListener("click", printSidebarQuickDiaryList), refs.sidebarQuickDiaryOpenFull.addEventListener("click", openWorkDiary), refs.diaryEntryForm.addEventListener("submit", saveDiaryEntry), refs.diaryEntryForm.addEventListener("keydown", handleDiaryFormShortcut), refs.diaryEntryTitle.addEventListener("input", updateDiaryTitleCounter), refs.diaryEntryDetails.addEventListener("input", autoGrowDiaryDetails), refs.cancelDiaryEditButton.addEventListener("click", resetDiaryForm), refs.diaryEntryList.addEventListener("click", handleDiaryAction), refs.diaryCalendarDayEntries && refs.diaryCalendarDayEntries.addEventListener("click", handleDiaryAction), refs.diarySearch.addEventListener("input", handleDiarySearchInput), refs.diarySearch.addEventListener("input", debounce(renderDiaryEntries, 120)), refs.diarySearchClear.addEventListener("click", clearDiarySearchOnly), [refs.diaryMonthFilter, refs.diaryYearFilter, refs.diaryCategoryFilter, refs.diarySourceFilter, refs.diaryRecentLimit].forEach(e => e.addEventListener("change", renderDiaryEntries)), refs.clearDiaryFiltersButton.addEventListener("click", clearDiaryFilters), refs.printDiaryButton.addEventListener("click", printDiaryEntries), refs.diaryCalPrevMonth && refs.diaryCalPrevMonth.addEventListener("click", () => changeDiaryCalendarMonth(-1)), refs.diaryCalNextMonth && refs.diaryCalNextMonth.addEventListener("click", () => changeDiaryCalendarMonth(1)), refs.diaryCalendarGrid && refs.diaryCalendarGrid.addEventListener("click", handleDiaryCalendarClick), document.querySelectorAll("[data-diary-view]").forEach(e => e.addEventListener("click", () => {
     state.diaryView = e.dataset.diaryView, renderDiaryEntries()
   })), refs.fileRegisterButton.addEventListener("click", openFileRegister), refs.fileRecordForm.addEventListener("submit", saveFileRecord), refs.cancelFileRecordEditButton.addEventListener("click", resetFileRecordForm), refs.fileRecordList.addEventListener("click", handleFileRecordAction), refs.fileRecordSearch.addEventListener("input", debounce(renderFileRecords, 120)), refs.fileRecordStatusFilter.addEventListener("change", renderFileRecords), refs.clearFileRecordSearchButton.addEventListener("click", () => {
     refs.fileRecordSearch.value = "", refs.fileRecordStatusFilter.value = "", renderFileRecords()
@@ -467,7 +464,7 @@ function showDashboard() {
 }
 
 function showLogin() {
-  clearTimeout(state.sessionIdleTimer), clearTimeout(state.sessionWarningTimer), clearTimeout(state.sessionHeartbeatTimer), clearSessionWarning(), state.sessionIdleTimer = 0, state.sessionWarningTimer = 0, state.sessionHeartbeatTimer = 0, state.token || clearAuthSessionStorage(), refs.loginView.hidden = !1, refs.dashboardView.hidden = !0, refs.changePasswordButton.hidden = !0, refs.stickyFocusNote.hidden = !0, refs.stickySideTab.hidden = !0, refs.dashboardSidebar.classList.remove("mobile-open"), refs.sidebarBackdrop.hidden = !0, refs.quickDiaryInline.hidden = !0, updateSessionSecurityText(), scheduleBackendVersionProbe(), setTimeout(() => refs.username.focus(), 20)
+  clearTimeout(state.sessionIdleTimer), clearTimeout(state.sessionWarningTimer), clearTimeout(state.sessionHeartbeatTimer), clearSessionWarning(), state.sessionIdleTimer = 0, state.sessionWarningTimer = 0, state.sessionHeartbeatTimer = 0, state.token || clearAuthSessionStorage(), refs.loginView.hidden = !1, refs.dashboardView.hidden = !0, refs.changePasswordButton.hidden = !0, refs.stickyFocusNote.hidden = !0, refs.stickySideTab.hidden = !0, refs.dashboardSidebar.classList.remove("mobile-open"), refs.sidebarBackdrop.hidden = !0, updateSessionSecurityText(), scheduleBackendVersionProbe(), setTimeout(() => refs.username.focus(), 20)
 }
 async function logout() {
   return performLogout("You have been signed out.")
@@ -2461,7 +2458,7 @@ function scheduleLeftPanelCountsLoad() {
 async function loadLeftPanelCounts() {
   if (!state.token) return;
   const [e, t] = await Promise.allSettled([apiRequest("getDiaryEntries", {}), apiRequest("getFileRecords", {})]);
-  "fulfilled" === e.status && Array.isArray(e.value.entries) && (state.diaryEntries = e.value.entries), "fulfilled" === t.status && Array.isArray(t.value.records) && (state.fileRecords = t.value.records), refs.workDiaryCount && (refs.workDiaryCount.textContent = String(state.diaryEntries.length)), refs.fileRegisterCount && (refs.fileRegisterCount.textContent = String(state.fileRecords.length))
+  "fulfilled" === e.status && Array.isArray(e.value.entries) && (state.diaryEntries = e.value.entries), "fulfilled" === t.status && Array.isArray(t.value.records) && (state.fileRecords = t.value.records), refs.workDiaryCount && (refs.workDiaryCount.textContent = String(state.diaryEntries.length)), refs.fileRegisterCount && (refs.fileRegisterCount.textContent = String(state.fileRecords.length)), renderSidebarQuickDiaryList()
 }
 
 function populateDiaryFilters() {
@@ -2547,16 +2544,6 @@ function changeDiaryCalendarMonth(e) {
 function handleDiaryCalendarClick(e) {
   const t = e.target.closest("[data-cal-date]");
   t && (state.diaryCalendarSelectedDate = state.diaryCalendarSelectedDate === t.dataset.calDate ? "" : t.dataset.calDate, renderDiaryCalendar())
-}
-
-function renderOnThisDay() {
-  if (!refs.diaryOnThisDay) return;
-  const e = new Date,
-    t = `${String(e.getMonth()+1).padStart(2,"0")}-${String(e.getDate()).padStart(2,"0")}`,
-    r = String(e.getFullYear()),
-    s = state.diaryEntries.filter(e => e.entryDate && e.entryDate.length >= 10 && e.entryDate.slice(5, 10) === t && e.entryDate.slice(0, 4) !== r).sort((e, t) => t.entryDate.localeCompare(e.entryDate)).slice(0, 3);
-  if (!s.length) return void(refs.diaryOnThisDay.hidden = !0);
-  refs.diaryOnThisDay.hidden = !1, refs.diaryOnThisDayList.innerHTML = s.map(e => `<div class="on-this-day-item"><b>${escapeHtml(formatDate(e.entryDate))}</b><span>${escapeHtml(e.title||"")}</span></div>`).join("")
 }
 
 function diaryEntryMarkup(e) {
@@ -2683,59 +2670,52 @@ function scrollToEmployeeDirectory() {
   }), isMobileSidebarWidth() && closeMobileSidebar()
 }
 
-function toggleQuickDiaryInline() {
-  const e = refs.quickDiaryInline.hidden;
-  refs.quickDiaryInline.hidden = !e, e && (refs.quickDiaryInlineDate.value || (refs.quickDiaryInlineDate.value = (new Date).toISOString().slice(0, 10)), refs.diaryEmployeeSuggestions.innerHTML || (refs.diaryEmployeeSuggestions.innerHTML = state.employees.map(e => `<option value="${escapeAttribute(e["Employee Name"]||e["Employee Code"]||"")}"></option>`).join("")), renderOnThisDay(), renderQuickDiaryInlineRecent(), setTimeout(() => refs.quickDiaryInlineInput.focus(), 30))
+function renderSidebarQuickDiaryList() {
+  if (!refs.sidebarQuickDiaryList) return;
+  const e = refs.sidebarQuickDiarySearch.value.trim().toLowerCase(),
+    t = [...state.diaryEntries].sort((e, t) => String(t.entryDate||"").localeCompare(String(e.entryDate||"")) || String(t.createdAt||"").localeCompare(String(e.createdAt||""))),
+    r = e ? t.filter(t => [t.title, t.details, t.tags, t.relatedEmployee].join(" ").toLowerCase().includes(e)) : t.slice(0, 5);
+  refs.sidebarQuickDiaryList.innerHTML = r.map(e => `<button type="button" class="quick-diary-recent-item" data-quick-diary-recent-open="${escapeAttribute(e.id)}"><span class="quick-diary-recent-date">${escapeHtml(formatDate(e.entryDate))}</span><span class="quick-diary-recent-title">${escapeHtml(e.title||"Untitled")}</span></button>`).join(""), refs.sidebarQuickDiaryEmpty.hidden = r.length > 0, refs.sidebarQuickDiaryEmpty.textContent = e ? "No matching entries." : "No entries yet."
 }
 
-function renderQuickDiaryInlineRecent() {
-  if (!refs.quickDiaryInlineRecentList) return;
-  const e = Number(refs.quickDiaryInlineLimit.value) || 10,
-    t = [...state.diaryEntries].sort((e, t) => String(t.entryDate||"").localeCompare(String(e.entryDate||"")) || String(t.createdAt||"").localeCompare(String(e.createdAt||""))).slice(0, e);
-  refs.quickDiaryInlineRecentList.innerHTML = t.map(e => `<button type="button" class="quick-diary-recent-item" data-quick-diary-recent-open="${escapeAttribute(e.id)}"><span class="quick-diary-recent-date">${escapeHtml(formatDate(e.entryDate))}</span><span class="quick-diary-recent-title">${escapeHtml(e.title||"Untitled")}</span></button>`).join(""), refs.quickDiaryInlineRecentEmpty.hidden = t.length > 0
-}
-
-function handleQuickDiaryInlineRecentClick(e) {
+function handleSidebarQuickDiaryListClick(e) {
   const t = e.target.closest("[data-quick-diary-recent-open]");
-  t && (refs.quickDiaryInline.hidden = !0, openWorkDiary().then(() => editDiaryEntry(t.dataset.quickDiaryRecentOpen)).catch(() => {}))
+  t && openWorkDiary().then(() => editDiaryEntry(t.dataset.quickDiaryRecentOpen)).catch(() => {})
 }
 
-function toggleQuickDiaryInlineExtra() {
-  const e = refs.quickDiaryInlineExtra.hidden;
-  refs.quickDiaryInlineExtra.hidden = !e, refs.quickDiaryInlineExpandBtn.setAttribute("aria-expanded", String(e)), refs.quickDiaryInlineExpandBtn.textContent = e ? "− Fewer details" : "+ Details"
+function printSidebarQuickDiaryList() {
+  const e = refs.sidebarQuickDiarySearch.value.trim().toLowerCase(),
+    t = [...state.diaryEntries].sort((e, t) => String(t.entryDate||"").localeCompare(String(e.entryDate||"")) || String(t.createdAt||"").localeCompare(String(e.createdAt||""))),
+    r = e ? t.filter(t => [t.title, t.details, t.tags, t.relatedEmployee].join(" ").toLowerCase().includes(e)) : t.slice(0, 5);
+  if (!r.length) return void showToast("No diary entries to print.", !0);
+  refs.diaryPrintTitle.textContent = "Work Diary" + (e ? ` — Search: "${e}"` : " — Last 5 entries"), refs.diaryPrintMeta.textContent = `${r.length} entr${1===r.length?"y":"ies"} · Printed ${new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeStyle:"short"}).format(new Date)}`, refs.diaryPrintList.innerHTML = r.map(e => `<article class="diary-print-card"><header><strong>${escapeHtml(formatDate(e.entryDate))}</strong><span>${escapeHtml(e.title||"")}</span></header>${e.details?`<p>${escapeHtml(e.details)}</p>`:""}<footer>${e.category?`<span>${escapeHtml(e.category)}</span>`:""}${e.tags?`<span># ${escapeHtml(e.tags)}</span>`:""}</footer></article>`).join(""), document.body.classList.add("printing-diary"), window.print()
 }
 
-function showQuickDiaryInlineConfirm() {
-  refs.quickDiaryInlineConfirm.hidden = !1, clearTimeout(state.quickDiaryInlineConfirmTimer), state.quickDiaryInlineConfirmTimer = setTimeout(() => {
-    refs.quickDiaryInlineConfirm.hidden = !0
-  }, 1800)
-}
-
-async function saveQuickDiaryInlineEntry(e) {
-  e.preventDefault(), refs.quickDiaryInlineError.textContent = "";
-  const t = refs.quickDiaryInlineInput.value.trim();
+async function saveSidebarQuickDiaryEntry(e) {
+  e.preventDefault(), refs.sidebarQuickDiaryError.textContent = "";
+  const t = refs.sidebarQuickDiaryInput.value.trim();
   if (!t) return;
   const r = {
     id: "",
-    entryDate: refs.quickDiaryInlineDate.value || isoToday(),
+    entryDate: isoToday(),
     title: t.slice(0, 140),
     details: t,
-    category: refs.quickDiaryInlineCategory.value || "Work",
-    tags: refs.quickDiaryInlineTags.value.trim(),
-    relatedEmployee: refs.quickDiaryInlineEmployee.value.trim(),
+    category: "Work",
+    tags: "",
+    relatedEmployee: "",
     link: "",
     visibility: "Private",
-    learning: refs.quickDiaryInlineLearning.checked,
-    important: refs.quickDiaryInlineImportant.checked
-  }, s = refs.quickDiaryInlineForm.querySelector('button[type="submit"]');
-  setButtonBusy(s, !0, "Saving…");
+    learning: !1,
+    important: !1
+  }, s = refs.sidebarQuickDiaryForm.querySelector('button[type="submit"]');
+  setButtonBusy(s, !0, "…");
   try {
     const e = await apiRequest("saveDiaryEntry", r);
-    state.diaryEntries = e.entries || [], refs.quickDiaryInlineInput.value = "", refs.quickDiaryInlineTags.value = "", refs.quickDiaryInlineEmployee.value = "", refs.quickDiaryInlineLearning.checked = !1, refs.quickDiaryInlineImportant.checked = !1, refs.workDiaryCount && (refs.workDiaryCount.textContent = String(state.diaryEntries.length)), refs.workDiaryDialog.open && (populateDiaryFilters(), renderDiaryEntries()), renderQuickDiaryInlineRecent(), showQuickDiaryInlineConfirm(), refs.quickDiaryInlineInput.focus()
+    state.diaryEntries = e.entries || [], refs.sidebarQuickDiaryInput.value = "", refs.workDiaryCount && (refs.workDiaryCount.textContent = String(state.diaryEntries.length)), refs.workDiaryDialog.open && (populateDiaryFilters(), renderDiaryEntries()), renderSidebarQuickDiaryList(), refs.sidebarQuickDiaryInput.focus()
   } catch (e) {
-    refs.quickDiaryInlineError.textContent = friendlyError(e)
+    refs.sidebarQuickDiaryError.textContent = friendlyError(e)
   } finally {
-    setButtonBusy(s, !1, "Save entry")
+    setButtonBusy(s, !1, "Save")
   }
 }
 

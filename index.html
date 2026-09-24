@@ -77,7 +77,18 @@
       <p class="sidebar-section-label">Quick access</p>
       <button id="stickyNotesButton" class="sidebar-nav-item sticky-launch-btn" type="button" aria-haspopup="dialog" title="Target / Reminder"><span class="sidebar-nav-icon" aria-hidden="true">📌</span><span class="sidebar-nav-label">Target / Reminder</span><b id="stickyActiveCount">0</b></button>
       <button id="workDiaryButton" class="sidebar-nav-item diary-launch-btn" type="button" aria-haspopup="dialog" title="Work Diary — search, calendar, print"><span class="sidebar-nav-icon" aria-hidden="true">📔</span><span class="sidebar-nav-label">Work Diary</span><b id="workDiaryCount">0</b></button>
-      <button id="quickDiaryButton" class="sidebar-nav-item quick-diary-launch-btn" type="button" title="Quick Diary — write and save directly"><span class="sidebar-nav-icon" aria-hidden="true">✏️</span><span class="sidebar-nav-label">Quick Diary</span></button>
+      <div class="sidebar-quick-diary">
+        <p class="sidebar-section-label">Quick Diary</p>
+        <form id="sidebarQuickDiaryForm" class="sidebar-quick-diary-form">
+          <input id="sidebarQuickDiaryInput" type="text" maxlength="200" placeholder="Write today's entry…" required autocomplete="off">
+          <button type="submit">Save</button>
+        </form>
+        <p id="sidebarQuickDiaryError" class="form-error" role="alert"></p>
+        <div class="sidebar-quick-diary-tools"><input id="sidebarQuickDiarySearch" type="search" placeholder="Search…"><button id="sidebarQuickDiaryPrint" type="button" title="Print this list" aria-label="Print this list">🖨</button></div>
+        <div id="sidebarQuickDiaryList" class="sidebar-quick-diary-list"></div>
+        <p id="sidebarQuickDiaryEmpty" class="sticky-empty" hidden>No entries yet.</p>
+        <button id="sidebarQuickDiaryOpenFull" class="sidebar-quick-diary-openfull" type="button">Open full diary →</button>
+      </div>
       <button id="fileRegisterButton" class="sidebar-nav-item file-register-launch-btn" type="button" aria-haspopup="dialog" title="File Register"><span class="sidebar-nav-icon" aria-hidden="true">📁</span><span class="sidebar-nav-label">File Register</span><b id="fileRegisterCount">0</b></button>
     </nav>
     <div id="dashboardMain" class="dashboard-main">
@@ -159,30 +170,6 @@
           </div>
         </div>
 
-        <div id="quickDiaryInline" class="quick-diary-inline" hidden>
-            <div id="diaryOnThisDay" class="diary-on-this-day" hidden>
-              <h4>📅 On this day</h4>
-              <div id="diaryOnThisDayList" class="diary-on-this-day-list"></div>
-            </div>
-            <form id="quickDiaryInlineForm" class="quick-diary-inline-form">
-              <input id="quickDiaryInlineInput" type="text" maxlength="200" placeholder="What happened today? Type and save — no dialog needed…" required autocomplete="off">
-              <button type="submit" class="primary-btn">Save entry</button>
-              <button id="quickDiaryInlineExpandBtn" type="button" class="soft-btn" aria-expanded="false">+ Details</button>
-              <button id="quickDiaryInlineOpenFull" type="button" class="soft-btn">🔎 Search / print full diary →</button>
-            </form>
-            <div id="quickDiaryInlineExtra" class="quick-diary-inline-extra" hidden>
-              <label><span>Date</span><input id="quickDiaryInlineDate" type="date"></label>
-              <label><span>Category</span><select id="quickDiaryInlineCategory"><option>Work</option><option>Meeting</option><option>Follow-up</option><option>Decision</option><option>Personal note</option><option>Learning</option></select></label>
-              <label><span>Tags</span><input id="quickDiaryInlineTags" maxlength="300" placeholder="RTI, Training…"></label>
-              <label><span>Related employee</span><input id="quickDiaryInlineEmployee" maxlength="160" list="diaryEmployeeSuggestions" placeholder="Optional"></label>
-              <div class="diary-marker-options"><label><input id="quickDiaryInlineLearning" type="checkbox"> <span>💡 Learning</span></label><label><input id="quickDiaryInlineImportant" type="checkbox"> <span>★ Important</span></label></div>
-            </div>
-            <p id="quickDiaryInlineError" class="form-error" role="alert"></p>
-            <p id="quickDiaryInlineConfirm" class="quick-diary-inline-confirm" hidden>✓ Saved</p>
-            <div class="quick-diary-inline-recent-header"><span>Last entries</span><select id="quickDiaryInlineLimit"><option>5</option><option selected>10</option></select></div>
-            <div id="quickDiaryInlineRecentList" class="quick-diary-inline-recent-list"></div>
-            <p id="quickDiaryInlineRecentEmpty" class="sticky-empty" hidden>No diary entries yet — write your first one above.</p>
-          </div>
 
         <div class="toolbar">
           <label class="search-box" for="globalSearch">

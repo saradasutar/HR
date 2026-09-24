@@ -177,3 +177,27 @@ body.printing-diary #diaryPrintArea{display:block!important;color:#000;backgroun
 .quick-diary-recent-item:hover{border-color:#8fd9c4;background:#f0faf8}
 .quick-diary-recent-date{flex:none;color:#0f766e;font-size:10px;font-weight:900}
 .quick-diary-recent-title{overflow:hidden;color:#173f52;font-size:12px;font-weight:750;text-overflow:ellipsis;white-space:nowrap}
+/* v1.6.87 -- Quick Diary permanently embedded in the sidebar (write, search, last 5, print) */
+.sidebar-quick-diary{padding:2px 0 10px;border-top:1px solid rgba(255,255,255,.1);margin-top:6px}
+.sidebar-quick-diary-form{display:flex;flex-direction:column;gap:6px;margin:6px 2px}
+.sidebar-quick-diary-form input{min-height:34px;padding:0 9px;border:1px solid rgba(255,255,255,.22);border-radius:9px;color:#fff;background:rgba(255,255,255,.08);font-size:11.5px;font-weight:750}
+.sidebar-quick-diary-form input::placeholder{color:#9fc2cf}
+.sidebar-quick-diary-form input:focus{outline:0;border-color:#ffd166;background:rgba(255,255,255,.14)}
+.sidebar-quick-diary-form button{min-height:32px;border:0;border-radius:9px;color:#0b2436;background:#ffd166;font-size:11.5px;font-weight:950;cursor:pointer}
+.sidebar-quick-diary-form button:hover{background:#ffdb85}
+.sidebar-quick-diary .form-error{margin:0 2px 6px;font-size:10px;line-height:1.3}
+.sidebar-quick-diary-tools{display:flex;gap:5px;margin:0 2px 6px}
+.sidebar-quick-diary-tools input{flex:1;min-width:0;min-height:30px;padding:0 8px;border:1px solid rgba(255,255,255,.2);border-radius:8px;color:#fff;background:rgba(255,255,255,.06);font-size:10.5px}
+.sidebar-quick-diary-tools input::placeholder{color:#8fb3c0}
+.sidebar-quick-diary-tools input:focus{outline:0;border-color:#ffd166}
+.sidebar-quick-diary-tools button{flex:none;width:30px;height:30px;border:1px solid rgba(255,255,255,.2);border-radius:8px;color:#dcebf1;background:rgba(255,255,255,.08);font-size:13px;cursor:pointer}
+.sidebar-quick-diary-tools button:hover{background:rgba(255,255,255,.16)}
+.sidebar-quick-diary-list{display:grid;gap:4px;max-height:240px;overflow-y:auto;padding-right:1px}
+.sidebar-quick-diary .quick-diary-recent-item{padding:6px 8px;border-radius:8px;background:rgba(255,255,255,.92)}
+.sidebar-quick-diary .quick-diary-recent-date{font-size:9px}
+.sidebar-quick-diary .quick-diary-recent-title{font-size:11px}
+.sidebar-quick-diary #sidebarQuickDiaryEmpty{margin:4px 2px;padding:10px;color:#9fc2cf;border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.04);font-size:10.5px}
+.sidebar-quick-diary-openfull{width:calc(100% - 4px);margin:8px 2px 0;min-height:30px;border:1px dashed rgba(255,255,255,.3);border-radius:9px;color:#cfe3ea;background:0 0;font-size:10.5px;font-weight:800;cursor:pointer}
+.sidebar-quick-diary-openfull:hover{color:#fff;border-color:#ffd166}
+.dashboard-sidebar.collapsed .sidebar-quick-diary{display:none}
+@media (max-width:900px){.dashboard-sidebar.collapsed .sidebar-quick-diary{display:block}}
