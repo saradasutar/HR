@@ -206,3 +206,7 @@ body.printing-diary #diaryPrintArea{display:block!important;color:#000;backgroun
 .sidebar-quick-diary-learning input{width:14px;height:14px;accent-color:#ffd166;cursor:pointer}
 .quick-diary-recent-item.is-learning{border-color:#ffd166;background:#fffaf0}
 .quick-diary-recent-learning-badge{flex:none;font-size:11px}
+/* v1.6.91 -- fix Employee directory title area wasting horizontal space (was cramming into a narrow column) */
+.panel-heading-title{flex:1 1 auto;min-width:0;width:100%}
+.panel-heading-title h2{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.panel-heading{flex-wrap:wrap}
