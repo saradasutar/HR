@@ -201,3 +201,8 @@ body.printing-diary #diaryPrintArea{display:block!important;color:#000;backgroun
 .sidebar-quick-diary-openfull:hover{color:#fff;border-color:#ffd166}
 .dashboard-sidebar.collapsed .sidebar-quick-diary{display:none}
 @media (max-width:900px){.dashboard-sidebar.collapsed .sidebar-quick-diary{display:block}}
+/* v1.6.90 -- Learning toggle for the sidebar Quick Diary entry */
+.sidebar-quick-diary-learning{display:flex;align-items:center;gap:6px;margin:-1px 2px 0;color:#dcebf1;font-size:10.5px;font-weight:750;cursor:pointer}
+.sidebar-quick-diary-learning input{width:14px;height:14px;accent-color:#ffd166;cursor:pointer}
+.quick-diary-recent-item.is-learning{border-color:#ffd166;background:#fffaf0}
+.quick-diary-recent-learning-badge{flex:none;font-size:11px}
