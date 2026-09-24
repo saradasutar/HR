@@ -70,9 +70,21 @@
   </section>
 
   <div id="dashboardView" class="dashboard-view" hidden>
+    <div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
+    <nav id="dashboardSidebar" class="dashboard-sidebar">
+      <div class="sidebar-brand"><span class="sidebar-brand-icon">HR</span><span class="sidebar-brand-text">Command Centre</span></div>
+      <button id="sidebarHomeButton" class="sidebar-nav-item is-home" type="button"><span class="sidebar-nav-icon" aria-hidden="true">🏠</span><span class="sidebar-nav-label">Employee Directory</span></button>
+      <p class="sidebar-section-label">Quick access</p>
+      <button id="stickyNotesButton" class="sidebar-nav-item sticky-launch-btn" type="button" aria-haspopup="dialog" title="Target / Reminder"><span class="sidebar-nav-icon" aria-hidden="true">📌</span><span class="sidebar-nav-label">Target / Reminder</span><b id="stickyActiveCount">0</b></button>
+      <button id="workDiaryButton" class="sidebar-nav-item diary-launch-btn" type="button" aria-haspopup="dialog" title="Work Diary — search, calendar, print"><span class="sidebar-nav-icon" aria-hidden="true">📔</span><span class="sidebar-nav-label">Work Diary</span><b id="workDiaryCount">0</b></button>
+      <button id="quickDiaryButton" class="sidebar-nav-item quick-diary-launch-btn" type="button" title="Quick Diary — write and save directly"><span class="sidebar-nav-icon" aria-hidden="true">✏️</span><span class="sidebar-nav-label">Quick Diary</span></button>
+      <button id="fileRegisterButton" class="sidebar-nav-item file-register-launch-btn" type="button" aria-haspopup="dialog" title="File Register"><span class="sidebar-nav-icon" aria-hidden="true">📁</span><span class="sidebar-nav-label">File Register</span><b id="fileRegisterCount">0</b></button>
+    </nav>
+    <div id="dashboardMain" class="dashboard-main">
     <header class="topbar">
       <div class="topbar-main">
         <div class="topbar-brand">
+          <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="Toggle sidebar" aria-expanded="true"><span aria-hidden="true">☰</span></button>
           <div class="compact-mark">HR</div>
           <div class="topbar-heading">
             <strong>HR Command Centre <span class="topbar-divider" aria-hidden="true">·</span> <span class="topbar-overview-title">Workforce and post sensitivity at a glance</span></strong>
@@ -125,11 +137,6 @@
         <div class="panel-heading">
           <div class="panel-heading-top">
             <div><h2>Employee directory <span class="feature-version">v1.6.59 · Resizable wrapped columns</span></h2><p id="resultSummary">0 records · Click a row for a compact four-column employee profile</p></div>
-            <div id="quickAccessInline" class="quick-access-inline" hidden>
-              <button id="stickyNotesButton" class="quick-access-btn sticky-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📌</span><em>Target / Reminder</em><b id="stickyActiveCount">0</b></button>
-              <button id="workDiaryButton" class="quick-access-btn diary-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📔</span><em>Work Diary</em><b id="workDiaryCount">0</b></button>
-              <button id="fileRegisterButton" class="quick-access-btn file-register-launch-btn" type="button" aria-haspopup="dialog"><span aria-hidden="true">📁</span><em>File Register</em><b id="fileRegisterCount">0</b></button>
-            </div>
           </div>
           <div class="panel-actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden>
@@ -151,6 +158,31 @@
             <button id="exportButton" class="soft-btn" type="button">Export CSV</button>
           </div>
         </div>
+
+        <div id="quickDiaryInline" class="quick-diary-inline" hidden>
+            <div id="diaryOnThisDay" class="diary-on-this-day" hidden>
+              <h4>📅 On this day</h4>
+              <div id="diaryOnThisDayList" class="diary-on-this-day-list"></div>
+            </div>
+            <form id="quickDiaryInlineForm" class="quick-diary-inline-form">
+              <input id="quickDiaryInlineInput" type="text" maxlength="200" placeholder="What happened today? Type and save — no dialog needed…" required autocomplete="off">
+              <button type="submit" class="primary-btn">Save entry</button>
+              <button id="quickDiaryInlineExpandBtn" type="button" class="soft-btn" aria-expanded="false">+ Details</button>
+              <button id="quickDiaryInlineOpenFull" type="button" class="soft-btn">🔎 Search / print full diary →</button>
+            </form>
+            <div id="quickDiaryInlineExtra" class="quick-diary-inline-extra" hidden>
+              <label><span>Date</span><input id="quickDiaryInlineDate" type="date"></label>
+              <label><span>Category</span><select id="quickDiaryInlineCategory"><option>Work</option><option>Meeting</option><option>Follow-up</option><option>Decision</option><option>Personal note</option><option>Learning</option></select></label>
+              <label><span>Tags</span><input id="quickDiaryInlineTags" maxlength="300" placeholder="RTI, Training…"></label>
+              <label><span>Related employee</span><input id="quickDiaryInlineEmployee" maxlength="160" list="diaryEmployeeSuggestions" placeholder="Optional"></label>
+              <div class="diary-marker-options"><label><input id="quickDiaryInlineLearning" type="checkbox"> <span>💡 Learning</span></label><label><input id="quickDiaryInlineImportant" type="checkbox"> <span>★ Important</span></label></div>
+            </div>
+            <p id="quickDiaryInlineError" class="form-error" role="alert"></p>
+            <p id="quickDiaryInlineConfirm" class="quick-diary-inline-confirm" hidden>✓ Saved</p>
+            <div class="quick-diary-inline-recent-header"><span>Last entries</span><select id="quickDiaryInlineLimit"><option>5</option><option selected>10</option></select></div>
+            <div id="quickDiaryInlineRecentList" class="quick-diary-inline-recent-list"></div>
+            <p id="quickDiaryInlineRecentEmpty" class="sticky-empty" hidden>No diary entries yet — write your first one above.</p>
+          </div>
 
         <div class="toolbar">
           <label class="search-box" for="globalSearch">
@@ -197,6 +229,7 @@
         </footer>
       </section>
     </main>
+    </div>
   </div>
 
   <button id="stickySideTab" class="sticky-side-tab" type="button" aria-label="Open collapsed targets and reminders" hidden><span aria-hidden="true">📌</span><strong>Targets / Reminders</strong><b id="stickySideCount">0</b></button>
@@ -556,9 +589,15 @@
           <button id="saveDiaryEntryButton" class="primary-btn diary-save-btn" type="submit">Save diary entry</button>
         </form>
         <section class="diary-browser">
-          <div class="diary-view-tabs" role="tablist"><button type="button" data-diary-view="recent" class="active">Recent</button><button type="button" data-diary-view="daily">Daily</button><button type="button" data-diary-view="monthly">Monthly</button><button type="button" data-diary-view="learning">💡 Learnings</button></div>
+          <div class="diary-view-tabs" role="tablist"><button type="button" data-diary-view="recent" class="active">Recent</button><button type="button" data-diary-view="daily">Daily</button><button type="button" data-diary-view="monthly">Monthly</button><button type="button" data-diary-view="calendar">📅 Calendar</button><button type="button" data-diary-view="learning">💡 Learnings</button></div>
           <div class="diary-search-row"><label class="diary-search"><span>⌕</span><input id="diarySearch" type="search" placeholder="Search title, details, tags, employee…"><button id="diarySearchClear" type="button" class="diary-search-clear" hidden aria-label="Clear search">×</button></label><select id="diaryMonthFilter" aria-label="Filter diary by month"><option value="">All months</option></select><select id="diaryYearFilter" aria-label="Filter diary by year"><option value="">All years</option></select><select id="diaryCategoryFilter" aria-label="Filter diary by category"><option value="">All categories</option></select><select id="diarySourceFilter" aria-label="Filter diary by source"><option value="">All sources</option></select><label class="diary-limit-label">Show <select id="diaryRecentLimit"><option>5</option><option>10</option><option>20</option></select></label><button id="clearDiaryFiltersButton" class="soft-btn" type="button">Clear</button></div>
           <div class="diary-browser-summary"><strong id="diaryResultSummary">Latest entries</strong><span id="diaryLearningCount">0 learnings</span><button id="printDiaryButton" class="soft-btn diary-print-btn" type="button">🖨 Print this list</button></div>
+          <div id="diaryCalendarWrap" class="diary-calendar-wrap" hidden>
+            <div class="diary-calendar-header"><button id="diaryCalPrevMonth" type="button" aria-label="Previous month">‹</button><strong id="diaryCalMonthLabel">Month Year</strong><button id="diaryCalNextMonth" type="button" aria-label="Next month">›</button></div>
+            <div class="diary-calendar-weekdays"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+            <div id="diaryCalendarGrid" class="diary-calendar-grid"></div>
+            <div id="diaryCalendarDayEntries" class="diary-calendar-day-entries"></div>
+          </div>
           <div id="diaryEntryList" class="diary-entry-list"></div>
           <p id="diaryEmptyState" class="sticky-empty">No diary entries match this view.</p>
         </section>

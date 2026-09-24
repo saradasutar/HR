@@ -92,3 +92,88 @@ body.printing-diary #diaryPrintArea{display:block!important;color:#000;backgroun
 .diary-search-clear{flex:none;width:22px;height:22px;border:0;border-radius:999px;color:#5b7182;background:#eef6f6;font-size:14px;line-height:1;cursor:pointer}
 .diary-search-clear:hover{background:#dfeeee;color:#123c46}
 @media (max-width:640px){.diary-field-row{grid-template-columns:1fr}}
+/* v1.6.83 -- inline quick diary entry (no popup needed for entering) */
+.quick-diary-inline{width:100%;margin-top:10px;padding:12px 14px;border:1px solid #bfe3df;border-radius:14px;background:#fff}
+.quick-diary-inline-form{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.quick-diary-inline-form input[type=text]{flex:1 1 260px;min-width:0;min-height:40px;padding:0 13px;border:1.5px solid #a8cece;border-radius:11px;color:#123c46;font:inherit;font-weight:750}
+.quick-diary-inline-form input[type=text]:focus{outline:0;border-color:#0f766e;box-shadow:0 0 0 3px rgba(15,118,110,.14)}
+.quick-diary-inline-extra{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:10px;padding-top:10px;border-top:1px dashed #cfe3e1}
+.quick-diary-inline-extra label{display:grid;gap:4px;color:#244a4a;font-size:11px;font-weight:800}
+.quick-diary-inline-extra input,.quick-diary-inline-extra select{min-height:36px;padding:0 10px;border:1.5px solid #afd2cf;border-radius:10px;color:#123c46;font:inherit;font-weight:700}
+.quick-diary-inline-extra .diary-marker-options{align-self:center}
+.quick-diary-inline-confirm{display:inline-flex;align-items:center;gap:6px;margin:8px 0 0;padding:5px 12px;border-radius:999px;color:#0f766e;background:#e3f8f2;font-size:11.5px;font-weight:900;animation:quickDiaryConfirmFade 1.8s ease forwards}
+@keyframes quickDiaryConfirmFade{0%{opacity:0;transform:translateY(-3px)}12%{opacity:1;transform:translateY(0)}78%{opacity:1}100%{opacity:0}}
+@media (max-width:640px){.quick-diary-inline-form{flex-direction:column;align-items:stretch}.quick-diary-inline-form input[type=text]{flex:none}}
+/* v1.6.84 -- full left sidebar navigation (Malipatana-style), collapsible */
+.dashboard-view{display:flex;align-items:stretch;min-height:100vh}
+.dashboard-main{flex:1;min-width:0}
+.dashboard-sidebar{position:sticky;top:0;z-index:60;flex:none;width:220px;height:100vh;display:flex;flex-direction:column;gap:2px;padding:14px 10px;overflow-y:auto;color:#cfe3ea;background:linear-gradient(180deg,#0b2436,#0f3247);border-right:1px solid rgba(255,255,255,.08);transition:width .18s ease}
+.sidebar-brand{display:flex;align-items:center;gap:9px;padding:4px 6px 12px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:8px}
+.sidebar-brand-icon{display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:10px;color:#0b2436;background:#ffd166;font-size:12px;font-weight:950}
+.sidebar-brand-text{overflow:hidden;color:#fff;font-size:13px;font-weight:950;text-overflow:ellipsis;white-space:nowrap}
+.sidebar-section-label{margin:10px 6px 2px;color:#7fa0b3;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;overflow:hidden}
+.sidebar-nav-item{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 9px;border:0;border-radius:10px;color:#dcebf1;background:transparent;font-size:12.5px;font-weight:800;text-align:left;cursor:pointer;white-space:nowrap}
+.sidebar-nav-item:hover{background:rgba(255,255,255,.08)}
+.sidebar-nav-item.is-home{color:#fff;background:rgba(255,209,102,.14);margin-bottom:6px}
+.sidebar-nav-item.is-home:hover{background:rgba(255,209,102,.22)}
+.sidebar-nav-icon{font-size:16px;flex:none}
+.sidebar-nav-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.sidebar-nav-item b{display:grid;place-items:center;min-width:20px;height:20px;padding:0 4px;flex:none;border-radius:999px;color:#0b2436;background:#ffd166;font-size:10px;font-weight:950}
+.dashboard-sidebar.collapsed{width:60px}
+.dashboard-sidebar.collapsed .sidebar-brand-text,.dashboard-sidebar.collapsed .sidebar-section-label,.dashboard-sidebar.collapsed .sidebar-nav-label{display:none}
+.dashboard-sidebar.collapsed .sidebar-nav-item{justify-content:center;padding:0;position:relative}
+.dashboard-sidebar.collapsed .sidebar-nav-item b{position:absolute;top:2px;right:2px;min-width:15px;height:15px;font-size:8px}
+.dashboard-sidebar.collapsed .sidebar-brand{justify-content:center;padding:4px 0 12px}
+.sidebar-toggle{align-self:center;width:38px;height:38px;flex:none;border:1px solid #d4e1ea;border-radius:10px;color:#21445b;background:#fff;font-size:16px;cursor:pointer}
+.sidebar-toggle:hover{border-color:#9fc4d8;background:#f6fbfd}
+.sidebar-backdrop{display:none}
+/* proactive fix: keep the topbar from overlapping now that a sidebar takes horizontal space (learned from an earlier attempt at this exact feature) */
+.dashboard-main .topbar-main{flex-wrap:wrap}
+.dashboard-main .topbar-brand{flex:1 1 260px;min-width:0}
+.dashboard-main .topbar-actions{flex-wrap:wrap}
+@media (max-width:900px){
+.dashboard-view{flex-direction:column}
+.sidebar-backdrop{position:fixed;inset:0;z-index:55;background:rgba(4,16,26,.45)}
+.sidebar-backdrop[hidden]{display:none!important}
+.sidebar-backdrop:not([hidden]){display:block}
+.dashboard-sidebar{position:fixed;left:0;top:0;bottom:0;height:100vh;width:220px;transform:translateX(-100%);transition:transform .2s ease}
+.dashboard-sidebar.mobile-open{transform:translateX(0)}
+.dashboard-sidebar.collapsed{width:220px}
+.dashboard-sidebar.collapsed .sidebar-brand-text,.dashboard-sidebar.collapsed .sidebar-section-label,.dashboard-sidebar.collapsed .sidebar-nav-label{display:block}
+.dashboard-sidebar.collapsed .sidebar-nav-item{justify-content:flex-start;padding:0 9px}
+.dashboard-sidebar.collapsed .sidebar-nav-item b{position:static;margin:0}
+}
+/* v1.6.85 -- diary calendar view + "on this day" */
+.diary-calendar-wrap{padding:6px 2px}
+.diary-calendar-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.diary-calendar-header strong{color:#173f52;font-size:13px;font-weight:900}
+.diary-calendar-header button{width:30px;height:30px;border:1px solid #a8cece;border-radius:9px;color:#123c46;background:#fff;font-size:15px;font-weight:900;cursor:pointer}
+.diary-calendar-header button:hover{background:#eef8f7}
+.diary-calendar-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
+.diary-calendar-weekdays span{text-align:center;color:#6b8b95;font-size:10px;font-weight:900}
+.diary-calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.diary-cal-cell{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border:1px solid #dcecea;border-radius:8px;color:#173f52;background:#fff;font-size:11px;font-weight:750;cursor:pointer}
+.diary-cal-cell.empty{border:0;background:0 0;cursor:default}
+.diary-cal-cell:not(.empty):hover{border-color:#0f766e;background:#f0faf8}
+.diary-cal-cell.has-entries{background:#e3f8f2;border-color:#8fd9c4;font-weight:900}
+.diary-cal-cell.is-today{box-shadow:inset 0 0 0 2px #ffd166}
+.diary-cal-cell.is-selected{background:#0f766e;border-color:#0f766e;color:#fff}
+.diary-cal-cell b{position:absolute;top:-4px;right:-4px;display:grid;place-items:center;min-width:14px;height:14px;padding:0 3px;border-radius:999px;color:#fff;background:#0f766e;font-size:8px;font-weight:950}
+.diary-cal-cell.is-selected b{background:#ffd166;color:#0b2436}
+.diary-calendar-day-entries{margin-top:12px;padding-top:10px;border-top:1px dashed #cfe3e1}
+.diary-calendar-day-entries h4{margin:0 0 8px;color:#0f766e;font-size:12px;font-weight:900}
+.diary-on-this-day{margin-bottom:10px;padding:10px 12px;border:1px solid #f2d99a;border-radius:12px;background:linear-gradient(145deg,#fff8e8,#fffdf6)}
+.diary-on-this-day h4{margin:0 0 6px;color:#8a5a12;font-size:11.5px;font-weight:900}
+.diary-on-this-day-list{display:grid;gap:5px}
+.on-this-day-item{display:flex;gap:8px;align-items:baseline;font-size:11.5px}
+.on-this-day-item b{flex:none;color:#8a5a12;font-weight:900}
+.on-this-day-item span{color:#4a4130;font-weight:700}
+/* v1.6.86 -- Quick Diary sidebar item + last-entries list in the inline panel */
+.quick-diary-inline-recent-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;padding-top:10px;border-top:1px dashed #cfe3e1}
+.quick-diary-inline-recent-header span{color:#0f766e;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.03em}
+.quick-diary-inline-recent-header select{min-height:28px;padding:0 6px;border:1px solid #a8cece;border-radius:8px;font-size:11px;font-weight:800}
+.quick-diary-inline-recent-list{display:grid;gap:5px;margin-top:6px}
+.quick-diary-recent-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #d7ecea;border-radius:10px;background:#fff;text-align:left;cursor:pointer}
+.quick-diary-recent-item:hover{border-color:#8fd9c4;background:#f0faf8}
+.quick-diary-recent-date{flex:none;color:#0f766e;font-size:10px;font-weight:900}
+.quick-diary-recent-title{overflow:hidden;color:#173f52;font-size:12px;font-weight:750;text-overflow:ellipsis;white-space:nowrap}
