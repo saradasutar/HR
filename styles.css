@@ -180,7 +180,7 @@ body.printing-diary #diaryPrintArea{display:block!important;color:#000;backgroun
 /* v1.6.87 -- Quick Diary permanently embedded in the sidebar (write, search, last 5, print) */
 .sidebar-quick-diary{padding:2px 0 10px;border-top:1px solid rgba(255,255,255,.1);margin-top:6px}
 .sidebar-quick-diary-form{display:flex;flex-direction:column;gap:6px;margin:6px 2px}
-.sidebar-quick-diary-form textarea{min-height:85px;padding:8px 9px;border:1px solid rgba(255,255,255,.3);border-radius:9px;color:#123c46;background:#fff;font:inherit;font-size:11.5px;font-weight:750;resize:vertical}
+.sidebar-quick-diary-form textarea{min-height:85px;padding:8px 9px;border:1px solid rgba(255,255,255,.3);border-radius:9px;color:#123c46;background:#fff;font:inherit;font-size:14px;line-height:1.4;font-weight:600;resize:vertical}
 .sidebar-quick-diary-form textarea::placeholder{color:#7a8f97}
 .sidebar-quick-diary-form textarea:focus{outline:0;border-color:#ffd166;background:#fff;box-shadow:0 0 0 3px rgba(255,209,102,.28)}
 .sidebar-quick-diary-form button{min-height:32px;border:0;border-radius:9px;color:#0b2436;background:#ffd166;font-size:11.5px;font-weight:950;cursor:pointer}

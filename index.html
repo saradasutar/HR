@@ -86,7 +86,6 @@
             <label class="cat-learning"><input type="radio" name="sidebarQuickDiaryCategory" value="Learning"> <span>💡 Learning</span></label>
             <label class="cat-personal"><input type="radio" name="sidebarQuickDiaryCategory" value="Personal"> <span>🏠 Personal</span></label>
           </div>
-          <input id="sidebarQuickDiaryLink" class="sidebar-quick-diary-link" type="url" placeholder="🔗 Add a link (optional)">
           <button type="submit">Save</button>
         </form>
         <p id="sidebarQuickDiaryError" class="form-error" role="alert"></p>
@@ -572,10 +571,7 @@
             <label><span>Category</span><select id="diaryEntryCategory"><option>Work</option><option>Meeting</option><option>Follow-up</option><option>Decision</option><option>Personal note</option><option>Learning</option></select></label>
             <label><span>Tags</span><input id="diaryEntryTags" maxlength="300" placeholder="RTI, Training, Administration"></label>
           </div>
-          <div class="diary-field-row">
-            <label><span>Related employee</span><input id="diaryEntryEmployee" maxlength="160" list="diaryEmployeeSuggestions" placeholder="Optional"><datalist id="diaryEmployeeSuggestions"></datalist></label>
-            <label><span>Link</span><input id="diaryEntryLink" type="url" maxlength="1000" placeholder="Optional link"></label>
-          </div>
+          <label><span>Related employee</span><input id="diaryEntryEmployee" maxlength="160" list="diaryEmployeeSuggestions" placeholder="Optional"><datalist id="diaryEmployeeSuggestions"></datalist></label>
           <label><span>Visibility</span><select id="diaryEntryVisibility"><option>Private</option><option>Administrators</option><option>All signed-in users</option></select></label>
           <div class="diary-marker-options"><label><input id="diaryEntryLearning" type="checkbox"> <span>💡 Mark as Learning</span></label><label><input id="diaryEntryImportant" type="checkbox"> <span>★ Mark Important</span></label></div>
           <p id="diaryEntryError" class="form-error" role="alert"></p>
