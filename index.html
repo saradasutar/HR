@@ -81,7 +81,11 @@
         <p class="sidebar-section-label">Quick Diary</p>
         <form id="sidebarQuickDiaryForm" class="sidebar-quick-diary-form">
           <textarea id="sidebarQuickDiaryInput" maxlength="500" rows="3" placeholder="Write today's entry… (Ctrl+Enter to save)" required></textarea>
-          <label class="sidebar-quick-diary-learning"><input id="sidebarQuickDiaryLearning" type="checkbox"> <span>💡 Mark as Learning</span></label>
+          <div class="sidebar-quick-diary-category" role="radiogroup" aria-label="Entry category">
+            <label class="cat-work"><input type="radio" name="sidebarQuickDiaryCategory" value="Work" checked> <span>💼 Work</span></label>
+            <label class="cat-learning"><input type="radio" name="sidebarQuickDiaryCategory" value="Learning"> <span>💡 Learning</span></label>
+            <label class="cat-personal"><input type="radio" name="sidebarQuickDiaryCategory" value="Personal"> <span>🏠 Personal</span></label>
+          </div>
           <button type="submit">Save</button>
         </form>
         <p id="sidebarQuickDiaryError" class="form-error" role="alert"></p>
@@ -578,8 +582,19 @@
         </form>
         <section class="diary-browser">
           <div class="diary-view-tabs" role="tablist"><button type="button" data-diary-view="recent" class="active">Recent</button><button type="button" data-diary-view="daily">Daily</button><button type="button" data-diary-view="monthly">Monthly</button><button type="button" data-diary-view="calendar">📅 Calendar</button><button type="button" data-diary-view="learning">💡 Learnings</button></div>
-          <div class="diary-search-row"><label class="diary-search"><span>⌕</span><input id="diarySearch" type="search" placeholder="Search title, details, tags, employee…"><button id="diarySearchClear" type="button" class="diary-search-clear" hidden aria-label="Clear search">×</button></label><select id="diaryMonthFilter" aria-label="Filter diary by month"><option value="">All months</option></select><select id="diaryYearFilter" aria-label="Filter diary by year"><option value="">All years</option></select><select id="diaryCategoryFilter" aria-label="Filter diary by category"><option value="">All categories</option></select><select id="diarySourceFilter" aria-label="Filter diary by source"><option value="">All sources</option></select><label class="diary-limit-label">Show <select id="diaryRecentLimit"><option>5</option><option>10</option><option>20</option></select></label><button id="clearDiaryFiltersButton" class="soft-btn" type="button">Clear</button></div>
-          <div class="diary-browser-summary"><strong id="diaryResultSummary">Latest entries</strong><span id="diaryLearningCount">0 learnings</span><button id="printDiaryButton" class="soft-btn diary-print-btn" type="button">🖨 Print this list</button></div>
+          <div class="diary-search-row">
+            <label class="diary-search"><span>⌕</span><input id="diarySearch" type="search" placeholder="Search title, details, tags, employee…"><button id="diarySearchClear" type="button" class="diary-search-clear" hidden aria-label="Clear search">×</button></label>
+            <button id="printDiaryButton" class="soft-btn diary-print-btn" type="button">🖨 Print</button>
+          </div>
+          <div class="diary-filter-row">
+            <select id="diaryMonthFilter" aria-label="Filter diary by month"><option value="">All months</option></select>
+            <select id="diaryYearFilter" aria-label="Filter diary by year"><option value="">All years</option></select>
+            <select id="diaryCategoryFilter" aria-label="Filter diary by category"><option value="">All categories</option></select>
+            <select id="diarySourceFilter" aria-label="Filter diary by source"><option value="">All sources</option></select>
+            <label class="diary-limit-label">Show <select id="diaryRecentLimit"><option>5</option><option>10</option><option>20</option></select></label>
+            <button id="clearDiaryFiltersButton" class="soft-btn" type="button">Clear</button>
+          </div>
+          <div class="diary-browser-summary"><strong id="diaryResultSummary">Latest entries</strong><span id="diaryLearningCount">0 learnings</span></div>
           <div id="diaryCalendarWrap" class="diary-calendar-wrap" hidden>
             <div class="diary-calendar-header"><button id="diaryCalPrevMonth" type="button" aria-label="Previous month">‹</button><strong id="diaryCalMonthLabel">Month Year</strong><button id="diaryCalNextMonth" type="button" aria-label="Next month">›</button></div>
             <div class="diary-calendar-weekdays"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>

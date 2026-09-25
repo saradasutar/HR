@@ -173,10 +173,10 @@ body.printing-diary #diaryPrintArea{display:block!important;color:#000;backgroun
 .quick-diary-inline-recent-header span{color:#0f766e;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.03em}
 .quick-diary-inline-recent-header select{min-height:28px;padding:0 6px;border:1px solid #a8cece;border-radius:8px;font-size:11px;font-weight:800}
 .quick-diary-inline-recent-list{display:grid;gap:5px;margin-top:6px}
-.quick-diary-recent-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #d7ecea;border-radius:10px;background:#fff;text-align:left;cursor:pointer}
+.quick-diary-recent-item{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 10px;border:1px solid #d7ecea;border-radius:10px;background:#fff;text-align:left;cursor:pointer}
 .quick-diary-recent-item:hover{border-color:#8fd9c4;background:#f0faf8}
 .quick-diary-recent-date{flex:none;color:#0f766e;font-size:10px;font-weight:900}
-.quick-diary-recent-title{overflow:hidden;color:#173f52;font-size:12px;font-weight:750;text-overflow:ellipsis;white-space:nowrap}
+.quick-diary-recent-title{color:#173f52;font-size:12px;font-weight:750;white-space:normal;overflow-wrap:anywhere;line-height:1.32}
 /* v1.6.87 -- Quick Diary permanently embedded in the sidebar (write, search, last 5, print) */
 .sidebar-quick-diary{padding:2px 0 10px;border-top:1px solid rgba(255,255,255,.1);margin-top:6px}
 .sidebar-quick-diary-form{display:flex;flex-direction:column;gap:6px;margin:6px 2px}
@@ -193,7 +193,8 @@ body.printing-diary #diaryPrintArea{display:block!important;color:#000;backgroun
 .sidebar-quick-diary-tools button{flex:none;width:30px;height:30px;border:1px solid rgba(255,255,255,.2);border-radius:8px;color:#dcebf1;background:rgba(255,255,255,.08);font-size:13px;cursor:pointer}
 .sidebar-quick-diary-tools button:hover{background:rgba(255,255,255,.16)}
 .sidebar-quick-diary-list{display:grid;gap:5px;max-height:290px;overflow-y:auto;padding-right:1px}
-.sidebar-quick-diary .quick-diary-recent-item{padding:6px 8px;border-radius:8px;background:rgba(255,255,255,.92)}
+.sidebar-quick-diary .quick-diary-recent-item{padding:8px 10px;border-radius:9px;border-color:transparent;background:linear-gradient(155deg,#f3fbfa,#e9f7f4)}
+.sidebar-quick-diary .quick-diary-recent-item:hover{background:linear-gradient(155deg,#e6f7f2,#daf1ea);border-color:#8fd9c4}
 .sidebar-quick-diary .quick-diary-recent-date{font-size:9px}
 .sidebar-quick-diary .quick-diary-recent-title{font-size:11px}
 .sidebar-quick-diary #sidebarQuickDiaryEmpty{margin:4px 2px;padding:10px;color:#9fc2cf;border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.04);font-size:10.5px}
@@ -201,12 +202,30 @@ body.printing-diary #diaryPrintArea{display:block!important;color:#000;backgroun
 .sidebar-quick-diary-openfull:hover{color:#fff;border-color:#ffd166}
 .dashboard-sidebar.collapsed .sidebar-quick-diary{display:none}
 @media (max-width:900px){.dashboard-sidebar.collapsed .sidebar-quick-diary{display:block}}
-/* v1.6.90 -- Learning toggle for the sidebar Quick Diary entry */
-.sidebar-quick-diary-learning{display:flex;align-items:center;gap:6px;margin:-1px 2px 0;color:#dcebf1;font-size:10.5px;font-weight:750;cursor:pointer}
-.sidebar-quick-diary-learning input{width:14px;height:14px;accent-color:#ffd166;cursor:pointer}
-.quick-diary-recent-item.is-learning{border-color:#ffd166;background:#fffaf0}
+/* v1.6.92 -- Work/Learning/Personal segmented control for Quick Diary entries */
+.sidebar-quick-diary-category{display:flex;gap:4px;margin:-1px 2px 2px}
+.sidebar-quick-diary-category label{position:relative;flex:1;display:flex;justify-content:center;padding:5px 4px;border:1px solid rgba(255,255,255,.2);border-radius:8px;color:#b9d2db;background:rgba(255,255,255,.05);font-size:9.5px;font-weight:800;text-align:center;cursor:pointer}
+.sidebar-quick-diary-category input{position:absolute;opacity:0;width:1px;height:1px}
+.sidebar-quick-diary-category label:has(input:checked){color:#0b2436;background:#ffd166;border-color:#ffd166}
+.sidebar-quick-diary-category label:has(input:focus-visible){outline:2px solid #ffd166;outline-offset:1px}
+.quick-diary-recent-item.is-learning{border-color:#ffd166;background:linear-gradient(155deg,#fffaf0,#fff4dc)}
+.quick-diary-recent-item.is-personal{border-color:#c9b8f0;background:linear-gradient(155deg,#f6f2ff,#efe8ff)}
+.quick-diary-recent-header{display:flex;align-items:center;gap:5px}
 .quick-diary-recent-learning-badge{flex:none;font-size:11px}
 /* v1.6.91 -- fix Employee directory title area wasting horizontal space (was cramming into a narrow column) */
 .panel-heading-title{flex:1 1 auto;min-width:0;width:100%}
 .panel-heading-title h2{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .panel-heading{flex-wrap:wrap}
+/* v1.6.92 -- full diary dialog polish: cleaner two-tier search/filter row, card hover, learning highlight */
+.diary-search-row{display:flex;align-items:center;gap:10px;margin:8px 0 10px}
+.diary-search-row .diary-search{flex:1 1 auto}
+.diary-search-row .diary-print-btn{flex:none}
+.diary-filter-row{display:flex;align-items:center;gap:7px;margin:0 0 14px;flex-wrap:wrap}
+.diary-filter-row select{min-height:36px;border:1.5px solid #c3ddd9;border-radius:9px;padding:0 8px;color:#173f52;background:#fff;font-weight:750;font-size:11.5px}
+.diary-filter-row select:hover{border-color:#8fd9c4}
+.diary-filter-row .diary-limit-label{padding:0 2px}
+.diary-filter-row #clearDiaryFiltersButton{margin-left:auto}
+.diary-card{transition:box-shadow .15s ease,transform .15s ease}
+.diary-card:hover{box-shadow:0 10px 24px rgba(14,83,83,.13);transform:translateY(-1px)}
+.diary-card.is-learning-entry{border-left-color:#ffb020;background:linear-gradient(105deg,#fffdf5,#fff)}
+mark.diary-search-hit{padding:0 1px;border-radius:3px;color:#0b2436;background:#ffe38a}
