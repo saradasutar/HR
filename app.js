@@ -2,7 +2,7 @@
 const CONFIG = Object.freeze({
     API_URL: "https://script.google.com/macros/s/AKfycbyc13F44x6wvxRVxO3zWo6JVaom2kS-AzrGZopnF7fXb1-l55hZuPyXbY7hA-sum25G/exec",
     CHANNEL: "ADG_HR_API_V1",
-    FRONTEND_VERSION: "1.6.94",
+    FRONTEND_VERSION: "1.6.95",
     REQUIRED_BACKEND_VERSION: "1.6.4",
     REQUEST_TIMEOUT_MS: 45e3
   }),
@@ -1334,11 +1334,13 @@ function applyNamedFilterView(e, t) {
   const r = e.columns.filter((e, t, r) => state.columns.includes(e) && r.indexOf(e) === t);
   r.length && (state.dashboardColumns = frozenColumnsFirst(r), saveDashboardColumnPreference(), updateChooseColumnsButton()), setCurrentDashboardFilters(e.filters), state.inlineEditCode = "", state.page = 1, refs.filterViewDialog.close(), applyFilters();
   if (Array.isArray(e.rowOrder) && e.rowOrder.length) {
-    const s = new Map(e.rowOrder.map((e, t) => [String(e), t]));
+    const s = new Map(e.rowOrder.map((e, t) => [String(e), t])),
+      x = new Map(state.filtered.map((e, t) => [e, t]));
     state.filtered.sort((e, t) => {
       const r = String(e["Employee Code"] || ""),
-        o = String(t["Employee Code"] || "");
-      return (s.has(r) ? s.get(r) : Number.MAX_SAFE_INTEGER) - (s.has(o) ? s.get(o) : Number.MAX_SAFE_INTEGER)
+        o = String(t["Employee Code"] || ""),
+        c = (s.has(r) ? s.get(r) : Number.MAX_SAFE_INTEGER) - (s.has(o) ? s.get(o) : Number.MAX_SAFE_INTEGER);
+      return 0 !== c ? c : x.get(e) - x.get(t)
     }), state.manualOrderActive = !0, state.savedOrderRestored = !0
   }
   state.activeFilterViewId = e.id, state.activeFilterViewName = e.name, renderTable(), renderNamedFilterViews(), showToast(`Saved filter view “${e.name}” opened.`), t && setTimeout(openFilteredReport, 80)
