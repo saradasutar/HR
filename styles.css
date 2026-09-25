@@ -229,3 +229,10 @@ body.printing-diary #diaryPrintArea{display:block!important;color:#000;backgroun
 .diary-card:hover{box-shadow:0 10px 24px rgba(14,83,83,.13);transform:translateY(-1px)}
 .diary-card.is-learning-entry{border-left-color:#ffb020;background:linear-gradient(105deg,#fffdf5,#fff)}
 mark.diary-search-hit{padding:0 1px;border-radius:3px;color:#0b2436;background:#ffe38a}
+/* v1.6.93 -- fix duplicate title/details display, Personal badge parity, link field for Quick Diary */
+.diary-badge.personal{background:#e9defc;color:#5b2a91}
+.diary-card.is-personal-entry{border-left-color:#a273e8;background:linear-gradient(105deg,#faf7ff,#fff)}
+.sidebar-quick-diary-link{min-height:32px;padding:0 9px;margin-top:6px;border:1px solid rgba(255,255,255,.22);border-radius:9px;color:#fff;background:rgba(255,255,255,.06);font-size:10.5px}
+.sidebar-quick-diary-link::placeholder{color:#9fc2cf}
+.sidebar-quick-diary-link:focus{outline:0;border-color:#ffd166;background:rgba(255,255,255,.12)}
+.quick-diary-recent-link{flex:none;font-size:10px;opacity:.85}
