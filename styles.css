@@ -236,3 +236,19 @@ mark.diary-search-hit{padding:0 1px;border-radius:3px;color:#0b2436;background:#
 .sidebar-quick-diary-link::placeholder{color:#9fc2cf}
 .sidebar-quick-diary-link:focus{outline:0;border-color:#ffd166;background:rgba(255,255,255,.12)}
 .quick-diary-recent-link{flex:none;font-size:10px;opacity:.85}
+/* v1.6.94 -- fix inaccessible-looking form fields: visible scrollbar + more compact header so less scrolling is needed */
+.work-diary-modal .modal-header{padding:13px 22px}
+.work-diary-modal .modal-header h2{font-size:19px}
+.work-diary-modal .modal-header p{margin-top:2px;font-size:11px}
+.work-diary-modal .eyebrow{margin-bottom:1px;font-size:9px}
+.diary-entry-form{scrollbar-width:auto;scrollbar-color:#14a395 #dcece9;background:linear-gradient(#f6fbfb 30%,rgba(246,251,251,0)) local,linear-gradient(rgba(246,251,251,0),#f6fbfb 70%) local,radial-gradient(farthest-side at 50% 0,rgba(8,60,55,.22),rgba(8,60,55,0)) scroll,radial-gradient(farthest-side at 50% 100%,rgba(8,60,55,.22),rgba(8,60,55,0)) scroll;background-repeat:no-repeat;background-size:100% 36px,100% 36px,100% 12px,100% 12px;background-position:0 0,0 100%,0 0,0 100%;background-attachment:local,local,scroll,scroll;padding:15px;gap:8px}
+.diary-entry-form label{gap:3px;font-size:11px}
+.diary-entry-form input,.diary-entry-form select,.diary-entry-form textarea{padding:7px 9px;font-size:12.5px}
+#diaryEntryDetails{min-height:64px}
+.diary-marker-options{margin-top:-2px}
+.diary-entry-form::-webkit-scrollbar{width:10px}
+.diary-entry-form::-webkit-scrollbar-track{background:#dcece9}
+.diary-entry-form::-webkit-scrollbar-thumb{background:#14a395;border-radius:10px;border:2px solid #dcece9}
+.diary-entry-form::-webkit-scrollbar-thumb:hover{background:#0d7a6f}
+.work-diary-modal{max-height:97vh}
+.file-register-sheet,.work-diary-sheet{max-height:97vh}
