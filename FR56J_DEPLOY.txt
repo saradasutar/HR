@@ -1,0 +1,10 @@
+FR 56(j) module update
+1. Back up the existing Apps Script project and employee Sheet.
+2. Replace Apps Script Code.gs with supplied Code.gs (backend v1.6.5).
+3. Run setupFR56JRegister once and authorize.
+4. Deploy a NEW VERSION of the existing Apps Script web app (retain the deployment URL).
+5. Upload frontend files to the existing GitHub Pages repo including fr56.js and index.html.
+6. Hard refresh, sign in, click FR 56(j) Register.
+7. Ensure employee codes are unique and DoB / DoJ Govt / Grp are populated.
+8. Verify eligibility against official service records before relying on report.
+NOTE: Current module covers age-based FR56(j) only, not separate 30-year service-rule triggers. It does not change existing employee data.
