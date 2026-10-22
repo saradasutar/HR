@@ -1,0 +1,15 @@
+FR 56(j) REGISTER UPDATE — 22 October 2026
+
+The existing FR 56(j) Register now includes:
+- To be reviewed (selected quarter)
+- Already reviewed
+- Complete review register (saved entries including pending, deferred and reviewed)
+- All pending / overdue; All past and future; Data requiring verification
+- Record review status, actual review date, decision, file/committee reference and remarks
+- Print and CSV export including file reference
+
+Backend storage: FR56J Reviews sheet, now 12 columns; existing 11-column records remain intact. The twelfth column is File Reference.
+
+Deployment: Backup first. Replace Code.gs in Apps Script, save and run setupFR56JRegister, deploy new version. Replace frontend index.html, fr56.js and other site files as applicable; ensure index.html includes fr56.js. Clear browser cache.
+
+Important limitations: Current register is built from employees with Present strength status. It does not provide historical snapshots for transferred/retired employees. Age and 30-year service dates are provisional, and the 30-year provisions require verification of pension coverage and qualifying service. A record is saved by employee code, review quarter and provision; do not treat a recorded recommendation as final competent-authority decision unless independently verified. Live deployment was not tested.
