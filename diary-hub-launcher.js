@@ -44,4 +44,13 @@
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',placeButton,{once:true});
  else placeButton();
+ // Keep a second, always-visible shortcut when the HR sidebar is collapsed.
+ if(scope==='office'&&hrAnchor&&hrAnchor.parentElement&&!document.getElementById('sarniHubQuickLaunch')){
+  const quick=document.createElement('button');quick.id='sarniHubQuickLaunch';quick.type='button';
+  quick.textContent='📖 Office Diary';quick.setAttribute('aria-label','Open shared Office Diary');
+  quick.title='Open Shared Office Diary (SarNi master record)';
+  quick.style.cssText='position:fixed!important;right:14px!important;top:94px!important;bottom:auto!important;z-index:2147483000!important;display:block!important;visibility:visible!important;background:#176c4f!important;color:#fff!important;border:0!important;border-radius:12px!important;padding:11px 14px!important;font:700 13px system-ui!important;box-shadow:0 4px 15px #0f3b2650!important;cursor:pointer!important;';
+  quick.onclick=modal;document.body.appendChild(quick);
+ }
+
 })();
