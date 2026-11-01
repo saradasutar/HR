@@ -26,16 +26,22 @@
  }
  const btn=document.createElement('button');btn.type='button';btn.id='sarniHubLaunch';btn.textContent=scope==='office'?'📖 Shared Office Diary':scope==='analysis'?'📖 Stock & Wisdom Diary':'📖 Diary Centre';btn.setAttribute('aria-label','Open connected SarNi Diary Centre');
  btn.style.cssText='background:#176c4f!important;color:white!important;border:0!important;min-height:40px!important;padding:9px 12px!important;cursor:pointer!important;font:700 13px system-ui!important;border-radius:12px!important;box-shadow:0 4px 15px #0f3b2650!important;';btn.onclick=modal;btn.title='Open the shared Diary Centre';btn.setAttribute('aria-haspopup','dialog');btn.title='Open the shared Diary Centre';
- const hrAnchor=document.getElementById('workDiaryButton');
- if(scope==='office'&&hrAnchor&&hrAnchor.parentElement){btn.className='sidebar-nav-item';btn.style.cssText='display:block;width:100%;margin:6px 0;background:#176c4f!important;color:white!important;border:0!important;border-radius:11px;padding:12px;font-weight:750;cursor:pointer;';hrAnchor.after(btn);btn.style.setProperty('min-height','44px','important');btn.style.setProperty('display','block','important');btn.style.setProperty('visibility','visible','important');}
- else{btn.style.setProperty('position','fixed','important');btn.style.setProperty('right','14px','important');btn.style.setProperty('top','max(90px,env(safe-area-inset-top) + 90px)','important');btn.style.setProperty('bottom','auto','important');btn.style.setProperty('z-index','2147483000','important');btn.style.setProperty('display','block','important');btn.style.setProperty('visibility','visible','important');document.body.append(btn);}
- // Keep the launch action accessible even when a dashboard overlays its navigation.
- if(scope==='office'&&btn.parentElement!==document.body){
-   const quick=document.createElement('button');
-   quick.type='button';quick.id='sarniHubQuickLaunch';quick.textContent='📖 Office Diary';
-   quick.title='Open the shared Office Diary';
-   quick.onclick=modal;
-   quick.style.cssText='position:fixed!important;right:14px!important;top:90px!important;z-index:2147483000!important;display:block!important;visibility:visible!important;background:#176c4f!important;color:#fff!important;border:0!important;border-radius:12px!important;padding:11px 14px!important;font:700 13px system-ui!important;box-shadow:0 4px 15px #0f3b2650!important;cursor:pointer!important;';
-   document.body.append(quick);
+
+ // Keep the launcher accessible even when the HR sidebar is collapsed.
+ function placeButton(){
+   if(!document.body)return;
+   if(btn.parentElement!==document.body)document.body.appendChild(btn);
+   btn.className='sarni-hub-floating-launch';
+   btn.style.setProperty('position','fixed','important');
+   btn.style.setProperty('right','14px','important');
+   btn.style.setProperty('top','max(86px, calc(env(safe-area-inset-top) + 86px))','important');
+   btn.style.setProperty('bottom','auto','important');
+   btn.style.setProperty('z-index','2147483000','important');
+   btn.style.setProperty('display','block','important');
+   btn.style.setProperty('visibility','visible','important');
+   btn.style.setProperty('opacity','1','important');
+   btn.style.setProperty('pointer-events','auto','important');
  }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',placeButton,{once:true});
+ else placeButton();
 })();
