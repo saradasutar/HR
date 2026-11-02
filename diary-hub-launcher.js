@@ -13,7 +13,7 @@
   layer.style.cssText='position:fixed;inset:0;z-index:2147483640;background:#182b27c9;padding:8px;display:flex;align-items:center;justify-content:center;';
   const box=document.createElement('div');box.style.cssText='width:min(1100px,100%);height:min(94dvh,900px);max-height:100%;border-radius:17px;overflow:hidden;background:white;box-shadow:0 20px 70px #0006;display:flex;flex-direction:column;';
   const head=document.createElement('header');head.style.cssText='display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 14px;border-bottom:1px solid #dce9e0;color:#204a38;font-weight:750;font:700 15px system-ui;';
-  const label=document.createElement('span');label.textContent='SarNi · Shared Diary Centre';
+  const label=document.createElement('span');label.textContent='SarNi · Office Diary (separate sign-in)';
   const actions=document.createElement('div');actions.style.cssText='display:flex;gap:7px;';
   const external=document.createElement('a');external.href=root+'?scope='+scope+'&kind='+entryScope;external.target='_blank';external.rel='noopener noreferrer';external.textContent='Open in new tab';external.style.cssText='padding:8px;text-decoration:none;color:#155a47;font-size:12px;';
   const close=document.createElement('button');close.type='button';close.textContent='✕ Close';close.style.cssText='border:0;background:#e7f3eb;color:#285b44;border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;';
@@ -22,7 +22,7 @@
   function done(){layer.remove();document.removeEventListener('keydown',onKey);oldFocus?.focus?.();}
   function onKey(e){if(e.key==='Escape')done();}
   close.onclick=done;layer.onclick=e=>{if(e.target===layer)done();};document.addEventListener('keydown',onKey);
-  actions.append(external,close);head.append(label,actions);box.append(head,frame);layer.append(box);document.body.appendChild(layer);close.focus();
+  actions.append(external,close);head.append(label,actions);const hint=document.createElement('div');hint.textContent='Sign in with SarNi credentials. Entries are stored in the SarNi diary; HR copy requires its backend bridge to be configured.';hint.style.cssText='padding:6px 12px;font:12px system-ui;color:#4b655a;background:#eef6f1;';box.append(head,hint,frame);layer.append(box);document.body.appendChild(layer);close.focus();
  }
  const btn=document.createElement('button');btn.type='button';btn.id='sarniHubLaunch';btn.textContent=scope==='office'?'📖 Shared Office Diary':scope==='analysis'?'📖 Stock & Wisdom Diary':'📖 Diary Centre';btn.setAttribute('aria-label','Open connected SarNi Diary Centre');
  btn.style.cssText='background:#176c4f!important;color:white!important;border:0!important;min-height:40px!important;padding:9px 12px!important;cursor:pointer!important;font:700 13px system-ui!important;border-radius:12px!important;box-shadow:0 4px 15px #0f3b2650!important;';btn.onclick=modal;btn.title='Open the shared Diary Centre';btn.setAttribute('aria-haspopup','dialog');btn.title='Open the shared Diary Centre';
