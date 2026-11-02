@@ -86,8 +86,7 @@ Click **Reports & Print** to prepare office-ready employee reports without chang
 
 - `github-pages/` — public frontend files (`index.html`, `styles.css`, `app.js`)
 - `apps-script/` — protected Google Apps Script backend (`Code.gs`, `appsscript.json`)
-- `Employee_Replacement_Ready_v1.5.5.csv` — validated 37-row complete replacement file
-- `Employee_Replacement_Ready_v1.5.5.xlsx` — formatted review copy of the replacement data
+- **Private employee data is intentionally excluded from this public repository.** Store full employee lists, replacement CSV/XLSX files, and exports only in protected Drive/Sheets with appropriate access permissions. The public Git history still requires separate cleanup if employee files were previously committed.
 - `Employee_Import_Template.xlsx` — blank bulk employee import template
 - `SETUP_GUIDE.md` — non-coder deployment instructions
 
