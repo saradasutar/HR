@@ -1,0 +1,22 @@
+name: Frontend JavaScript syntax check
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse critical frontend scripts
+        run: |
+          node --check app.js
+          node --check fr56.js
+          node --check admin-panel.js
+          node --check diary-hub-launcher.js
