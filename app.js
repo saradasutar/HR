@@ -2570,13 +2570,23 @@ function diaryEntryMarkup(e) {
 function hrDiaryFlag_(tags, name) { return String(tags || "").split(",").some(x => x.trim().toLowerCase() === name); }
 function hrDiaryDueFromTags_(tags){const m=String(tags||"").match(/(?:^|,)\s*follow-up-due:(\d{4}-\d{2}-\d{2})(?:\s*,|$)/i);return m?m[1]:"";}
 function hrUpdateFollowupDates_(){
- const full=!!refs.diaryEntryFollowUp?.checked;
- if(refs.diaryEntryDueRow)refs.diaryEntryDueRow.hidden=!full;
- if(refs.diaryEntryDueDate)refs.diaryEntryDueDate.disabled=!full;
- const quick=!!refs.sidebarQuickDiaryForm?.elements.namedItem("quickFollow")?.checked;
- if(refs.sidebarQuickDiaryDueRow)refs.sidebarQuickDiaryDueRow.hidden=!quick;
- if(refs.sidebarQuickDiaryDueDate)refs.sidebarQuickDiaryDueDate.disabled=!quick;
+ const fullCheckbox=refs.diaryEntryFollowUp||document.getElementById("diaryEntryFollowUp");
+ const fullRow=refs.diaryEntryDueRow||document.getElementById("diaryEntryDueRow");
+ const fullDate=refs.diaryEntryDueDate||document.getElementById("diaryEntryDueDate");
+ const quickCheckbox=refs.sidebarQuickDiaryForm?.elements.namedItem("quickFollow")||document.querySelector('#sidebarQuickDiaryForm input[name="quickFollow"]');
+ const quickRow=refs.sidebarQuickDiaryDueRow||document.getElementById("sidebarQuickDiaryDueRow");
+ const quickDate=refs.sidebarQuickDiaryDueDate||document.getElementById("sidebarQuickDiaryDueDate");
+ const full=!!fullCheckbox?.checked,quick=!!quickCheckbox?.checked;
+ if(fullRow){fullRow.hidden=!full;fullRow.style.display=full?"flex":"none";}
+ if(fullDate)fullDate.disabled=!full;
+ if(quickRow){quickRow.hidden=!quick;quickRow.style.display=quick?"flex":"none";}
+ if(quickDate)quickDate.disabled=!quick;
 }
+/* Delegated fallback for forms with dynamic or delayed initialization. */
+document.addEventListener("change",event=>{
+ const target=event.target;
+ if(target?.id==="diaryEntryFollowUp"||target?.name==="quickFollow")hrUpdateFollowupDates_();
+});
 function hrDiaryMarkingTags_(tags,monthly,followUp,learning,dueDate=""){
  const reserved=["monthly-highlight","needs-follow-up","mark-learning"];
  const parts=String(tags||"").split(",").map(x=>x.trim()).filter(Boolean).filter(x=>!reserved.includes(x.toLowerCase())&&!/^follow-up-due:\d{4}-\d{2}-\d{2}$/i.test(x));
