@@ -335,3 +335,54 @@ mark.diary-search-hit{padding:0 1px;border-radius:3px;color:#0b2436;background:#
 /* No draggable scroll handle in the diary's left editor; wheel/touch scrolling still works. */
 .diary-entry-form{scrollbar-width:none!important;-ms-overflow-style:none!important;overflow-x:hidden!important}
 .diary-entry-form::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
+
+
+/* HR sidebar Quick Diary: all four marking choices in a single horizontal row. */
+.dashboard-sidebar .sidebar-quick-diary-category{
+ display:grid!important;
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ gap:4px!important;
+ width:100%!important;
+ min-width:0!important;
+ align-items:stretch!important;
+}
+.dashboard-sidebar .sidebar-quick-diary-category>strong{
+ grid-column:1/-1!important;
+ margin:0 0 2px!important;
+}
+.dashboard-sidebar .sidebar-quick-diary-category>label:not(.hr-followup-due){
+ display:flex!important;
+ flex-direction:row!important;
+ align-items:center!important;
+ justify-content:center!important;
+ gap:3px!important;
+ padding:5px 2px!important;
+ min-width:0!important;
+ min-height:31px!important;
+ width:100%!important;
+ max-width:100%!important;
+ white-space:nowrap!important;
+ font-size:clamp(8px,0.75vw,10px)!important;
+ line-height:1.1!important;
+}
+.dashboard-sidebar .sidebar-quick-diary-category>label:not(.hr-followup-due)>input[type=checkbox]{
+ width:12px!important;
+ height:12px!important;
+ min-width:12px!important;
+ flex:0 0 12px!important;
+ margin:0!important;
+}
+.dashboard-sidebar .sidebar-quick-diary-category>label:not(.hr-followup-due)>span{
+ white-space:nowrap!important;
+ overflow:visible!important;
+ overflow-wrap:normal!important;
+ font-size:inherit!important;
+}
+.dashboard-sidebar .sidebar-quick-diary-category>.hr-followup-due{
+ grid-column:1/-1!important;
+}
+@media(max-width:360px){
+ .dashboard-sidebar .sidebar-quick-diary-category{gap:2px!important}
+ .dashboard-sidebar .sidebar-quick-diary-category>label:not(.hr-followup-due){font-size:8px!important;gap:2px!important;padding:4px 1px!important}
+ .dashboard-sidebar .sidebar-quick-diary-category>label:not(.hr-followup-due)>input[type=checkbox]{width:11px!important;height:11px!important;min-width:11px!important;flex-basis:11px!important}
+}
