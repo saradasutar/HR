@@ -3568,6 +3568,9 @@ async function openAdministrationSettings() {
       applySessionTimeoutResponse(await apiRequest("getSecuritySettings", {})), refs.sessionTimeoutMinutes.value = String(state.sessionTimeoutMinutes);
       const e = await apiRequest("getFileRegisterSettings", {});
       refs.fileRegisterSpreadsheetUrl.value = e.spreadsheetId ? `https://docs.google.com/spreadsheets/d/${e.spreadsheetId}/edit` : ""
+      const permissions = await apiRequest("getHRModulePermissions", {});
+      const viewerToggle = document.getElementById("viewerFileRegisterEnabled");
+      if (viewerToggle) viewerToggle.checked = Boolean(permissions.viewerFileRegister);
     } catch (e) {
       state.sessionTimeoutMinutes = 5, updateSessionSecurityText(), armSessionIdleTimer(), refs.securitySettingsError.textContent = `The saved setting could not be loaded. Secure fallback: 5 minutes. ${friendlyError(e)}`
     }
@@ -3583,6 +3586,8 @@ async function saveSecuritySettings(e) {
       await apiRequest("saveFileRegisterSettings", {
         spreadsheetUrl: refs.fileRegisterSpreadsheetUrl.value.trim()
       });
+      const viewerToggle = document.getElementById("viewerFileRegisterEnabled");
+      if (viewerToggle) await apiRequest("saveHRModulePermissions", { viewerFileRegister: viewerToggle.checked });
       applySessionTimeoutResponse(await apiRequest("saveSecuritySettings", {
         sessionTimeoutMinutes: t
       }));
