@@ -85,15 +85,7 @@
         <p class="sidebar-section-label">Quick Diary</p>
         <form id="sidebarQuickDiaryForm" class="sidebar-quick-diary-form">
           <textarea id="sidebarQuickDiaryInput" maxlength="500" rows="3" placeholder="Write today's entry… (Ctrl+Enter to save)" required></textarea>
-          <div class="sidebar-quick-diary-category" role="radiogroup" aria-label="Entry category">
-            <label class="cat-work"><input type="radio" name="sidebarQuickDiaryCategory" value="General Work" checked> <span>💼 General Work</span></label>
-            <label class="cat-learning"><input type="radio" name="sidebarQuickDiaryCategory" value="Learning/Knowledge"> <span>💡 Learning/Knowledge</span></label>
-            <label class="cat-work"><input type="radio" name="sidebarQuickDiaryCategory" value="Planning"> <span>Planning</span></label>
-            <label class="cat-work"><input type="radio" name="sidebarQuickDiaryCategory" value="Meeting/Discussion"> <span>Meeting/Discussion</span></label>
-            
-            <label class="cat-work"><input type="radio" name="sidebarQuickDiaryCategory" value="Decision/Instruction"> <span>Decision/Instruction</span></label>
-            
-          </div>
+          <div class="sidebar-quick-diary-category" role="group" aria-label="Mark this Office Diary entry"><strong>Mark:</strong><label class="cat-work"><input type="checkbox" name="quickImp"><span>Imp.</span></label><label class="cat-work"><input type="checkbox" name="quickMonthly"><span>Monthly</span></label><label class="cat-learning"><input type="checkbox" name="quickLearn"><span>Learn</span></label><label class="cat-work"><input type="checkbox" name="quickFollow"><span>Follow-up</span></label></div>
           <button type="submit">Save</button>
         </form>
         <p id="sidebarQuickDiaryError" class="form-error" role="alert"></p>
@@ -577,12 +569,12 @@
           <label class="diary-title-field"><span>Title * <b id="diaryTitleCounter" class="field-counter">0/140</b></span><input id="diaryEntryTitle" maxlength="140" required placeholder="Short, clear heading" autocomplete="off"></label>
           <label class="diary-details-field"><span>Details *</span><textarea id="diaryEntryDetails" maxlength="10000" rows="4" required placeholder="Write any number of lines… (Ctrl+Enter to save)"></textarea></label>
           <div class="diary-field-row">
-            <label><span>Category</span><select id="diaryEntryCategory"><option>General Work</option><option>Planning</option><option>Meeting/Discussion</option><option>Decision/Instruction</option><option>Learning/Knowledge</option></select></label>
+            <label hidden><span>Category (automatic)</span><select id="diaryEntryCategory"><option>General Work</option><option>Learning/Knowledge</option></select></label>
             <label><span>Tags</span><input id="diaryEntryTags" maxlength="300" placeholder="RTI, Training, Administration"></label>
           </div>
           <label><span>Related employee</span><input id="diaryEntryEmployee" maxlength="160" list="diaryEmployeeSuggestions" placeholder="Optional"><datalist id="diaryEmployeeSuggestions"></datalist></label>
           <label><span>Visibility</span><select id="diaryEntryVisibility"><option>Private</option><option>Administrators</option><option>All signed-in users</option></select></label>
-          <div class="diary-marker-options"><label><input id="diaryEntryLearning" type="checkbox"> <span>💡 Mark as Learning</span></label><label><input id="diaryEntryImportant" type="checkbox"> <span>★ Important</span></label><label><input id="diaryEntryMonthly" type="checkbox"> <span>Monthly</span></label><label><input id="diaryEntryFollowUp" type="checkbox"> <span>Follow-up</span></label></div>
+          <div class="diary-marker-options" role="group" aria-label="Mark this entry"><strong>Mark:</strong><label><input id="diaryEntryImportant" type="checkbox"><span>Imp.</span></label><label><input id="diaryEntryMonthly" type="checkbox"><span>Monthly</span></label><label><input id="diaryEntryLearning" type="checkbox"><span>Learn</span></label><label><input id="diaryEntryFollowUp" type="checkbox"><span>Follow-up</span></label></div>
           <p id="diaryEntryError" class="form-error" role="alert"></p>
           <button id="saveDiaryEntryButton" class="primary-btn diary-save-btn" type="submit">Save diary entry</button>
         </form>
