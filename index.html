@@ -13,8 +13,8 @@
   <link rel="preconnect" href="https://script.google.com">
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
   <link rel="dns-prefetch" href="//script.google.com">
-  <link rel="preload" href="app.js?v=20260901-row-edit-restored-1659" as="script">
-  <link rel="stylesheet" href="styles.css?v=20260901-row-edit-restored-1659">
+  <link rel="preload" href="app.js?v=20261022-deepcache-1" as="script">
+  <link rel="stylesheet" href="styles.css?v=20261022-deepcache-1">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -58,6 +58,10 @@
           <button id="loginButton" class="primary-btn login-btn" type="submit">
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
+          <div class="login-cache-tools">
+            <button id="loginDeepCacheClear" class="login-cache-button" type="button" title="Clear this dashboard’s locally saved settings and refresh its files">↻ Deep Clear Cache &amp; Refresh</button>
+            <p id="loginCacheStatus" class="login-cache-status" role="status" aria-live="polite">Use if an older dashboard version appears. You will need to sign in again.</p>
+          </div>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
           <p id="loginSessionSecurityNote" class="session-security-note">🔐 Automatic sign-out setting is being checked…</p>
           <div class="version-pair login-version-pair" aria-label="Application versions">
@@ -653,8 +657,32 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
-  <script src="fr56.js?v=20261022-history"></script>
-  <script src="app.js?v=20260901-row-edit-restored-1659"></script>
-  <script defer src="./diary-hub-launcher.js?v=20261101-directfix3"></script>
+  <script>
+  (function () {
+    'use strict';
+    var btn = document.getElementById('loginDeepCacheClear');
+    var status = document.getElementById('loginCacheStatus');
+    if (!btn) return;
+    btn.addEventListener('click', async function () {
+      if (!window.confirm('Clear locally saved HR Dashboard settings, column widths and this tab’s login session, then refresh? Google Sheets and server records will NOT be deleted.')) return;
+      btn.disabled = true;
+      status.textContent = 'Clearing local settings and refreshing…';
+      try { sessionStorage.clear(); } catch (_) {}
+      try { localStorage.clear(); } catch (_) {}
+      try {
+        if ('caches' in window) {
+          var keys = await caches.keys();
+          await Promise.all(keys.filter(function (k) { return /^(hr|dashboard|workbox)/i.test(k); }).map(function (k) { return caches.delete(k); }));
+        }
+      } catch (_) {}
+      // Reload with a unique URL to bypass cached HTML; asset versions are updated on deployment.
+      var url = new URL(window.location.href);
+      url.searchParams.set('hr_refresh', String(Date.now()));
+      window.location.replace(url.toString());
+    });
+  }());
+  </script>
+  <script src="fr56.js?v=20261022-deepcache-1"></script>
+  <script src="app.js?v=20261022-deepcache-1"></script>
 </body>
 </html>

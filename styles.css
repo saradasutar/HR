@@ -252,3 +252,10 @@ mark.diary-search-hit{padding:0 1px;border-radius:3px;color:#0b2436;background:#
 .diary-entry-form::-webkit-scrollbar-thumb:hover{background:#0d7a6f}
 .work-diary-modal{max-height:97vh}
 .file-register-sheet,.work-diary-sheet{max-height:97vh}
+
+/* Login deep-cache refresh action */
+.login-cache-tools{margin:12px 0 4px;text-align:center}
+.login-cache-button{width:100%;min-height:43px;padding:9px 14px;border:1px solid #0e7490;border-radius:12px;background:#e7f7fc;color:#075985;font-size:13px;font-weight:900;cursor:pointer}
+.login-cache-button:hover,.login-cache-button:focus-visible{background:#cffafe;outline:2px solid #67e8f9;outline-offset:2px}
+.login-cache-button:disabled{opacity:.65;cursor:wait}
+.login-cache-status{margin:6px 0 0;color:#526c7b;font-size:11px;line-height:1.45}
