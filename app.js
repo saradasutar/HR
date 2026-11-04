@@ -2570,7 +2570,7 @@ function diaryEntryMarkup(e) {
 async function hrDiaryFlag_(tags, name) { return String(tags || "").split(",").some(x => x.trim().toLowerCase() === name); }
 function hrDiaryMarkingTags_(tags,monthly,followUp,learning){const reserved=["monthly-highlight","needs-follow-up","mark-learning"];const parts=String(tags||"").split(",").map(x=>x.trim()).filter(Boolean).filter(x=>!reserved.includes(x.toLowerCase()));if(monthly)parts.push("monthly-highlight");if(followUp)parts.push("needs-follow-up");if(learning)parts.push("mark-learning");return [...new Set(parts)].join(", ").slice(0,300);}
 function hrDiaryMatchesCategory_(r,c){if(!c)return true;const tags=String(r.tags||"").toLowerCase().split(",").map(x=>x.trim());if(c==="Important")return !!r.important;if(c==="Monthly")return tags.includes("monthly-highlight");if(c==="Learning")return !!r.learning||tags.includes("mark-learning")||r.category==="Learning/Knowledge";if(c==="Follow-up")return tags.includes("needs-follow-up")||r.category==="Follow-up";if(c==="General Work")return !r.important&&!r.learning&&!tags.some(x=>["monthly-highlight","mark-learning","needs-follow-up"].includes(x))&&["General Work","Work",""].includes(r.category||"");return r.category===c;}
-function saveDiaryEntry(e) {
+async function saveDiaryEntry(e) {
   e.preventDefault(), refs.diaryEntryError.textContent = "";
   const t = {
     id: state.diaryEditId,
