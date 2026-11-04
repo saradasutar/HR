@@ -2601,7 +2601,7 @@ function handleDiaryAction(e) {
 
 function editDiaryEntry(e) {
   const t = state.diaryEntries.find(t => t.id === e);
-  t && (state.diaryEditId = e, refs.diaryEntryId.value = e, refs.diaryEntryDate.value = t.entryDate, refs.diaryEntryTitle.value = t.title, refs.diaryEntryDetails.value = t.details, refs.diaryEntryCategory.value = t.category || "Work", refs.diaryEntryTags.value = t.tags || "", refs.diaryEntryEmployee.value = t.relatedEmployee || "", refs.diaryEntryVisibility.value = t.visibility || "Private", refs.diaryEntryLearning.checked = Boolean(t.learning), refs.diaryEntryImportant.checked = Boolean(t.important), refs.diaryFormHeading.textContent = "Edit diary entry", refs.cancelDiaryEditButton.hidden = !1, updateDiaryTitleCounter(), autoGrowDiaryDetails(), refs.diaryEntryTitle.focus())
+  t && (state.diaryEditId = e, refs.diaryEntryId.value = e, refs.diaryEntryDate.value = t.entryDate, refs.diaryEntryTitle.value = t.title, refs.diaryEntryDetails.value = t.details, refs.diaryEntryCategory.value = t.category || "General Work", refs.diaryEntryTags.value = t.tags || "", refs.diaryEntryEmployee.value = t.relatedEmployee || "", refs.diaryEntryVisibility.value = t.visibility || "Private", refs.diaryEntryLearning.checked = Boolean(t.learning), refs.diaryEntryImportant.checked = Boolean(t.important), refs.diaryFormHeading.textContent = "Edit diary entry", refs.cancelDiaryEditButton.hidden = !1, updateDiaryTitleCounter(), autoGrowDiaryDetails(), refs.diaryEntryTitle.focus())
 }
 async function deleteDiaryEntry(e) {
   const t = state.diaryEntries.find(t => t.id === e);
