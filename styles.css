@@ -259,3 +259,12 @@ mark.diary-search-hit{padding:0 1px;border-radius:3px;color:#0b2436;background:#
 .login-cache-button:hover,.login-cache-button:focus-visible{background:#cffafe;outline:2px solid #67e8f9;outline-offset:2px}
 .login-cache-button:disabled{opacity:.65;cursor:wait}
 .login-cache-status{margin:6px 0 0;color:#526c7b;font-size:11px;line-height:1.45}
+
+
+/* Office Diary: optional Follow-up due date, in full editor and sidebar. */
+.hr-followup-due[hidden]{display:none!important}
+.hr-followup-due{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:7px 0 10px;font-size:12px;font-weight:650}
+.hr-followup-due span{white-space:nowrap}
+.hr-followup-due input[type=date]{min-width:145px;max-width:210px;min-height:36px;padding:6px 8px;border:1px solid var(--border,#cddbd5);border-radius:8px;background:#fff}
+.sidebar-quick-diary .hr-followup-due{font-size:11px;margin:5px 0 8px}
+.sidebar-quick-diary .hr-followup-due input[type=date]{min-width:130px;max-width:180px}
