@@ -2471,7 +2471,7 @@ function populateDiaryFilters() {
   refs.workDiaryCount && (refs.workDiaryCount.textContent = String(state.diaryEntries.length));
   const e = [...new Set(state.diaryEntries.map(e => String(e.entryDate || "").slice(0, 7)).filter(Boolean))].sort().reverse(),
     y = [...new Set(state.diaryEntries.map(e => String(e.entryDate || "").slice(0, 4)).filter(Boolean))].sort().reverse(),
-    t = [...new Set(state.diaryEntries.map(e => e.category).filter(Boolean))].sort(),
+    t = ["General Work","Important","Monthly","Learning","Follow-up",...new Set(state.diaryEntries.map(e=>e.category).filter(x=>x&&!["General Work","Learning/Knowledge"].includes(x)))],
     r = [...new Set(state.diaryEntries.map(e => e.source).filter(Boolean))].sort(),
     s = refs.diaryMonthFilter.value,
     y0 = refs.diaryYearFilter.value,
@@ -2486,7 +2486,7 @@ function diaryFilteredEntries() {
     y = refs.diaryYearFilter.value,
     r = refs.diaryCategoryFilter.value,
     s = refs.diarySourceFilter.value;
-  return state.diaryEntries.filter(o => !(t && !String(o.entryDate).startsWith(t)) && !(y && !String(o.entryDate).startsWith(y)) && ((!r || o.category === r) && ((!s || o.source === s) && (!("learning" === state.diaryView && !o.learning) && !(e && ![o.title, o.details, o.category, o.tags, o.relatedEmployee, o.source, o.createdBy].join(" ").toLowerCase().includes(e))))))
+  return state.diaryEntries.filter(o => !(t && !String(o.entryDate).startsWith(t)) && !(y && !String(o.entryDate).startsWith(y)) && ((!r || hrDiaryMatchesCategory_(o,r)) && ((!s || o.source === s) && (!("learning" === state.diaryView && !o.learning) && !(e && ![o.title, o.details, o.category, o.tags, o.relatedEmployee, o.source, o.createdBy].join(" ").toLowerCase().includes(e))))))
 }
 
 function renderDiaryEntries() {
@@ -2568,7 +2568,8 @@ function diaryEntryMarkup(e) {
   return `<article class="diary-card${e.important?" is-important":""}${e.learning?" is-learning-entry":""}${i?" is-personal-entry":""}"><header><time>${escapeHtml(formatDate(e.entryDate))}</time><div>${r}</div></header><h4>${highlightDiaryText(e.title,n)}</h4>${a?`<p>${highlightDiaryText(e.details,n)}</p>`:""}<div class="diary-meta">${e.category?`<span>${escapeHtml(e.category)}</span>`:""}${e.tags?`<span># ${escapeHtml(e.tags)}</span>`:""}${e.relatedEmployee?`<span>👤 ${escapeHtml(e.relatedEmployee)}</span>`:""}${e.createdBy?`<span>By ${escapeHtml(e.createdBy)}</span>`:""}</div><footer>${e.link?`<a href="${escapeAttribute(e.link)}" target="_blank" rel="noopener">🔗 Open link ↗</a>`:"<span></span>"}${t?`<div><button type="button" data-edit-diary="${escapeAttribute(e.id)}">Edit</button><button type="button" class="delete" data-delete-diary="${escapeAttribute(e.id)}">Delete</button></div>`:""}</footer></article>`
 }
 async function hrDiaryFlag_(tags, name) { return String(tags || "").split(",").some(x => x.trim().toLowerCase() === name); }
-function hrDiaryMarkingTags_(tags, monthly, followUp) { const parts = String(tags || "").split(",").map(x=>x.trim()).filter(Boolean).filter(x=>!["monthly-highlight","needs-follow-up"].includes(x.toLowerCase())); if(monthly) parts.push("monthly-highlight"); if(followUp) parts.push("needs-follow-up"); return [...new Set(parts)].join(", ").slice(0,300); }
+function hrDiaryMarkingTags_(tags,monthly,followUp,learning){const reserved=["monthly-highlight","needs-follow-up","mark-learning"];const parts=String(tags||"").split(",").map(x=>x.trim()).filter(Boolean).filter(x=>!reserved.includes(x.toLowerCase()));if(monthly)parts.push("monthly-highlight");if(followUp)parts.push("needs-follow-up");if(learning)parts.push("mark-learning");return [...new Set(parts)].join(", ").slice(0,300);}
+function hrDiaryMatchesCategory_(r,c){if(!c)return true;const tags=String(r.tags||"").toLowerCase().split(",").map(x=>x.trim());if(c==="Important")return !!r.important;if(c==="Monthly")return tags.includes("monthly-highlight");if(c==="Learning")return !!r.learning||tags.includes("mark-learning")||r.category==="Learning/Knowledge";if(c==="Follow-up")return tags.includes("needs-follow-up")||r.category==="Follow-up";if(c==="General Work")return !r.important&&!r.learning&&!tags.some(x=>["monthly-highlight","mark-learning","needs-follow-up"].includes(x))&&["General Work","Work",""].includes(r.category||"");return r.category===c;}
 function saveDiaryEntry(e) {
   e.preventDefault(), refs.diaryEntryError.textContent = "";
   const t = {
@@ -2576,12 +2577,12 @@ function saveDiaryEntry(e) {
     entryDate: refs.diaryEntryDate.value,
     title: refs.diaryEntryTitle.value.trim(),
     details: refs.diaryEntryDetails.value.trim(),
-    category: refs.diaryEntryCategory.value,
-    tags: hrDiaryMarkingTags_(refs.diaryEntryTags.value.trim(), refs.diaryEntryMonthly.checked, refs.diaryEntryFollowUp.checked),
+    category: refs.diaryEntryLearning.checked ? "Learning/Knowledge" : "General Work",
+    tags: hrDiaryMarkingTags_(refs.diaryEntryTags.value.trim(), refs.diaryEntryMonthly.checked, refs.diaryEntryFollowUp.checked, refs.diaryEntryLearning.checked),
     relatedEmployee: refs.diaryEntryEmployee.value.trim(),
     link: "",
     visibility: refs.diaryEntryVisibility.value,
-    learning: refs.diaryEntryLearning.checked || refs.diaryEntryCategory.value === "Learning/Knowledge",
+    learning: refs.diaryEntryLearning.checked,
     important: refs.diaryEntryImportant.checked
   };
   setButtonBusy(refs.saveDiaryEntryButton, !0, "Saving…");
@@ -2603,7 +2604,7 @@ function handleDiaryAction(e) {
 
 function editDiaryEntry(e) {
   const t = state.diaryEntries.find(t => t.id === e);
-  t && (state.diaryEditId = e, refs.diaryEntryId.value = e, refs.diaryEntryDate.value = t.entryDate, refs.diaryEntryTitle.value = t.title, refs.diaryEntryDetails.value = t.details, refs.diaryEntryCategory.value = t.category || "General Work", refs.diaryEntryTags.value = t.tags || "", refs.diaryEntryEmployee.value = t.relatedEmployee || "", refs.diaryEntryVisibility.value = t.visibility || "Private", refs.diaryEntryLearning.checked = Boolean(t.learning), refs.diaryEntryImportant.checked = Boolean(t.important), refs.diaryEntryMonthly.checked = hrDiaryFlag_(t.tags,"monthly-highlight"), refs.diaryEntryFollowUp.checked = hrDiaryFlag_(t.tags,"needs-follow-up"), refs.diaryFormHeading.textContent = "Edit diary entry", refs.cancelDiaryEditButton.hidden = !1, updateDiaryTitleCounter(), autoGrowDiaryDetails(), refs.diaryEntryTitle.focus())
+  t && (state.diaryEditId = e, refs.diaryEntryId.value = e, refs.diaryEntryDate.value = t.entryDate, refs.diaryEntryTitle.value = t.title, refs.diaryEntryDetails.value = t.details, refs.diaryEntryCategory.value = t.category || "General Work", refs.diaryEntryTags.value = t.tags || "", refs.diaryEntryEmployee.value = t.relatedEmployee || "", refs.diaryEntryVisibility.value = t.visibility || "Private", refs.diaryEntryLearning.checked = Boolean(t.learning)||hrDiaryFlag_(t.tags,"mark-learning")||t.category==="Learning/Knowledge", refs.diaryEntryImportant.checked = Boolean(t.important), refs.diaryEntryMonthly.checked = hrDiaryFlag_(t.tags,"monthly-highlight"), refs.diaryEntryFollowUp.checked = hrDiaryFlag_(t.tags,"needs-follow-up"), refs.diaryFormHeading.textContent = "Edit diary entry", refs.cancelDiaryEditButton.hidden = !1, updateDiaryTitleCounter(), autoGrowDiaryDetails(), refs.diaryEntryTitle.focus())
 }
 async function deleteDiaryEntry(e) {
   const t = state.diaryEntries.find(t => t.id === e);
@@ -2720,24 +2721,24 @@ async function saveSidebarQuickDiaryEntry(e) {
   e.preventDefault(), refs.sidebarQuickDiaryError.textContent = "";
   const t = refs.sidebarQuickDiaryInput.value.trim();
   if (!t) return;
-  const n = (refs.sidebarQuickDiaryForm.querySelector('input[name="sidebarQuickDiaryCategory"]:checked') || {}).value || "General Work",
-    r = {
+  const form=refs.sidebarQuickDiaryForm,imp=!!form.elements.namedItem("quickImp")?.checked,month=!!form.elements.namedItem("quickMonthly")?.checked,learn=!!form.elements.namedItem("quickLearn")?.checked,follow=!!form.elements.namedItem("quickFollow")?.checked;
+  const r = {
     id: "",
     entryDate: isoToday(),
     title: deriveQuickDiaryTitle(t),
     details: t,
-    category: n,
-    tags: "",
+    category: learn ? "Learning/Knowledge" : "General Work",
+    tags: hrDiaryMarkingTags_("",month,follow,learn),
     relatedEmployee: "",
     link: "",
     visibility: "Private",
-    learning: "Learning/Knowledge" === n,
-    important: !1
+    learning: learn,
+    important: imp
   }, s = refs.sidebarQuickDiaryForm.querySelector('button[type="submit"]');
   setButtonBusy(s, !0, "…");
   try {
     const e = await apiRequest("saveDiaryEntry", r);
-    state.diaryEntries = e.entries || [], refs.sidebarQuickDiaryInput.value = "", refs.sidebarQuickDiaryForm.querySelector('input[value="General Work"]').checked = !0, refs.workDiaryCount && (refs.workDiaryCount.textContent = String(state.diaryEntries.length)), refs.workDiaryDialog.open && (populateDiaryFilters(), renderDiaryEntries()), renderSidebarQuickDiaryList(), refs.sidebarQuickDiaryInput.focus()
+    state.diaryEntries = e.entries || [], refs.sidebarQuickDiaryInput.value = "", refs.sidebarQuickDiaryForm.reset(), refs.workDiaryCount && (refs.workDiaryCount.textContent = String(state.diaryEntries.length)), refs.workDiaryDialog.open && (populateDiaryFilters(), renderDiaryEntries()), renderSidebarQuickDiaryList(), refs.sidebarQuickDiaryInput.focus()
   } catch (e) {
     refs.sidebarQuickDiaryError.textContent = friendlyError(e)
   } finally {
