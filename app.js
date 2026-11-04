@@ -2779,8 +2779,15 @@ function printDiaryEntries() {
 async function openFileRegister() {
   refs.fileRecordError.textContent = "", refs.fileRegisterDialog.open || refs.fileRegisterDialog.showModal();
   try {
-    const [e, t] = await Promise.all([apiRequest("getFileRecords", {}), apiRequest("getFileRegisterSettings", {})]);
-    state.fileRecords = e.records || [], refs.fileRegisterStorageNote.textContent = t.usesMainSpreadsheet ? "Using the File Register tab in the HR spreadsheet." : "Connected to a separate Google Sheet.", renderFileRecords()
+    const recordsResponse = await apiRequest("getFileRecords", {});
+    state.fileRecords = recordsResponse.records || [];
+    if (state.role === "admin") {
+      const settings = await apiRequest("getFileRegisterSettings", {});
+      refs.fileRegisterStorageNote.textContent = settings.usesMainSpreadsheet ? "Using the File Register tab in the HR spreadsheet." : "Connected to a separate Google Sheet.";
+    } else {
+      refs.fileRegisterStorageNote.textContent = "File Register access is controlled by the administrator.";
+    }
+    renderFileRecords()
   } catch (e) {
     refs.fileRecordError.textContent = friendlyError(e)
   }
