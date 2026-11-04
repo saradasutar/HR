@@ -85,8 +85,7 @@
         <p class="sidebar-section-label">Quick Diary</p>
         <form id="sidebarQuickDiaryForm" class="sidebar-quick-diary-form">
           <textarea id="sidebarQuickDiaryInput" maxlength="500" rows="3" placeholder="Write today's entry… (Ctrl+Enter to save)" required></textarea>
-          <div class="sidebar-quick-diary-category" role="group" aria-label="Mark this Office Diary entry"><strong>Mark:</strong><label class="cat-work"><input type="checkbox" name="quickImp"><span>Imp.</span></label><label class="cat-work"><input type="checkbox" name="quickMonthly"><span>Monthly</span></label><label class="cat-learning"><input type="checkbox" name="quickLearn"><span>Learn</span></label><label class="cat-work"><input type="checkbox" name="quickFollow"><span>Follow-up</span></label></div>
-          <label id="sidebarQuickDiaryDueRow" class="hr-followup-due" hidden><span>Due date (optional)</span><input id="sidebarQuickDiaryDueDate" type="date" disabled></label>
+          <div class="sidebar-quick-diary-category" role="group" aria-label="Mark this Office Diary entry"><strong>Mark:</strong><label class="cat-work"><input type="checkbox" name="quickImp"><span>Imp.</span></label><label class="cat-work"><input type="checkbox" name="quickMonthly"><span>Monthly</span></label><label class="cat-learning"><input type="checkbox" name="quickLearn"><span>Learn</span></label><label class="cat-work"><input type="checkbox" name="quickFollow"><span>Follow-up</span></label><label id="sidebarQuickDiaryDueRow" class="hr-followup-due" hidden><span>Due date (optional)</span><input id="sidebarQuickDiaryDueDate" type="date" disabled></label></div>
           <button type="submit">Save</button>
         </form>
         <p id="sidebarQuickDiaryError" class="form-error" role="alert"></p>
@@ -575,8 +574,7 @@
           </div>
           <label><span>Related employee</span><input id="diaryEntryEmployee" maxlength="160" list="diaryEmployeeSuggestions" placeholder="Optional"><datalist id="diaryEmployeeSuggestions"></datalist></label>
           <label><span>Visibility</span><select id="diaryEntryVisibility"><option>Private</option><option>Administrators</option><option>All signed-in users</option></select></label>
-          <div class="diary-marker-options" role="group" aria-label="Mark this entry"><strong>Mark:</strong><label><input id="diaryEntryImportant" type="checkbox"><span>Imp.</span></label><label><input id="diaryEntryMonthly" type="checkbox"><span>Monthly</span></label><label><input id="diaryEntryLearning" type="checkbox"><span>Learn</span></label><label><input id="diaryEntryFollowUp" type="checkbox"><span>Follow-up</span></label></div>
-          <label id="diaryEntryDueRow" class="hr-followup-due" hidden><span>Follow-up due (optional)</span><input id="diaryEntryDueDate" type="date" disabled></label>
+          <div class="diary-marker-options" role="group" aria-label="Mark this entry"><strong>Mark:</strong><label><input id="diaryEntryImportant" type="checkbox"><span>Imp.</span></label><label><input id="diaryEntryMonthly" type="checkbox"><span>Monthly</span></label><label><input id="diaryEntryLearning" type="checkbox"><span>Learn</span></label><label><input id="diaryEntryFollowUp" type="checkbox"><span>Follow-up</span></label><label id="diaryEntryDueRow" class="hr-followup-due" hidden><span>Follow-up due (optional)</span><input id="diaryEntryDueDate" type="date" disabled></label></div>
           <p id="diaryEntryError" class="form-error" role="alert"></p>
           <button id="saveDiaryEntryButton" class="primary-btn diary-save-btn" type="submit">Save diary entry</button>
         </form>
