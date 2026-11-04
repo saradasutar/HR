@@ -635,6 +635,7 @@
         </section>
         <label class="security-timeout-field"><span>Sign out after inactivity</span><select id="sessionTimeoutMinutes" required><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30" selected>30 minutes</option><option value="60">1 hour</option><option value="120">2 hours</option></select><small>A warning appears one minute before sign-out. Clicking, typing, scrolling or touching resets the timer.</small></label>
         <div class="security-behaviour-note"><strong>Closing protection remains active</strong><span>Leaving or closing this dashboard ends the session. Reopening always requires login.</span></div>
+        <label class="security-timeout-field"><span>Viewer File Register access</span><input id="viewerFileRegisterEnabled" type="checkbox"><small>Admin-controlled. Requires backend module permissions.</small></label>
         <label class="security-timeout-field"><span>File Register Google Sheet link</span><input id="fileRegisterSpreadsheetUrl" type="url" placeholder="Paste Google Sheet link; leave blank to use HR spreadsheet"><small>The Apps Script owner must have Editor access. A tab named File Register is created automatically.</small></label>
       </div>
       <p id="securitySettingsError" class="form-error security-settings-error" role="alert"></p>
