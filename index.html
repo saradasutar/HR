@@ -670,10 +670,10 @@
       var button=document.getElementById('hrDeepClearButton');
       if(!button)return;
       button.addEventListener('click',async function(){
-        if(!window.confirm('Sign out and clear this dashboard\'s saved settings and local caches on this device? Employee records in Google Sheets will not be changed.'))return;
+        if(!window.confirm('Refresh this HR dashboard and reset only its service worker? Other dashboards and saved sessions will not be cleared.'))return;
         button.disabled=true;button.textContent='Clearing local data…';
-        try{localStorage.clear();sessionStorage.clear();}catch(e){}
-        try{if('caches' in window){var names=await caches.keys();await Promise.all(names.map(function(n){return caches.delete(n)}));}}catch(e){}
+        // Do not clear origin-wide storage: other dashboards share saradasutar.github.io.
+        // Refresh this page and unregister only the HR-scoped service worker.
         try{if('serviceWorker' in navigator){var registrations=await navigator.serviceWorker.getRegistrations();await Promise.all(registrations.filter(function(r){return r.scope.indexOf('/HR/')!==-1}).map(function(r){return r.unregister()}));}}catch(e){}
         window.location.replace(window.location.pathname+'?refresh='+Date.now());
       });
