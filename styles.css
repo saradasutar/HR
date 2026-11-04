@@ -323,3 +323,15 @@ mark.diary-search-hit{padding:0 1px;border-radius:3px;color:#0b2436;background:#
 .dashboard-sidebar::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
 .dashboard-sidebar .sidebar-quick-diary-category>label.hr-followup-due{cursor:default!important}
 .dashboard-sidebar .sidebar-quick-diary-category>label.hr-followup-due input[type=date]{cursor:text!important}
+
+
+/* Compact Office Diary editing: four independent marks in one non-clipping row. */
+.diary-entry-form .diary-marker-options{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;min-width:0}
+.diary-entry-form .diary-marker-options>strong{grid-column:1/-1;font-size:12px;line-height:1.2}
+.diary-entry-form .diary-marker-options>label:not(.hr-followup-due){min-width:0!important;max-width:100%;display:flex!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:center!important;gap:4px!important;padding:6px 3px!important;font-size:11px!important;white-space:nowrap!important}
+.diary-entry-form .diary-marker-options>label:not(.hr-followup-due) input[type=checkbox]{width:15px!important;height:15px!important;flex:none!important;margin:0!important}
+.diary-entry-form .diary-marker-options>label.hr-followup-due{grid-column:1/-1!important}
+@media(max-width:380px){.diary-entry-form .diary-marker-options{gap:3px!important}.diary-entry-form .diary-marker-options>label:not(.hr-followup-due){font-size:10px!important;padding:5px 2px!important}}
+/* No draggable scroll handle in the diary's left editor; wheel/touch scrolling still works. */
+.diary-entry-form{scrollbar-width:none!important;-ms-overflow-style:none!important;overflow-x:hidden!important}
+.diary-entry-form::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
