@@ -88,10 +88,11 @@
           <div class="sidebar-quick-diary-category" role="radiogroup" aria-label="Entry category">
             <label class="cat-work"><input type="radio" name="sidebarQuickDiaryCategory" value="Work" checked> <span>💼 Work</span></label>
             <label class="cat-learning"><input type="radio" name="sidebarQuickDiaryCategory" value="Learning"> <span>💡 Learning</span></label>
+            <label class="cat-work"><input type="radio" name="sidebarQuickDiaryCategory" value="Planning"> <span>Planning</span></label>
             <label class="cat-work"><input type="radio" name="sidebarQuickDiaryCategory" value="Meeting"> <span>Meeting</span></label>
             <label class="cat-work"><input type="radio" name="sidebarQuickDiaryCategory" value="Follow-up"> <span>Follow-up</span></label>
             <label class="cat-work"><input type="radio" name="sidebarQuickDiaryCategory" value="Decision"> <span>Decision</span></label>
-            <label class="cat-personal"><input type="radio" name="sidebarQuickDiaryCategory" value="Personal"> <span>🏠 Personal</span></label>
+            <label class="cat-personal"><input type="radio" name="sidebarQuickDiaryCategory" value="Personal note"> <span>🏠 Personal</span></label>
           </div>
           <button type="submit">Save</button>
         </form>
@@ -576,7 +577,7 @@
           <label class="diary-title-field"><span>Title * <b id="diaryTitleCounter" class="field-counter">0/140</b></span><input id="diaryEntryTitle" maxlength="140" required placeholder="Short, clear heading" autocomplete="off"></label>
           <label class="diary-details-field"><span>Details *</span><textarea id="diaryEntryDetails" maxlength="10000" rows="4" required placeholder="Write any number of lines… (Ctrl+Enter to save)"></textarea></label>
           <div class="diary-field-row">
-            <label><span>Category</span><select id="diaryEntryCategory"><option>Work</option><option>Meeting</option><option>Follow-up</option><option>Decision</option><option>Personal note</option><option>Learning</option></select></label>
+            <label><span>Category</span><select id="diaryEntryCategory"><option>Work</option><option>Planning</option><option>Meeting</option><option>Follow-up</option><option>Decision</option><option>Learning</option><option>Personal note</option></select></label>
             <label><span>Tags</span><input id="diaryEntryTags" maxlength="300" placeholder="RTI, Training, Administration"></label>
           </div>
           <label><span>Related employee</span><input id="diaryEntryEmployee" maxlength="160" list="diaryEmployeeSuggestions" placeholder="Optional"><datalist id="diaryEmployeeSuggestions"></datalist></label>
