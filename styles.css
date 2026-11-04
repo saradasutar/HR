@@ -316,3 +316,10 @@ mark.diary-search-hit{padding:0 1px;border-radius:3px;color:#0b2436;background:#
 .diary-entry-form .diary-marker-options>.hr-followup-due>span,
 .sidebar-quick-diary-category>.hr-followup-due>span{white-space:normal!important}
 @media(max-width:900px){.dashboard-sidebar:not(.collapsed){width:min(292px,86vw)!important;max-width:86vw!important}}
+
+
+/* Hide draggable-looking sidebar scrollbar without disabling wheel/touch/keyboard navigation. */
+.dashboard-sidebar{scrollbar-width:none!important;-ms-overflow-style:none!important;overflow-y:auto!important}
+.dashboard-sidebar::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
+.dashboard-sidebar .sidebar-quick-diary-category>label.hr-followup-due{cursor:default!important}
+.dashboard-sidebar .sidebar-quick-diary-category>label.hr-followup-due input[type=date]{cursor:text!important}
