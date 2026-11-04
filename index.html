@@ -58,6 +58,10 @@
           <button id="loginButton" class="primary-btn login-btn" type="submit">
             <span>Sign in securely</span><span aria-hidden="true">→</span>
           </button>
+          <div class="login-maintenance">
+            <button id="hrDeepClearButton" class="hr-deep-clear" type="button" aria-describedby="hrDeepClearHelp">↻ Deep clear cache &amp; refresh</button>
+            <p id="hrDeepClearHelp">Use if an old dashboard version remains visible. This signs you out and resets saved preferences on this device; it does not change Google Sheets data.</p>
+          </div>
           <p class="privacy-note">Employee information is requested only after successful authentication.</p>
           <p id="loginSessionSecurityNote" class="session-security-note">🔐 Automatic sign-out setting is being checked…</p>
           <div class="version-pair login-version-pair" aria-label="Application versions">
@@ -653,6 +657,27 @@
   <div id="loadingOverlay" class="loading-overlay" hidden><div class="spinner"></div><p id="loadingText">Loading…</p></div>
   <div id="toastRegion" class="toast-region" aria-live="polite"></div>
 
+  <style>
+    .login-maintenance{margin:12px 0 6px;padding:12px;border:1px solid #d7e4ee;border-radius:12px;background:#f5f9fc}
+    .hr-deep-clear{display:block;width:100%;padding:10px 12px;border:1px solid #8ca9bf;border-radius:9px;background:#fff;color:#12466a;font-weight:750;cursor:pointer}
+    .hr-deep-clear:hover,.hr-deep-clear:focus-visible{background:#e7f3fa;outline-offset:3px}
+    #hrDeepClearHelp{font-size:12px;line-height:1.5;color:#526579;margin:7px 0 0}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
+  </style>
+  <script>
+    document.addEventListener('DOMContentLoaded',function(){
+      var button=document.getElementById('hrDeepClearButton');
+      if(!button)return;
+      button.addEventListener('click',async function(){
+        if(!window.confirm('Sign out and clear this dashboard\'s saved settings and local caches on this device? Employee records in Google Sheets will not be changed.'))return;
+        button.disabled=true;button.textContent='Clearing local data…';
+        try{localStorage.clear();sessionStorage.clear();}catch(e){}
+        try{if('caches' in window){var names=await caches.keys();await Promise.all(names.map(function(n){return caches.delete(n)}));}}catch(e){}
+        try{if('serviceWorker' in navigator){var registrations=await navigator.serviceWorker.getRegistrations();await Promise.all(registrations.filter(function(r){return r.scope.indexOf('/HR/')!==-1}).map(function(r){return r.unregister()}));}}catch(e){}
+        window.location.replace(window.location.pathname+'?refresh='+Date.now());
+      });
+    });
+  </script>
   <script src="fr56.js?v=20261022-history"></script>
   <script src="app.js?v=20260901-row-edit-restored-1659"></script>
   <script defer src="./diary-hub-launcher.js?v=20261101-directfix3"></script>
