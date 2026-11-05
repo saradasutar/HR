@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
   <link rel="dns-prefetch" href="//script.google.com">
   <link rel="preload" href="app.js?v=20261105-office-mark-planning" as="script">
-  <link rel="stylesheet" href="styles.css?v=20261104-quick-marks-row-1">
+  <link rel="stylesheet" href="styles.css?v=20261105-work-diary-clean-layout">
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -564,7 +564,7 @@
       <div class="diary-body">
         <form id="diaryEntryForm" class="diary-entry-form">
           <input id="diaryEntryId" type="hidden">
-          <div class="diary-form-title"><strong id="diaryFormHeading">New diary entry</strong><div class="form-heading-actions"><button id="cancelDiaryEditButton" type="button" class="soft-btn" hidden>Cancel edit</button><button class="primary-btn quick-form-save" type="submit">Save</button></div></div>
+          <div class="diary-form-title"><strong id="diaryFormHeading">New diary entry</strong><div class="form-heading-actions"><button id="cancelDiaryEditButton" type="button" class="soft-btn" hidden>Cancel edit</button></div></div>
           <label><span>Date</span><input id="diaryEntryDate" type="date" required></label>
           <label class="diary-title-field"><span>Title * <b id="diaryTitleCounter" class="field-counter">0/140</b></span><input id="diaryEntryTitle" maxlength="140" required placeholder="Short, clear heading" autocomplete="off"></label>
           <label class="diary-details-field"><span>Details *</span><textarea id="diaryEntryDetails" maxlength="10000" rows="4" required placeholder="Write any number of lines… (Ctrl+Enter to save)"></textarea></label>
@@ -603,7 +603,7 @@
           <p id="diaryEmptyState" class="sticky-empty">No diary entries match this view.</p>
         </section>
       </div>
-      <footer class="modal-footer"><span>Completed targets and reminders are saved here automatically.</span><button class="soft-btn" type="button" data-close-dialog="workDiaryDialog">Close</button></footer>
+      
     </div>
   </dialog>
 
