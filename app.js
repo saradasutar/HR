@@ -2591,8 +2591,8 @@ document.addEventListener("change",event=>{
  if(target?.id==="diaryEntryFollowUp"||target?.name==="quickFollow")hrUpdateFollowupDates_();
 });
 function hrDiaryMarkingTags_(tags,monthly,followUp,learning,dueDate="",planning=false){
- const reserved=["monthly-highlight","needs-follow-up","mark-learning","needs-planning"];
- const parts=String(tags||"").split(",").map(x=>x.trim()).filter(Boolean).filter(x=>!reserved.includes(x.toLowerCase())&&!/^(follow-up-due|planned-for):\d{4}-\d{2}-\d{2}$/i.test(x));
+ const reserved=["monthly-highlight","needs-follow-up","mark-learning"]; // Retain existing planning tags on edits of older records.
+ const parts=String(tags||"").split(",").map(x=>x.trim()).filter(Boolean).filter(x=>!reserved.includes(x.toLowerCase())&&!/^follow-up-due:\d{4}-\d{2}-\d{2}$/i.test(x));
  if(monthly)parts.push("monthly-highlight");
  if(followUp)parts.push("needs-follow-up");
  if(planning)parts.push("needs-planning");
