@@ -13,8 +13,21 @@
   <link rel="preconnect" href="https://script.google.com">
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
   <link rel="dns-prefetch" href="//script.google.com">
-  <link rel="preload" href="app.js?v=20261105-office-mark-planning" as="script">
+  <link rel="preload" href="app.js?v=20261105-followup-only-monthly" as="script">
   <link rel="stylesheet" href="styles.css?v=20261105-work-diary-clean-layout">
+<style id="hr-monthly-highlight-20261105">
+#workDiaryDialog .diary-marker-options .hr-monthly-highlight,
+#dashboardSidebar .sidebar-quick-diary-category .hr-monthly-highlight,
+.sidebar-quick-diary-category .hr-monthly-highlight{
+ margin-left:auto!important;background:#fff7e4!important;
+ border:1px solid #ead19b!important;color:#885a17!important;
+ border-radius:9px!important;padding:6px 9px!important;font-weight:800!important;
+}
+#workDiaryDialog .diary-marker-options .hr-monthly-highlight:has(input:checked),
+.sidebar-quick-diary-category .hr-monthly-highlight:has(input:checked){
+ background:#ffebbc!important;border-color:#ce9d34!important;
+}
+</style>
 </head>
 <body>
   <noscript><div class="noscript">JavaScript is required to use this dashboard.</div></noscript>
@@ -679,6 +692,6 @@
   }());
   </script>
   <script src="fr56.js?v=20261104-permissions-2"></script>
-  <script src="app.js?v=20261105-office-mark-planning"></script>
+  <script src="app.js?v=20261105-followup-only-monthly"></script>
 </body>
 </html>
