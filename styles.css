@@ -386,3 +386,111 @@ mark.diary-search-hit{padding:0 1px;border-radius:3px;color:#0b2436;background:#
  .dashboard-sidebar .sidebar-quick-diary-category>label:not(.hr-followup-due){font-size:8px!important;gap:2px!important;padding:4px 1px!important}
  .dashboard-sidebar .sidebar-quick-diary-category>label:not(.hr-followup-due)>input[type=checkbox]{width:11px!important;height:11px!important;min-width:11px!important;flex-basis:11px!important}
 }
+
+
+/* Work Diary · focused writing and reading layout · 2026-11-05 */
+dialog#workDiaryDialog.work-diary-modal{
+ width:min(1440px,calc(100vw - 34px))!important;
+ max-width:1440px!important;max-height:calc(100dvh - 28px)!important;
+ height:min(860px,calc(100dvh - 28px))!important;
+ margin:auto!important;padding:0!important;border-radius:18px!important;
+ overflow:hidden!important;box-shadow:0 28px 80px rgba(10,31,48,.3)!important;
+}
+#workDiaryDialog .work-diary-sheet{
+ height:100%!important;max-height:100%!important;min-height:0!important;
+ display:flex!important;flex-direction:column!important;background:#f4f8fb!important;
+}
+#workDiaryDialog .diary-header{
+ flex:0 0 auto!important;min-height:78px!important;
+ padding:13px 20px!important;
+ background:linear-gradient(105deg,#095a67,#0b827e)!important;
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+}
+#workDiaryDialog .diary-header h2{font-size:22px!important;line-height:1.15!important;margin:0 0 3px!important}
+#workDiaryDialog .diary-header .eyebrow{font-size:10px!important;letter-spacing:.11em!important;margin:0 0 3px!important}
+#workDiaryDialog .diary-header p:last-child{font-size:12px!important;line-height:1.35!important;margin:0!important;opacity:.9}
+#workDiaryDialog .diary-header .modal-close{flex:0 0 36px!important;width:36px!important;height:36px!important;min-height:36px!important}
+#workDiaryDialog .diary-body{
+ flex:1 1 auto!important;min-height:0!important;overflow:hidden!important;
+ display:grid!important;grid-template-columns:minmax(350px,38%) minmax(0,1fr)!important;
+ gap:0!important;background:#f6f9fc!important;
+}
+#workDiaryDialog #diaryEntryForm{
+ min-height:0!important;min-width:0!important;overflow-y:auto!important;overscroll-behavior:contain;
+ padding:16px 18px 22px!important;gap:10px!important;
+ align-content:start!important;background:#fff!important;
+ border-right:1px solid #dce8ed!important;
+ background-image:none!important;scrollbar-width:thin!important;
+ scrollbar-color:#afc6c9 transparent!important;
+}
+#workDiaryDialog #diaryEntryForm::-webkit-scrollbar{width:5px!important}
+#workDiaryDialog #diaryEntryForm::-webkit-scrollbar-track{background:transparent!important}
+#workDiaryDialog #diaryEntryForm::-webkit-scrollbar-thumb{background:#aac3c8!important;border:0!important;border-radius:8px!important}
+#workDiaryDialog .diary-form-title{
+ position:sticky!important;top:-16px!important;z-index:5!important;
+ padding:9px 0 11px!important;margin:-8px 0 2px!important;
+ background:rgba(255,255,255,.98)!important;border-bottom:1px solid #e8eef0!important;
+ gap:10px!important;min-height:43px!important;
+}
+#workDiaryDialog .diary-form-title strong{font-size:15px!important;color:#174b5d!important}
+#workDiaryDialog .diary-entry-form label{font-size:12px!important;gap:5px!important;min-width:0!important;color:#365467!important}
+#workDiaryDialog .diary-entry-form input,
+#workDiaryDialog .diary-entry-form textarea,
+#workDiaryDialog .diary-entry-form select{
+ min-height:40px!important;padding:9px 11px!important;
+ font-size:14px!important;line-height:1.45!important;
+ font-weight:550!important;border:1px solid #cbdce1!important;
+ border-radius:9px!important;color:#243c4d!important;background:#fff!important;
+}
+#workDiaryDialog .diary-entry-form :is(input,textarea,select):focus{
+ outline:2px solid #38a99f!important;outline-offset:0!important;border-color:#1b9b8f!important;
+}
+#workDiaryDialog #diaryEntryDetails{min-height:108px!important;resize:vertical}
+#workDiaryDialog .diary-marker-options{
+ display:flex!important;flex-wrap:wrap!important;gap:6px!important;
+ padding:10px!important;background:#f4f9f8!important;border:1px solid #e1eeeb!important;
+ border-radius:10px!important;margin-top:0!important;
+}
+#workDiaryDialog .diary-marker-options>strong{width:100%!important;color:#386273!important;font-size:12px!important}
+#workDiaryDialog .diary-marker-options label:not(.hr-followup-due){
+ display:inline-flex!important;align-items:center!important;gap:5px!important;
+ padding:6px 9px!important;min-height:33px!important;border-radius:8px!important;
+ background:#fff!important;border:1px solid #d5e5e3!important;font-size:12px!important;
+}
+#workDiaryDialog .diary-marker-options label input[type=checkbox]{width:15px!important;height:15px!important;min-height:0!important}
+#workDiaryDialog .diary-marker-options .hr-followup-due{width:100%!important}
+#workDiaryDialog #saveDiaryEntryButton{
+ position:sticky!important;bottom:-22px!important;z-index:5!important;
+ width:100%!important;min-height:44px!important;padding:11px 14px!important;
+ border-radius:10px!important;background:#0c897c!important;color:#fff!important;
+ font-size:14px!important;box-shadow:0 -5px 15px rgba(255,255,255,.85)!important;
+}
+#workDiaryDialog .diary-browser{
+ min-width:0!important;min-height:0!important;overflow-y:auto!important;
+ scrollbar-width:thin!important;scrollbar-color:#b9cad2 transparent!important;
+ padding:16px 18px 24px!important;background:#f7fafc!important;
+}
+#workDiaryDialog .diary-view-tabs{gap:6px!important;overflow-x:auto!important;padding:0 0 10px!important}
+#workDiaryDialog .diary-view-tabs button{
+ font-size:13px!important;padding:9px 13px!important;min-height:38px!important;
+ border-radius:9px!important;box-shadow:none!important;
+}
+#workDiaryDialog .diary-search-row{gap:8px!important;margin:4px 0 10px!important}
+#workDiaryDialog .diary-filter-row{display:flex!important;flex-wrap:wrap!important;gap:8px!important;align-items:center!important}
+#workDiaryDialog .diary-filter-row>select{min-width:112px!important;max-width:175px!important;flex:1 1 115px!important;font-size:12px!important}
+#workDiaryDialog .diary-card{box-shadow:0 2px 9px rgba(16,60,78,.05)!important;padding:13px 15px!important;border-radius:11px!important}
+@media(max-width:850px){
+ dialog#workDiaryDialog.work-diary-modal{width:calc(100vw - 16px)!important;height:calc(100dvh - 16px)!important;max-height:calc(100dvh - 16px)!important}
+ #workDiaryDialog .diary-body{display:flex!important;flex-direction:column!important;overflow-y:auto!important}
+ #workDiaryDialog #diaryEntryForm{flex:0 0 auto!important;overflow:visible!important;border-right:0!important;border-bottom:1px solid #dce8ed!important}
+ #workDiaryDialog .diary-browser{flex:0 0 auto!important;min-height:380px!important;overflow:visible!important}
+ #workDiaryDialog .diary-form-title{position:static!important;margin:0!important}
+ #workDiaryDialog #saveDiaryEntryButton{position:static!important}
+}
+@media(max-width:520px){
+ #workDiaryDialog .diary-header{padding:10px 13px!important;min-height:69px!important}
+ #workDiaryDialog .diary-header h2{font-size:19px!important}
+ #workDiaryDialog .diary-header p:last-child{display:none!important}
+ #workDiaryDialog #diaryEntryForm{padding:12px!important}
+ #workDiaryDialog .diary-browser{padding:13px 12px 22px!important}
+}
