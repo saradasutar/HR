@@ -2568,7 +2568,7 @@ function diaryEntryMarkup(e) {
   return `<article class="diary-card${e.important?" is-important":""}${e.learning?" is-learning-entry":""}${i?" is-personal-entry":""}"><header><time>${escapeHtml(formatDate(e.entryDate))}</time><div>${r}</div></header><h4>${highlightDiaryText(e.title,n)}</h4>${a?`<p>${highlightDiaryText(e.details,n)}</p>`:""}<div class="diary-meta">${e.category?`<span>${escapeHtml(e.category)}</span>`:""}${e.tags?`<span># ${escapeHtml(e.tags)}</span>`:""}${e.relatedEmployee?`<span>👤 ${escapeHtml(e.relatedEmployee)}</span>`:""}${e.createdBy?`<span>By ${escapeHtml(e.createdBy)}</span>`:""}</div><footer>${e.link?`<a href="${escapeAttribute(e.link)}" target="_blank" rel="noopener">🔗 Open link ↗</a>`:"<span></span>"}${t?`<div><button type="button" data-edit-diary="${escapeAttribute(e.id)}">Edit</button><button type="button" class="delete" data-delete-diary="${escapeAttribute(e.id)}">Delete</button></div>`:""}</footer></article>`
 }
 function hrDiaryFlag_(tags, name) { return String(tags || "").split(",").some(x => x.trim().toLowerCase() === name); }
-function hrDiaryDueFromTags_(tags){const m=String(tags||"").match(/(?:^|,)\s*follow-up-due:(\d{4}-\d{2}-\d{2})(?:\s*,|$)/i);return m?m[1]:"";}
+function hrDiaryDueFromTags_(tags){const m=String(tags||"").match(/(?:^|,)\s*(?:follow-up-due|planned-for):(\d{4}-\d{2}-\d{2})(?:\s*,|$)/i);return m?m[1]:"";}
 function hrUpdateFollowupDates_(){
  const fullCheckbox=refs.diaryEntryFollowUp||document.getElementById("diaryEntryFollowUp");
  const fullRow=refs.diaryEntryDueRow||document.getElementById("diaryEntryDueRow");
@@ -2576,25 +2576,33 @@ function hrUpdateFollowupDates_(){
  const quickCheckbox=refs.sidebarQuickDiaryForm?.elements.namedItem("quickFollow")||document.querySelector('#sidebarQuickDiaryForm input[name="quickFollow"]');
  const quickRow=refs.sidebarQuickDiaryDueRow||document.getElementById("sidebarQuickDiaryDueRow");
  const quickDate=refs.sidebarQuickDiaryDueDate||document.getElementById("sidebarQuickDiaryDueDate");
- const full=!!fullCheckbox?.checked,quick=!!quickCheckbox?.checked;
+ const fullPlan=!!document.getElementById("diaryEntryPlanning")?.checked;
+ const quickPlan=!!refs.sidebarQuickDiaryForm?.elements.namedItem("quickPlan")?.checked;
+ const full=!!fullCheckbox?.checked||fullPlan,quick=!!quickCheckbox?.checked||quickPlan;
  if(fullRow){fullRow.hidden=!full;fullRow.style.display=full?"flex":"none";}
  if(fullDate)fullDate.disabled=!full;
  if(quickRow){quickRow.hidden=!quick;quickRow.style.display=quick?"flex":"none";}
  if(quickDate)quickDate.disabled=!quick;
+ const fullCaption=document.getElementById("diaryEntryDueCaption"),quickCaption=document.getElementById("sidebarQuickDiaryDueCaption");
+ if(fullCaption)fullCaption.textContent=fullCheckbox?.checked?"Follow-up due (optional)":"Planning due (optional)";
+ if(quickCaption)quickCaption.textContent=quickCheckbox?.checked?"Follow-up due (optional)":"Planning due (optional)";
 }
 /* Delegated fallback for forms with dynamic or delayed initialization. */
 document.addEventListener("change",event=>{
  const target=event.target;
- if(target?.id==="diaryEntryFollowUp"||target?.name==="quickFollow")hrUpdateFollowupDates_();
+ if(target?.id==="diaryEntryFollowUp"||target?.id==="diaryEntryPlanning"||target?.name==="quickFollow"||target?.name==="quickPlan")hrUpdateFollowupDates_();
 });
-function hrDiaryMarkingTags_(tags,monthly,followUp,learning,dueDate=""){
- const reserved=["monthly-highlight","needs-follow-up","mark-learning"];
- const parts=String(tags||"").split(",").map(x=>x.trim()).filter(Boolean).filter(x=>!reserved.includes(x.toLowerCase())&&!/^follow-up-due:\d{4}-\d{2}-\d{2}$/i.test(x));
- if(monthly)parts.push("monthly-highlight");if(followUp)parts.push("needs-follow-up");if(learning)parts.push("mark-learning");
- if(followUp&&/^\d{4}-\d{2}-\d{2}$/.test(dueDate))parts.push("follow-up-due:"+dueDate);
+function hrDiaryMarkingTags_(tags,monthly,followUp,learning,dueDate="",planning=false){
+ const reserved=["monthly-highlight","needs-follow-up","mark-learning","needs-planning"];
+ const parts=String(tags||"").split(",").map(x=>x.trim()).filter(Boolean).filter(x=>!reserved.includes(x.toLowerCase())&&!/^(follow-up-due|planned-for):\d{4}-\d{2}-\d{2}$/i.test(x));
+ if(monthly)parts.push("monthly-highlight");
+ if(followUp)parts.push("needs-follow-up");
+ if(planning)parts.push("needs-planning");
+ if(learning)parts.push("mark-learning");
+ if((followUp||planning)&&/^\d{4}-\d{2}-\d{2}$/.test(dueDate))parts.push((followUp?"follow-up-due:":"planned-for:")+dueDate);
  return [...new Set(parts)].join(", ").slice(0,300);
 }
-function hrDiaryMatchesCategory_(r,c){if(!c)return true;const tags=String(r.tags||"").toLowerCase().split(",").map(x=>x.trim());if(c==="Important")return !!r.important;if(c==="Monthly")return tags.includes("monthly-highlight");if(c==="Learning")return !!r.learning||tags.includes("mark-learning")||r.category==="Learning/Knowledge";if(c==="Follow-up")return tags.includes("needs-follow-up")||r.category==="Follow-up";if(c==="General Work")return !r.important&&!r.learning&&!tags.some(x=>["monthly-highlight","mark-learning","needs-follow-up"].includes(x))&&["General Work","Work",""].includes(r.category||"");return r.category===c;}
+function hrDiaryMatchesCategory_(r,c){if(!c)return true;const tags=String(r.tags||"").toLowerCase().split(",").map(x=>x.trim());if(c==="Important")return !!r.important;if(c==="Monthly")return tags.includes("monthly-highlight");if(c==="Learning")return !!r.learning||tags.includes("mark-learning")||r.category==="Learning/Knowledge";if(c==="Follow-up")return tags.includes("needs-follow-up")||r.category==="Follow-up";if(c==="Planning")return tags.includes("needs-planning")||r.category==="Planning";if(c==="General Work")return !r.important&&!r.learning&&!tags.some(x=>["monthly-highlight","mark-learning","needs-follow-up","needs-planning"].includes(x))&&["General Work","Work",""].includes(r.category||"");return r.category===c;}
 async function saveDiaryEntry(e) {
   e.preventDefault(), refs.diaryEntryError.textContent = "";
   const t = {
@@ -2603,7 +2611,7 @@ async function saveDiaryEntry(e) {
     title: refs.diaryEntryTitle.value.trim(),
     details: refs.diaryEntryDetails.value.trim(),
     category: refs.diaryEntryLearning.checked ? "Learning/Knowledge" : "General Work",
-    tags: hrDiaryMarkingTags_(refs.diaryEntryTags.value.trim(), refs.diaryEntryMonthly.checked, refs.diaryEntryFollowUp.checked, refs.diaryEntryLearning.checked, refs.diaryEntryDueDate.value),
+    tags: hrDiaryMarkingTags_(refs.diaryEntryTags.value.trim(), refs.diaryEntryMonthly.checked, refs.diaryEntryFollowUp.checked, refs.diaryEntryLearning.checked, refs.diaryEntryDueDate.value, !!document.getElementById("diaryEntryPlanning")?.checked),
     relatedEmployee: refs.diaryEntryEmployee.value.trim(),
     link: "",
     visibility: refs.diaryEntryVisibility.value,
@@ -2629,7 +2637,7 @@ function handleDiaryAction(e) {
 
 function editDiaryEntry(e) {
   const t = state.diaryEntries.find(t => t.id === e);
-  t && (state.diaryEditId = e, refs.diaryEntryId.value = e, refs.diaryEntryDate.value = t.entryDate, refs.diaryEntryTitle.value = t.title, refs.diaryEntryDetails.value = t.details, refs.diaryEntryCategory.value = t.category || "General Work", refs.diaryEntryTags.value = t.tags || "", refs.diaryEntryEmployee.value = t.relatedEmployee || "", refs.diaryEntryVisibility.value = t.visibility || "Private", refs.diaryEntryLearning.checked = Boolean(t.learning)||hrDiaryFlag_(t.tags,"mark-learning")||t.category==="Learning/Knowledge", refs.diaryEntryImportant.checked = Boolean(t.important), refs.diaryEntryMonthly.checked = hrDiaryFlag_(t.tags,"monthly-highlight"), refs.diaryEntryFollowUp.checked = hrDiaryFlag_(t.tags,"needs-follow-up"), refs.diaryEntryDueDate.value = hrDiaryDueFromTags_(t.tags), hrUpdateFollowupDates_(), refs.diaryFormHeading.textContent = "Edit diary entry", refs.cancelDiaryEditButton.hidden = !1, updateDiaryTitleCounter(), autoGrowDiaryDetails(), refs.diaryEntryTitle.focus())
+  t && (state.diaryEditId = e, refs.diaryEntryId.value = e, refs.diaryEntryDate.value = t.entryDate, refs.diaryEntryTitle.value = t.title, refs.diaryEntryDetails.value = t.details, refs.diaryEntryCategory.value = t.category || "General Work", refs.diaryEntryTags.value = t.tags || "", refs.diaryEntryEmployee.value = t.relatedEmployee || "", refs.diaryEntryVisibility.value = t.visibility || "Private", refs.diaryEntryLearning.checked = Boolean(t.learning)||hrDiaryFlag_(t.tags,"mark-learning")||t.category==="Learning/Knowledge", refs.diaryEntryImportant.checked = Boolean(t.important), refs.diaryEntryMonthly.checked = hrDiaryFlag_(t.tags,"monthly-highlight"), refs.diaryEntryFollowUp.checked = hrDiaryFlag_(t.tags,"needs-follow-up"), document.getElementById("diaryEntryPlanning").checked=hrDiaryFlag_(t.tags,"needs-planning"), refs.diaryEntryDueDate.value = hrDiaryDueFromTags_(t.tags), hrUpdateFollowupDates_(), refs.diaryFormHeading.textContent = "Edit diary entry", refs.cancelDiaryEditButton.hidden = !1, updateDiaryTitleCounter(), autoGrowDiaryDetails(), refs.diaryEntryTitle.focus())
 }
 async function deleteDiaryEntry(e) {
   const t = state.diaryEntries.find(t => t.id === e);
@@ -2746,14 +2754,14 @@ async function saveSidebarQuickDiaryEntry(e) {
   e.preventDefault(), refs.sidebarQuickDiaryError.textContent = "";
   const t = refs.sidebarQuickDiaryInput.value.trim();
   if (!t) return;
-  const form=refs.sidebarQuickDiaryForm,imp=!!form.elements.namedItem("quickImp")?.checked,month=!!form.elements.namedItem("quickMonthly")?.checked,learn=!!form.elements.namedItem("quickLearn")?.checked,follow=!!form.elements.namedItem("quickFollow")?.checked;
+  const form=refs.sidebarQuickDiaryForm,imp=!!form.elements.namedItem("quickImp")?.checked,month=!!form.elements.namedItem("quickMonthly")?.checked,learn=!!form.elements.namedItem("quickLearn")?.checked,follow=!!form.elements.namedItem("quickFollow")?.checked,plan=!!form.elements.namedItem("quickPlan")?.checked;
   const r = {
     id: "",
     entryDate: isoToday(),
     title: deriveQuickDiaryTitle(t),
     details: t,
     category: learn ? "Learning/Knowledge" : "General Work",
-    tags: hrDiaryMarkingTags_("",month,follow,learn,refs.sidebarQuickDiaryDueDate.value),
+    tags: hrDiaryMarkingTags_("",month,follow,learn,refs.sidebarQuickDiaryDueDate.value,plan),
     relatedEmployee: "",
     link: "",
     visibility: "Private",
